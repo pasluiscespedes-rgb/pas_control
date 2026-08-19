@@ -1,0 +1,58 @@
+{% extends "principal/base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">⚠️ Anular póliza</h4>
+        </div>
+
+        <div class="card-body">
+
+            <p>
+                Está por anular la póliza
+                <strong>N° {{ poliza.numero_poliza }}</strong>.
+            </p>
+
+            <p class="text-danger">
+                Esta acción quedará registrada y la póliza no será eliminada
+                del sistema.
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="motivo_anulacion" class="form-label">
+                        Motivo de la anulación
+                    </label>
+
+                    <textarea
+                        name="motivo_anulacion"
+                        id="motivo_anulacion"
+                        class="form-control"
+                        rows="4"
+                        required
+                        placeholder="Indique el motivo por el cual se anula la póliza..."
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger">
+                    Confirmar anulación
+                </button>
+
+                <a href="{% url 'ver_poliza' poliza.id %}"
+                   class="btn btn-secondary">
+                    Cancelar
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

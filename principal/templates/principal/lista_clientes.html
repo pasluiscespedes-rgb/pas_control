@@ -1,0 +1,109 @@
+{% extends "principal/base.html" %}
+{% load static %}
+
+{% block title %}
+Gestión de Clientes | FORTEX
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'principal/css/clientes.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+
+<section class="pagina-clientes">
+
+    <div class="encabezado-clientes">
+
+        <div class="titulo-clientes">
+            <h1>👥 Gestión de Clientes</h1>
+            <p>
+                Total de clientes registrados:
+                <strong>{{ cantidad_clientes }}</strong>
+            </p>
+        </div>
+
+        <a href="{% url 'crear_cliente' %}"
+           class="boton-nuevo-cliente">
+            ➕ Nuevo Cliente
+        </a>
+
+    </div>
+
+    <div class="panel-busqueda">
+
+        <form method="get"
+              class="formulario-busqueda">
+
+            <input
+                type="text"
+                name="q"
+                placeholder="Buscar por apellido, nombre, DNI o WhatsApp..."
+                value="{{ busqueda }}"
+            >
+
+            <button type="submit"
+                    class="boton-buscar">
+                🔍 Buscar
+            </button>
+
+        </form>
+
+    </div>
+
+    <div class="tabla-clientes-contenedor">
+
+        <table class="tabla-clientes">
+
+            <thead>
+                <tr>
+                    <th>Apellido</th>
+                    <th>Nombre</th>
+                    <th>DNI</th>
+                    <th>WhatsApp</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for cliente in clientes %}
+
+                    <tr>
+                        <td class="nombre-cliente">
+                            {{ cliente.apellido }}
+                        </td>
+
+                        <td>{{ cliente.nombre }}</td>
+                        <td>{{ cliente.dni }}</td>
+                        <td>{{ cliente.whatsapp }}</td>
+
+                        <td>
+                            <a href="{% url 'detalle_cliente' cliente.id %}"
+                               class="boton-ver">
+                                👁 Ver
+                            </a>
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="5"
+                            class="sin-clientes">
+                            No se encontraron clientes.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

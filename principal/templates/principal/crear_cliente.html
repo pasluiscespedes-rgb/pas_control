@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Cliente - Fortex</title>
+    <link rel="stylesheet" href="{% static 'principal/css/estilos.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav class="fortex-navbar">
+    <div class="fortex-navbar-contenido">
+        <span class="fortex-marca">
+            🐺 FORTEX Gestión Integral
+        </span>
+
+        <a href="/" class="fortex-volver">
+            ⬅ Volver al Escritorio
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card shadow">
+        <div class="card-body">
+
+            <h3>👤 Nuevo Cliente</h3>
+
+            <form
+              method="POST"
+              id="form-cliente"
+              onsubmit="return confirmarGuardadoCliente(event)"
+>
+                {% csrf_token %}
+
+                {% if errores %}
+                   <div class="alerta-errores">
+                     <strong>⚠️ No se pudo guardar el cliente</strong>
+
+                     <ul>
+                       {% for error in errores %}
+                         <li>{{ error }}</li>
+                       {% endfor %}
+                      </ul>
+                    </div>
+                {% endif %}
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="apellido"
+                  placeholder="Apellido"
+                  value="{{ datos.apellido|default:'' }}"
+                  required
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="nombre"
+                  placeholder="Nombre"
+                  value="{{ datos.nombre|default:'' }}"
+                  required
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="dni"
+                  placeholder="DNI"
+                  value="{{ datos.dni|default:'' }}"
+                  required
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="whatsapp"
+                  placeholder="WhatsApp"
+                  value="{{ datos.whatsapp|default:'' }}"
+                  required
+                >
+
+                <label>Fecha de nacimiento</label>
+
+                <input
+                  class="form-control mb-3"
+                  type="date"
+                  name="fecha_nacimiento"
+                  placeholder="Fecha nacimiento"
+                  value="{{ datos.fecha_nacimiento|default:'' }}"
+                  required
+                >
+
+                <hr>
+
+<h5>📍 Domicilio</h5>
+
+<input class="form-control mb-3" type="text" name="calle" placeholder="Calle">
+
+<div class="row">
+    <div class="col-md-3">
+        <input class="form-control mb-3" type="text" name="numero" placeholder="Número">
+    </div>
+
+    <div class="col-md-3">
+        <input class="form-control mb-3" type="text" name="piso" placeholder="Piso">
+    </div>
+
+    <div class="col-md-3">
+        <input class="form-control mb-3" type="text" name="departamento" placeholder="Departamento">
+    </div>
+
+    <div class="col-md-3">
+        <input class="form-control mb-3" type="text" name="codigo_postal" placeholder="Código Postal">
+    </div>
+</div>
+
+<input class="form-control mb-3" type="text" name="barrio" placeholder="Barrio">
+<input class="form-control mb-3" type="text" name="localidad" placeholder="Localidad">
+
+<select class="form-select mb-3" name="provincia">
+    <option value="">Seleccione una provincia</option>
+    <option>Buenos Aires</option>
+    <option>CABA</option>
+    <option>Catamarca</option>
+    <option>Chaco</option>
+    <option>Chubut</option>
+    <option>Córdoba</option>
+    <option>Corrientes</option>
+    <option>Entre Ríos</option>
+    <option>Formosa</option>
+    <option>Jujuy</option>
+    <option>La Pampa</option>
+    <option>La Rioja</option>
+    <option>Mendoza</option>
+    <option>Misiones</option>
+    <option>Neuquén</option>
+    <option>Río Negro</option>
+    <option>Salta</option>
+    <option>San Juan</option>
+    <option>San Luis</option>
+    <option>Santa Cruz</option>
+    <option>Santa Fe</option>
+    <option>Santiago del Estero</option>
+    <option>Tierra del Fuego</option>
+    <option>Tucumán</option>
+</select>
+
+<hr>
+
+<h5>📞 Contacto</h5>
+
+<input class="form-control mb-3" type="email" name="email" placeholder="Correo electrónico">
+
+<input class="form-control mb-3" type="text" name="telefono_alternativo" placeholder="Teléfono alternativo">
+
+<textarea class="form-control mb-3" name="observaciones" rows="4" placeholder="Observaciones"></textarea>
+                
+
+                <div class="grupo-botones">
+
+                    <button class="btn btn-success" type="submit">
+                       💾 Guardar Cliente
+                    </button>
+
+                    <a href="/" class="btn btn-secondary">
+                       Cancelar
+                    </a>
+
+                </div>
+                
+            </form>
+            <script>
+            function confirmarGuardadoCliente(event) {
+              const formulario = event.target;
+
+              if (!formulario.checkValidity()) {
+                  formulario.reportValidity();
+                  return false;
+            }
+
+              return confirm(
+                "¿Confirma que desea registrar este cliente en FORTEX?"
+            );
+}
+</script>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

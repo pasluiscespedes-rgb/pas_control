@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de cobros | FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+            color: #263238;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,.08);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 11px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #172b4d;
+            color: white;
+        }
+
+        .pagado {
+            color: #198754;
+            font-weight: bold;
+        }
+
+        .anulado {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .boton-anular {
+            display: inline-block;
+            padding: 6px 10px;
+            background: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .volver {
+            display: inline-block;
+            margin-bottom: 15px;
+            text-decoration: none;
+            color: #0d6efd;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <a class="volver" href="{% url 'inicio' %}">
+        ← Volver al escritorio
+    </a>
+
+    <h1>Historial de cobros</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Póliza</th>
+                <th>Cuota</th>
+                <th>Importe</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for cobro in cobros %}
+            <tr>
+                <td>#{{ cobro.id }}</td>
+                <td>{{ cobro.fecha_pago }}</td>
+                <td>{{ cobro.cliente }}</td>
+                <td>{{ cobro.poliza }}</td>
+                <td>{{ cobro.cuota }}</td>
+                <td>$ {{ cobro.importe }}</td>
+
+                <td>
+                    {% if cobro.anulado %}
+                        <span class="anulado">ANULADO</span>
+                    {% else %}
+                        <span class="pagado">PAGADO</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if cobro.anulado %}
+                        <strong>Motivo:</strong>
+                        {{ cobro.motivo_anulacion|default:"Sin especificar" }}
+                        <br>
+                        <strong>Anulado por:</strong>
+                        {{ cobro.anulado_por|default:"Sin usuario registrado" }}
+
+                        <br>
+                        <strong>Fecha de anulación:</strong>
+                        {{ cobro.fecha_anulacion|date:"d/m/Y H:i" }}
+                    {% else %}
+                        <a
+                            class="boton-anular"
+                            href="{% url 'cobros:anular_cobro' cobro.id %}">
+                            Anular
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% empty %}
+
+            <tr>
+                <td colspan="8">
+                    No hay cobros registrados.
+                </td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>

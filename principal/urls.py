@@ -1,0 +1,37 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.inicio, name="inicio"),
+    path("clientes/",views.lista_clientes,name="lista_clientes",),
+    path("clientes/nuevo/", views.crear_cliente, name="crear_cliente"),
+    path("clientes/<int:cliente_id>/", views.detalle_cliente, name="detalle_cliente"),
+    path("clientes/<int:cliente_id>/editar/",views.editar_cliente,name="editar_cliente",),
+    path("riesgos/nuevo/", views.crear_riesgo, name="crear_riesgo"),
+    path("riesgos/<int:riesgo_id>/editar/",views.editar_riesgo,name="editar_riesgo",),
+    path("polizas/nueva/", views.crear_poliza, name="crear_poliza"),
+    path("clientes/<int:cliente_id>/poliza/nueva/", views.crear_poliza, name="crear_poliza_cliente"),
+    path("polizas/<int:poliza_id>/editar/",views.editar_poliza,name="editar_poliza",),
+    path("cobros/nuevo/", views.crear_cobro_seguro, name="crear_cobro"),
+    path("clientes/<int:cliente_id>/cobro/nuevo/", views.crear_cobro_seguro, name="crear_cobro_cliente"),
+    path("recibos/<int:recibo_id>/", views.ver_recibo, name="ver_recibo"),
+    path("polizas/<int:poliza_id>/", views.ver_poliza, name="ver_poliza"),
+    path("clientes/<int:cliente_id>/recibo/", views.ver_ultimo_recibo, name="ver_ultimo_recibo"),
+    path("polizas/<int:poliza_id>/completar/", views.completar_poliza, name="completar_poliza"),
+    path("polizas/<int:poliza_id>/pdf/", views.imprimir_poliza, name="imprimir_poliza"),
+    path("recibos/<int:recibo_id>/pdf/", views.recibo_pdf, name="recibo_pdf"),
+    path("vencimientos/",views.centro_vencimientos,name="centro_vencimientos"),
+    path("vencimientos/avisos-del-dia/",views.avisos_del_dia,name="avisos_del_dia"),
+    path("caja/", views.caja_diaria, name="caja_diaria"),
+    path("caja/turno/abrir/", views.abrir_turno, name="abrir_turno"),
+    path("caja/historial-turnos/",views.historial_turnos,name="historial_turnos",),    
+    path("caja/pdf/", views.caja_pdf, name="caja_pdf"),
+    path("caja/cerrar/", views.cerrar_caja, name="cerrar_caja"),
+    path("caja/gasto/nuevo/", views.crear_gasto, name="crear_gasto"),
+    path("reportes/comisiones/",views.reporte_comisiones,name="reporte_comisiones",),
+    path("polizas/<int:poliza_id>/anular/",views.anular_poliza,name="anular_poliza",), 
+    
+    
+    
+    
+]

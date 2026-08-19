@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cierre de Caja</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            margin:40px;
+        }
+
+        h1,h2,h3{
+            text-align:center;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        table, th, td{
+            border:1px solid black;
+        }
+
+        th, td{
+            padding:8px;
+            text-align:left;
+        }
+
+        .resumen{
+            margin-top:25px;
+        }
+
+        .firma{
+            margin-top:70px;
+            text-align:right;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1>FORTEX Gestión Integral</h1>
+<h2>Cierre Diario de Caja</h2>
+
+<p><strong>Fecha:</strong> {{ hoy }}</p>
+
+<div class="resumen">
+    <p><strong>Total:</strong> ${{ total }}</p>
+    <p><strong>Efectivo:</strong> ${{ efectivo }}</p>
+    <p><strong>Tarjeta:</strong> ${{ tarjeta }}</p>
+    <p><strong>CBU:</strong> ${{ transferencia }}</p>
+    <p><strong>Gastos del día:</strong> ${{ total_gastos|floatformat:2 }}</p>
+    <p><strong>Saldo neto:</strong> ${{ saldo_neto|floatformat:2 }}</p>
+</div>
+<h3>Gastos del día</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Concepto</th>
+            <th>Importe</th>
+            <th>Usuario</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for gasto in gastos %}
+        <tr>
+            <td>{{ gasto.concepto }}</td>
+            <td>${{ gasto.importe|floatformat:2 }}</td>
+            <td>{{ gasto.usuario|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No se registraron gastos.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<table>
+
+<tr>
+    <th>Cliente</th>
+    <th>Póliza</th>
+    <th>Forma de pago</th>
+    <th>Importe</th>
+</tr>
+
+{% for cobro in cobros %}
+
+<tr>
+    <td>{{ cobro.cliente }}</td>
+    <td>{{ cobro.poliza.numero_poliza }}</td>
+    <td>{{ cobro.forma_pago }}</td>
+    <td>${{ cobro.importe }}</td>
+</tr>
+
+{% empty %}
+
+<tr>
+    <td colspan="4">
+        No existen cobros registrados.
+    </td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<div class="firma">
+
+<br><br><br>
+
+_____________________________________
+
+<br>
+
+Productor Asesor de Seguros
+
+</div>
+
+<script>
+window.print();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anular cobro | FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .contenedor {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.10);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #b42318;
+        }
+
+        .aviso {
+            background: #fff4f2;
+            border: 1px solid #fecdca;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 22px;
+        }
+
+        .dato {
+            margin: 8px 0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 110px;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        .acciones {
+            margin-top: 22px;
+            display: flex;
+            gap: 12px;
+        }
+
+        button, .cancelar {
+            padding: 11px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+
+        button {
+            background: #b42318;
+            color: white;
+        }
+
+        .cancelar {
+            background: #e9edf3;
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Anular cobro</h1>
+
+    <div class="aviso">
+        <strong>Atención:</strong>
+        esta operación no eliminará el cobro.
+        Quedará registrado como anulado para conservar el historial.
+    </div>
+
+    <div class="dato">
+        <strong>Cliente:</strong> {{ cobro.cliente }}
+    </div>
+
+    <div class="dato">
+    <strong>Póliza:</strong> {{ cobro.poliza }}<br>
+    <strong>Número de póliza:</strong> {{ cobro.poliza.numero_poliza }}
+    </div>
+    
+    
+    <div class="dato">
+        <strong>Fecha de pago:</strong> {{ cobro.fecha_pago }}
+    </div>
+
+    <div class="dato">
+        <strong>Importe:</strong> $ {{ cobro.importe }}
+    </div>
+
+    <div class="dato">
+        <strong>Cuota:</strong> {{ cobro.cuota }}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>
+            <strong>Motivo de la anulación:</strong>
+        </p>
+
+        <textarea
+            name="motivo"
+            required
+            placeholder="Ej.: cobro cargado por error, importe incorrecto, pago duplicado..."
+        ></textarea>
+
+        <div class="acciones">
+            <button type="submit">
+                Confirmar anulación
+            </button>
+
+            <a href="javascript:history.back()" class="cancelar">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+</div>
+
+</body>
+</html>

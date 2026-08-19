@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Póliza - Fortex</title>
+    <link rel="stylesheet" href="{% static 'principal/css/estilos.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav class="fortex-navbar">
+    <div class="fortex-navbar-contenido">
+        <span class="fortex-marca">
+            🐺 FORTEX Gestión Integral
+        </span>
+
+        <a href="/" class="fortex-volver">
+            ⬅ Volver al Escritorio
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card shadow">
+        <div class="card-body">
+
+            <h3>📄 Nueva Póliza</h3>
+
+            {% if errores %}
+            <div class="alert alert-danger">
+               <strong>No se pudo guardar la póliza:</strong>
+               <ul class="mb-0">
+                 {% for error in errores %}
+                    <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if errores %}
+                <div class="alert alert-danger">
+                  <strong>⚠️ No se pudo guardar la póliza.</strong>
+                  <ul class="mb-0">
+                    {% for error in errores %}
+                        <li>{{ error }}</li>
+                   {% endfor %}
+                   </ul>
+                 </div>
+                {% endif %}
+
+                <label>Cliente</label>
+                <select class="form-select mb-3" name="cliente" required>
+                    {% if cliente_seleccionado %}
+                        <option value="{{ cliente_seleccionado.id }}" selected>
+                            {{ cliente_seleccionado.apellido }}, {{ cliente_seleccionado.nombre }} - DNI {{ cliente_seleccionado.dni }}
+                        </option>
+                    {% else %}
+                        <option value="">Seleccione un cliente</option>
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.apellido }}, {{ cliente.nombre }} - DNI {{ cliente.dni }}
+                            </option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+
+                <label>Riesgo / Vehículo</label>
+                <select class="form-select mb-3" name="vehiculo">
+                    {% for vehiculo in vehiculos %}
+                      <option value="{{ vehiculo.id }}">
+                        {{ vehiculo.patente }} - {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                      </option>
+                    {% empty %}
+                       <option value="">Sin vehículo</option>
+                    {% endfor %}
+                </select>
+
+                <label>Tipo de seguro</label>
+                <select class="form-select mb-3" name="tipo_seguro" required>
+
+                 <option value="">Seleccione...</option>
+
+                 <option {% if datos.tipo_seguro == "Automotor" %}selected{% endif %}>Automotor</option>
+
+                 <option {% if datos.tipo_seguro == "Moto" %}selected{% endif %}>Moto</option>
+
+                 <option {% if datos.tipo_seguro == "Hogar" %}selected{% endif %}>Hogar</option>
+
+                 <option {% if datos.tipo_seguro == "Accidentes Personales" %}selected{% endif %}>Accidentes Personales</option>
+
+                 <option {% if datos.tipo_seguro == "Caución" %}selected{% endif %}>Caución</option>
+
+                 <option {% if datos.tipo_seguro == "Agro" %}selected{% endif %}>Agro</option>
+
+                 <option {% if datos.tipo_seguro == "Vida" %}selected{% endif %}>Vida</option>
+
+                 <option {% if datos.tipo_seguro == "Comercio" %}selected{% endif %}>Comercio</option>
+
+                 <option {% if datos.tipo_seguro == "Otro" %}selected{% endif %}>Otro</option>
+
+                 </select>
+
+                <label>Compañía aseguradora</label>
+
+                <select class="form-select mb-3"
+                     name="compania"
+                     required>
+
+                  <option value="">Seleccione una aseguradora</option>
+
+                  {% for aseguradora in aseguradoras %}
+                    <option value="{{ aseguradora.nombre }}"
+                       {% if datos.compania == aseguradora.nombre %}selected{% endif %}>
+                  {{ aseguradora.nombre }}
+                   </option>
+                {% empty %}
+                 <option value="" disabled>
+                      No hay aseguradoras cargadas
+                 </option>
+                  {% endfor %}
+
+                </select>
+
+                <label>Porcentaje de comisión (%)</label>
+
+                <input
+                   class="form-control mb-3"
+                   type="number"
+                   name="porcentaje_comision"
+                   step="0.01"
+                   min="0"
+                   max="100"
+                   value="{{ datos.porcentaje_comision|default:'0' }}"
+                   placeholder="Ej: 15.00"
+                >
+
+                <input class="form-control mb-3"
+                      type="text"
+                      name="numero_poliza"
+                      placeholder="Número de póliza / dejar vacío si es provisoria"
+                      value="{{ datos.numero_poliza|default:'' }}">
+
+                <label>Fecha de alta</label>
+
+                <input class="form-control mb-3"
+                      type="date"
+                      name="fecha_alta"
+                      value="{{ datos.fecha_alta|default:'' }}"
+                      required>
+
+                <label>Periodicidad</label>
+                <select class="form-select mb-3" name="periodicidad">
+                    <option>Mensual</option>
+                    <option>Bimestral</option>
+                    <option>Trimestral</option>
+                    <option>Cuatrimestral</option>
+                    <option>Semestral</option>
+                    <option>Anual</option>
+                </select>
+
+                <label>Cantidad total de cuotas</label>
+
+                <input class="form-control mb-3"
+                    type="number"
+                    id="cantidad_cuotas"
+                    name="cantidad_cuotas"
+                    value="{{ datos.cantidad_cuotas|default:'1' }}"
+                    readonly>
+
+                <input class="form-control mb-3"
+                     type="number"
+                     name="numero_cuota"
+                     placeholder="Número de cuota"
+                     min="1"
+                     value="{{ datos.numero_cuota|default:'1' }}"
+                     required>
+
+                <label>Estado</label>
+                <select class="form-select mb-3" name="estado" required>
+
+                 <option value="">Seleccione...</option>
+
+                 <option {% if datos.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+
+                 <option {% if datos.estado == "Vigente" %}selected{% endif %}>Vigente</option>
+
+                 <option {% if datos.estado == "Vencida" %}selected{% endif %}>Vencida</option>
+
+                 <option {% if datos.estado == "Cancelada" %}selected{% endif %}>Cancelada</option>
+
+                 </select> 
+
+                <textarea class="form-control mb-3"
+                      name="observaciones"
+                      rows="3"
+                      placeholder="Observaciones">{{ datos.observaciones|default:'' }}</textarea>
+
+                <div class="grupo-botones">
+
+                   <button class="btn btn-success" type="submit">
+                      💾 Guardar Cliente
+                   </button>
+
+                   <a href="/" class="btn btn-secondary">
+                      Cancelar
+                    </a>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<script>
+const periodicidad = document.querySelector(
+    'select[name="periodicidad"]'
+);
+
+const cantidadCuotas = document.getElementById(
+    "cantidad_cuotas"
+);
+
+function actualizarCantidadCuotas() {
+    const equivalencias = {
+        "Mensual": 1,
+        "Bimestral": 2,
+        "Trimestral": 3,
+        "Cuatrimestral": 4,
+        "Semestral": 6,
+        "Anual": 12
+    };
+
+    cantidadCuotas.value =
+        equivalencias[periodicidad.value] || 1;
+}
+
+periodicidad.addEventListener(
+    "change",
+    actualizarCantidadCuotas
+);
+
+actualizarCantidadCuotas();
+
+</script>
+</body>
+</html>

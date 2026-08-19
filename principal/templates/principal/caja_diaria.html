@@ -1,0 +1,259 @@
+{% extends "principal/base.html" %}
+{% load static %}
+
+{% block title %}Caja Diaria{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'principal/css/caja_diaria.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <h2>💰 Caja Diaria</h2>
+
+            <hr>
+
+            <div class="row">
+
+                <div class="col-md-3">
+                    <div class="alert alert-success">
+                        <h5>Total</h5>
+                        <h3>${{ total }}</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="alert alert-primary">
+                        <h5>Efectivo</h5>
+                        <h3>${{ efectivo }}</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="alert alert-warning">
+                        <h5>Tarjeta</h5>
+                        <h3>${{ tarjeta }}</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="alert alert-info">
+                        <h5>CBU</h5>
+                        <h3>${{ cbu }}</h3>
+                        
+                    </div>
+                 </div>
+
+                <div class="col-md-3">
+                    <div class="alert alert-secondary">
+                         <h5>Transferencia</h5>
+                         <h3>${{ transferencia }}</h3>
+                    </div>
+    
+                </div>
+
+                <div class="row mt-3">
+
+                    <div class="col-md-6">
+                    <div class="alert alert-warning">
+                         <h5>💸 Gastos del día</h5>
+                         <h3>${{ total_gastos }}</h3>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                         <h5>💰 Saldo Neto</h5>
+                         <h3>${{ saldo_neto }}</h3>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <hr>
+            
+            <div class="mb-3">
+
+               <a href="/caja/pdf/" target="_blank" class="btn btn-success">
+                  📄 Imprimir cierre de caja
+               </a>
+
+               {% if es_admin %}
+               <a href="{% url 'historial_turnos' %}" class="btn btn-dark">
+                  📊 Historial de turnos
+               </a>
+               {% endif %}
+
+               <a href="{% url 'abrir_turno' %}" class="btn btn-info">
+                  🔓 Abrir turno
+               </a>
+
+               <a href="{% url 'cerrar_caja' %}" class="btn btn-danger">
+                  🔒 Cerrar caja
+               </a>
+
+               <a href="#" class="btn btn-primary">
+                  📊 Exportar Excel
+               </a>
+
+               <a href="/caja/gasto/nuevo/" class="btn btn-warning">
+                  💸 Registrar gasto
+               </a>
+
+               <a href="/" class="btn btn-secondary">
+                  🏠 Volver al escritorio
+               </a>
+
+           </div>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Compañía</th>
+            <th>Cliente</th>
+            <th>Patente</th>
+            <th>Póliza</th>
+            <th>Fecha</th>
+            <th>Forma de pago</th>
+            <th>Importe</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for cobro in cobros %}
+        <tr>
+            <td>{{ cobro.poliza.compania }}</td>
+
+            <td>
+                {{ cobro.cliente.apellido }}
+                {{ cobro.cliente.nombre }}
+            </td>
+
+            <td>
+                {% if cobro.poliza.vehiculo %}
+                    {{ cobro.poliza.vehiculo.patente }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+
+            <td>
+                {% if cobro.poliza.numero_poliza %}
+                    {{ cobro.poliza.numero_poliza }}
+                {% else %}
+                    Provisoria
+                {% endif %}
+            </td>
+
+            <td>{{ cobro.fecha_pago|date:"d/m/Y" }}</td>
+            <td>{{ cobro.forma_pago }}</td>
+            <td>${{ cobro.importe }}</td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">
+                No existen cobros registrados hoy.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+
+                {% for cobro in cobros %}
+
+                <tr>
+                    <td>{{ cobro.cliente }}</td>
+                    <td>{{ cobro.fecha_pago }}</td>
+                    <td>${{ cobro.importe }}</td>
+                    <td>{{ cobro.forma_pago }}</td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="4" class="text-center">
+                        No existen cobros registrados hoy.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            <hr>
+
+<h4 class="mt-4 text-danger">💸 Gastos del día</h4>
+
+<hr>
+
+<h4>🏢 Resumen por compañía</h4>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Compañía</th>
+            <th>Cobros</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for item in resumen_companias %}
+        <tr>
+            <td>{{ item.poliza__compania }}</td>
+            <td>{{ item.cantidad_cobros }}</td>
+            <td>${{ item.total_importe }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="3">No hay cobros registrados.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Hora</th>
+            <th>Concepto</th>
+            <th>Importe</th>
+            <th>Usuario</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for gasto in gastos %}
+        <tr>
+            <td>{{ gasto.fecha_hora|date:"H:i" }}</td>
+            <td>{{ gasto.concepto }}</td>
+            <td>${{ gasto.importe }}</td>
+            <td>{{ gasto.usuario }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No existen gastos registrados hoy.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

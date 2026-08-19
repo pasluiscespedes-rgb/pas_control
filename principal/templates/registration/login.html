@@ -1,0 +1,399 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ingresar | FORTEX Gestión Integral</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #ffffff;
+            background:
+                radial-gradient(
+                    circle at top,
+                    rgba(44, 113, 161, 0.55),
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #030914 0%,
+                    #091a2b 45%,
+                    #123b5a 100%
+                );
+        }
+
+        .login-pagina {
+            width: 100%;
+            max-width: 1050px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            background: rgba(8, 20, 34, 0.82);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(14px);
+        }
+
+        .panel-marca {
+            min-height: 650px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 45px;
+            text-align: center;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(22, 71, 105, 0.82),
+                    rgba(4, 16, 30, 0.94)
+                );
+        }
+
+        .logo-contenedor {
+            width: 245px;
+            height: 245px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.45),
+                0 0 38px rgba(50, 140, 200, 0.18);
+        }
+
+        .logo-contenedor img {
+            width: 92%;
+            height: 92%;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.45));
+        }
+
+        .panel-marca h1 {
+            font-size: 46px;
+            letter-spacing: 7px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .subtitulo {
+            margin-bottom: 28px;
+            color: #b9d6e8;
+            font-size: 17px;
+            letter-spacing: 1px;
+        }
+
+        .frase {
+            max-width: 400px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            color: #d8e8f2;
+            font-size: 18px;
+            line-height: 1.55;
+            font-style: italic;
+        }
+
+        .panel-formulario {
+            min-height: 650px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 58px 52px;
+            color: #1a2835;
+            background: rgba(255, 255, 255, 0.97);
+        }
+
+        .encabezado-formulario {
+            margin-bottom: 34px;
+        }
+
+        .encabezado-formulario .etiqueta {
+            display: inline-block;
+            margin-bottom: 14px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            color: #1c638f;
+            background: #e8f4fb;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .encabezado-formulario h2 {
+            margin-bottom: 10px;
+            color: #10283b;
+            font-size: 32px;
+        }
+
+        .encabezado-formulario p {
+            color: #6e7d89;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .mensaje-error {
+            margin-bottom: 22px;
+            padding: 13px 15px;
+            border: 1px solid #efb4b9;
+            border-radius: 10px;
+            color: #8b1f29;
+            background: #fdecee;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .campo {
+            margin-bottom: 21px;
+        }
+
+        .campo label {
+            display: block;
+            margin-bottom: 8px;
+            color: #294255;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1px solid #c8d4dc;
+            border-radius: 11px;
+            outline: none;
+            background: #f9fbfc;
+            color: #1a2835;
+            font-size: 16px;
+            transition: 0.2s ease;
+        }
+
+        .campo input:focus {
+            border-color: #2676a8;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(38, 118, 168, 0.12);
+        }
+
+        .boton-ingresar {
+            width: 100%;
+            margin-top: 8px;
+            padding: 15px;
+            border: none;
+            border-radius: 11px;
+            color: #ffffff;
+            background:
+                linear-gradient(
+                    135deg,
+                    #123d5d,
+                    #2780b5
+                );
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 0.6px;
+            box-shadow: 0 10px 25px rgba(25, 91, 132, 0.28);
+            transition: 0.2s ease;
+        }
+
+        .boton-ingresar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(25, 91, 132, 0.36);
+        }
+
+        .boton-ingresar:active {
+            transform: translateY(0);
+        }
+
+        .seguridad {
+            margin-top: 24px;
+            padding: 14px;
+            border-radius: 10px;
+            color: #607381;
+            background: #f1f6f9;
+            font-size: 13px;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        .pie {
+            margin-top: 28px;
+            color: #8a98a3;
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        @media (max-width: 850px) {
+            .login-pagina {
+                max-width: 520px;
+                grid-template-columns: 1fr;
+            }
+
+            .panel-marca {
+                min-height: auto;
+                padding: 38px 25px;
+            }
+
+            .logo-contenedor {
+                width: 170px;
+                height: 170px;
+                margin-bottom: 18px;
+            }
+
+            .panel-marca h1 {
+                font-size: 34px;
+            }
+
+            .frase {
+                font-size: 15px;
+            }
+
+            .panel-formulario {
+                min-height: auto;
+                padding: 42px 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .login-pagina {
+                border-radius: 20px;
+            }
+
+            .panel-formulario {
+                padding: 36px 22px;
+            }
+
+            .encabezado-formulario h2 {
+                font-size: 27px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-pagina">
+
+        <section class="panel-marca">
+
+            <div class="logo-contenedor">
+                <img
+                    src="{% static 'principal/img/fortex_logo.png' %}"
+                    alt="Logo oficial de FORTEX"
+                >
+            </div>
+
+            <h1>FORTEX</h1>
+
+            <p class="subtitulo">
+                Gestión Integral de Seguros
+            </p>
+
+            <p class="frase">
+                “Protegiendo personas. Gestionando confianza.”
+            </p>
+
+        </section>
+
+        <section class="panel-formulario">
+
+            <div class="encabezado-formulario">
+                <span class="etiqueta">
+                    Acceso seguro
+                </span>
+
+                <h2>Bienvenido nuevamente</h2>
+
+                <p>
+                    Ingresá tu usuario y contraseña para acceder
+                    al sistema de gestión.
+                </p>
+            </div>
+
+            {% if form.errors %}
+                <div class="mensaje-error">
+                    El usuario o la contraseña son incorrectos.
+                    Verificá los datos e intentá nuevamente.
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="campo">
+                    <label for="{{ form.username.id_for_label }}">
+                        Usuario
+                    </label>
+
+                    {{ form.username }}
+                </div>
+
+                <div class="campo">
+                    <label for="{{ form.password.id_for_label }}">
+                        Contraseña
+                    </label>
+
+                    {{ form.password }}
+                </div>
+
+                {% if next %}
+                    <input
+                        type="hidden"
+                        name="next"
+                        value="{{ next }}"
+                    >
+                {% endif %}
+
+                <button
+                    type="submit"
+                    class="boton-ingresar"
+                >
+                    🔐 INGRESAR A FORTEX
+                </button>
+            </form>
+
+            <div class="seguridad">
+                🛡️ Acceso exclusivo para usuarios autorizados.
+                Todas las acciones podrán ser registradas por el sistema.
+            </div>
+
+            <footer class="pie">
+                FORTEX Gestión Integral<br>
+                Sistema de Gestión para Productores Asesores de Seguros<br>
+                Versión 1.0
+            </footer>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

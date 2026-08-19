@@ -1,0 +1,211 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --azul-oscuro: #071a2f;
+    --azul-medio: #0d3f73;
+    --azul-claro: #1d78c1;
+    --plateado: #dce6f0;
+    --blanco: #ffffff;
+    --texto-suave: #b7c9dc;
+    --fondo: #eef3f8;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--fondo);
+    color: #172536;
+}
+
+.barra-superior {
+    min-height: 94px;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background:
+        linear-gradient(
+            135deg,
+            #061526 0%,
+            #0a2b4f 48%,
+            #0d4c83 100%
+        );
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 5px 18px rgba(0, 20, 45, 0.28);
+}
+
+.marca-fortex {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--blanco);
+    text-decoration: none;
+}
+
+.logo-fortex {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+
+.nombre-marca {
+    display: flex;
+    flex-direction: column;
+}
+
+.nombre-marca strong {
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.nombre-marca span {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+    letter-spacing: 0.5px;
+}
+
+.datos-usuario {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 24px;
+    color: var(--blanco);
+}
+
+.usuario-conectado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icono-usuario {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.usuario-conectado div {
+    display: flex;
+    flex-direction: column;
+}
+
+.usuario-conectado strong {
+    font-size: 0.98rem;
+}
+
+.usuario-conectado div span {
+    margin-top: 3px;
+    font-size: 0.8rem;
+    color: var(--texto-suave);
+}
+
+.fecha-hora {
+    min-width: 245px;
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+}
+
+#hora-actual {
+    margin-top: 4px;
+    color: var(--blanco);
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.formulario-salir {
+    margin: 0;
+}
+
+.boton-salir {
+    padding: 10px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 9px;
+    color: var(--blanco);
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.boton-salir:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.contenido-principal {
+    width: min(1400px, calc(100% - 40px));
+    margin: 30px auto;
+}
+
+@media (max-width: 1050px) {
+    .barra-superior {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .datos-usuario {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .fecha-hora {
+        min-width: auto;
+        text-align: left;
+    }
+}
+
+@media (max-width: 650px) {
+    .barra-superior {
+        padding: 14px 18px;
+    }
+
+    .logo-fortex {
+        width: 56px;
+        height: 56px;
+    }
+
+    .nombre-marca strong {
+        font-size: 1.3rem;
+    }
+
+    .datos-usuario {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .contenido-principal {
+        width: min(100% - 24px, 1400px);
+        margin-top: 20px;
+    }
+}
+
+.mensaje-aviso {
+    background: red;
+    border: 1px solid #ffe69c;
+    padding: 14px 18px;
+    margin: 15px auto;
+    max-width: 900px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}

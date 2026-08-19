@@ -1,0 +1,501 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #eef2f6;
+    margin: 0;
+    padding: 25px;
+    color: #1f2933;
+}
+
+h1 {
+    color: #0b2f4a;
+    margin-bottom: 5px;
+}
+
+h2, h3 {
+    color: #1d4f73;
+}
+
+table {
+    border-collapse: collapse;
+    background: white;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+td, th {
+    padding: 14px;
+    border: 1px solid #cfd8e3;
+}
+
+a {
+    color: #0b5fa5;
+    font-weight: bold;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: white;
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    width: 260px;
+}
+.row.mb-4 .card {
+    border: none !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 24px rgba(7, 26, 47, 0.16) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    overflow: hidden;
+}
+
+.row.mb-4 .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 32px rgba(7, 26, 47, 0.24) !important;
+}
+
+.row.mb-4 .card-body {
+    padding: 22px 14px !important;
+}
+
+.row.mb-4 .card-body h5 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0d3f73 !important;
+}
+
+.row.mb-4 .card-body h2 {
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #071a2f;
+}
+.tarjeta-resumen {
+    border: 1px solid rgba(13, 63, 115, 0.18) !important;
+    border-top: 10px solid red !important;
+    border-radius: 16px !important;
+    background: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #eaf3fc 100%
+    ) !important;
+    box-shadow: 0 10px 25px rgba(7, 26, 47, 0.22) !important;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease !important;
+}
+
+.tarjeta-resumen:hover {
+    transform: translateY(-8px) scale(1.03) !important;
+    box-shadow: 0 18px 38px rgba(7, 26, 47, 0.35) !important;
+}
+
+.tarjeta-resumen .card-body {
+    padding: 22px 12px !important;
+}
+
+.tarjeta-resumen h5 {
+    color: #0d3f73 !important;
+    font-weight: 700 !important;
+}
+
+.tarjeta-resumen h2 {
+    margin-top: 8px !important;
+    color: #071a2f !important;
+    font-size: 2.25rem !important;
+    font-weight: 800 !important;
+}
+
+/* Colores de las tarjetas */
+
+.tarjeta-resumen.tarjeta-clientes {
+    border-top-color: #0d6efd !important;
+}
+
+.tarjeta-resumen.tarjeta-polizas {
+    border-top-color: #6f42c1 !important;
+}
+
+.tarjeta-resumen.tarjeta-vigentes {
+    border-top-color: #198754 !important;
+}
+
+.tarjeta-resumen.tarjeta-por-vencer {
+    border-top-color: #fd7e14 !important;
+}
+
+.tarjeta-resumen.tarjeta-vencidas {
+    border-top-color: #dc3545 !important;
+}
+
+.enlace-tarjeta {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.enlace-tarjeta:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.alerta-errores {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    border: 1px solid #dc3545;
+    border-left: 6px solid #dc3545;
+    border-radius: 10px;
+    background: #fff3f4;
+    color: #842029;
+}
+
+.alerta-errores strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.alerta-errores ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.alerta-errores li {
+    margin: 4px 0;
+}
+/* ==================================================
+   FORMULARIOS FORTEX
+   Estilo general para Clientes, Riesgos y Pólizas
+   ================================================== */
+
+body {
+    background: #eef3f8;
+}
+
+.container {
+    max-width: 1000px;
+}
+
+.card {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.card.shadow {
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+.card-body h3 {
+    margin-bottom: 25px;
+    color: #111827;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.card-body h5 {
+    margin-top: 28px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dbe3ec;
+    color: #1e3a8a;
+    font-weight: 700;
+}
+
+.form-control,
+.form-select {
+    min-height: 46px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background-color: #ffffff;
+    color: #1f2937;
+}
+
+textarea.form-control {
+    min-height: 110px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12);
+}
+
+label {
+    margin-bottom: 6px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.btn {
+    min-height: 42px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-primary,
+.btn-success {
+    box-shadow: 0 5px 14px rgba(13, 110, 253, 0.18);
+}
+
+.btn-secondary {
+    margin-left: 6px;
+}
+
+.alerta-errores,
+.alert-danger {
+    margin-bottom: 22px;
+    padding: 16px 20px;
+    border: 1px solid #dc3545;
+    border-left: 6px solid #dc3545;
+    border-radius: 10px;
+    background: #fff3f4;
+    color: #842029;
+}
+
+.alerta-errores ul,
+.alert-danger ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 20px;
+    }
+
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .btn-secondary {
+        margin-left: 0;
+    }
+}
+
+/* ===========================================
+   FORTEX - Formularios
+=========================================== */
+
+.container {
+    max-width: 1100px;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-body {
+    padding: 35px;
+}
+
+.card h3 {
+    font-weight: 700;
+    color: #17324d;
+    margin-bottom: 25px;
+}
+
+label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    min-height: 46px;
+    border: 1px solid #ced4da;
+    transition: .2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .20rem rgba(13,110,253,.20);
+}
+
+.btn {
+    border-radius: 8px;
+    min-width: 170px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #0d6efd;
+}
+
+.btn-secondary {
+    margin-left: 8px;
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+/* ===========================================
+   FORTEX - Barra superior de formularios
+=========================================== */
+
+.fortex-navbar {
+    margin-bottom: 28px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #111827, #0f3d91);
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.22);
+}
+
+.fortex-navbar-contenido {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.fortex-marca {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.fortex-volver {
+    padding: 9px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.fortex-volver:hover {
+    background: #ffffff;
+    color: #0f3d91;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 650px) {
+    .fortex-navbar-contenido {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .fortex-volver {
+        display: block;
+    }
+}
+
+/* ===========================================
+   FORTEX - Botones generales
+=========================================== */
+
+.btn {
+    min-width: 150px;
+    min-height: 44px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Guardar y confirmar */
+.btn-success {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 6px 15px rgba(5, 150, 105, 0.24);
+    color: #ffffff;
+}
+
+/* Acciones principales */
+.btn-primary {
+    background: linear-gradient(135deg, #0f4cba, #2563eb);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.24);
+    color: #ffffff;
+}
+
+/* Cancelar y volver */
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 6px 15px rgba(71, 85, 105, 0.22);
+    color: #ffffff;
+}
+
+/* Advertencias o completar */
+.btn-warning {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    box-shadow: 0 6px 15px rgba(245, 158, 11, 0.25);
+    color: #ffffff;
+}
+
+/* Eliminar o acciones peligrosas */
+.btn-danger {
+    background: linear-gradient(135deg, #b91c1c, #ef4444);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.24);
+    color: #ffffff;
+}
+
+/* Botones agrupados */
+.grupo-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.grupo-botones .btn {
+    margin: 0;
+}
+
+@media (max-width: 650px) {
+    .grupo-botones {
+        flex-direction: column;
+    }
+
+    .grupo-botones .btn {
+        width: 100%;
+    }
+}
+
+.boton-verde{
+    background:#16a34a !important;
+    color:white;
+}
+
+.boton-naranja{
+    background:#f59e0b !important;
+    color:white;
+}
+
+.boton-rojo{
+    background:#dc2626 !important;
+    color:white;
+}

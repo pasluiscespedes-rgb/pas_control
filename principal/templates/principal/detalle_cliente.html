@@ -1,0 +1,573 @@
+{% extends "principal/base.html" %}
+{% load static %}
+
+{% block title %}
+Ficha de {{ cliente.apellido }} {{ cliente.nombre }} | FORTEX
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'principal/css/detalle_cliente.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+
+
+<section class="ficha-cliente">
+
+<div class="estadisticas-ficha">
+
+    <div class="estadistica">
+        <span class="titulo">🛡 Riesgos</span>
+        <strong>{{ riesgos|length }}</strong>
+    </div>
+
+    <div class="estadistica">
+        <span class="titulo">📄 Pólizas</span>
+        <strong>{{ polizas|length }}</strong>
+    </div>
+
+    <div class="estadistica">
+        <span class="titulo">💰 Cobros</span>
+        <strong>{{ cobros|length }}</strong>
+    </div>
+
+    <div class="estadistica">
+        <span class="titulo">🧾 Recibos</span>
+        <strong>{{ recibos|length }}</strong>
+    </div>
+
+</div>
+
+<div class="cabecera-ficha">
+    
+
+        <div class="identidad-cliente">
+            <h1>👤 {{ cliente.apellido }} {{ cliente.nombre }}</h1>
+            <p>Ficha integral del asegurado</p>
+        </div>
+
+        <div class="acciones-ficha">
+
+            <a href="{% url 'editar_cliente' cliente.id %}"
+              class="accion-ficha">
+               ✏️ Editar Cliente
+            </a>
+
+            <a href="{% url 'lista_clientes' %}"
+               class="accion-ficha">
+                ⬅ Clientes
+            </a>
+
+            <a href="{% url 'crear_riesgo' %}"
+               class="accion-ficha">
+                🛡️ Nuevo Riesgo
+            </a>
+
+            <a href="{% url 'crear_poliza_cliente' cliente.id %}"
+               class="accion-ficha">
+                📄 Nueva Póliza
+            </a>
+
+            <a href="{% url 'crear_cobro_cliente' cliente.id %}"
+               class="accion-ficha">
+                💰 Nuevo Cobro
+            </a>
+
+            <a href="https://wa.me/549{{ cliente.whatsapp }}"
+               target="_blank"
+               class="accion-ficha">
+                📲 WhatsApp
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="resumen-cliente">
+
+        <div class="dato-resumen">
+            <span>DNI</span>
+            <strong>{{ cliente.dni }}</strong>
+        </div>
+
+        <div class="dato-resumen">
+            <span>WhatsApp</span>
+            <strong>{{ cliente.whatsapp }}</strong>
+        </div>
+
+        <div class="dato-resumen">
+            <span>Fecha de nacimiento</span>
+            <strong>{{ cliente.fecha_nacimiento|default:"Sin informar" }}</strong>
+        </div>
+
+        <div class="dato-resumen">
+            <span>Riesgos registrados</span>
+            <strong>{{ riesgos|length }}</strong>
+        </div>
+
+    </div>
+
+    {% if polizas.first %}
+
+        <div class="estado-general">
+
+            <h3>🟢 Estado general</h3>
+
+            <div class="estado-grid">
+
+                <div>
+                    <strong>Estado</strong><br>
+                    {{ polizas.first.estado }}
+                </div>
+
+                <div>
+                    <strong>Compañía</strong><br>
+                    {{ polizas.first.compania }}
+                </div>
+
+                <div>
+                    <strong>Tipo</strong><br>
+                    {{ polizas.first.tipo_seguro }}
+                </div>
+
+                <div>
+                    <strong>Vencimiento</strong><br>
+                    {{ polizas.first.fecha_vencimiento }}
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+    <div class="bloque-ficha">
+
+        <div class="bloque-titulo">
+            <h3>🛡️ Riesgos asociados</h3>
+        </div>
+
+        <div class="bloque-contenido">
+
+            <table class="tabla-ficha">
+
+                <thead>
+                    <tr>
+                        <th>Patente</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Año</th>
+                        <th>Uso</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for riesgo in riesgos %}
+
+                        <tr>
+                            <td>{{ riesgo.patente }}</td>
+                            <td>{{ riesgo.marca }}</td>
+                            <td>{{ riesgo.modelo }}</td>
+                            <td>{{ riesgo.anio }}</td>
+                            <td>{{ riesgo.uso }}</td>
+                            <td>
+
+                               <a href="{% url 'editar_riesgo' riesgo.id %}"
+                                   class="boton-tabla">
+                                   ✏️ Editar
+                               </a>
+
+                            </td>
+                            
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5" class="sin-registros">
+                                No hay riesgos cargados.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="bloque-ficha">
+
+        <div class="bloque-titulo">
+            <h3>📄 Pólizas del cliente</h3>
+        </div>
+
+        <div class="bloque-contenido">
+
+            <table class="tabla-ficha">
+
+                <thead>
+                    <tr>
+                        <th>Patente</th>
+                        <th>Tipo</th>
+                        <th>Compañía</th>
+                        <th>N.º Póliza</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Último recibo</th>
+                        <th>Acción</th>
+                        
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for poliza in polizas %}
+
+                        <tr>
+                            <td>
+                              {% if poliza.vehiculo %}
+                                 {{ poliza.vehiculo.patente }}
+                              {% else %}
+                                  —
+                              {% endif %}
+                            </td>
+                            <td>{{ poliza.tipo_seguro }}</td>
+                            <td>{{ poliza.compania }}</td>
+                            <td>{{ poliza.numero_poliza|default:"Provisoria" }}</td>
+                            <td>{{ poliza.fecha_vencimiento }}</td>
+                            <td>
+                              {% if poliza.numero_cuota >= poliza.cantidad_cuotas %}
+                                 🟢 ✓ Pagado completo
+                              {% elif poliza.estado == "Al día" %}
+                              
+                                 🟢 {{ poliza.estado }}
+                              {% elif poliza.estado == "Pendiente" %}
+                                 🟡 {{ poliza.estado }}
+                              {% else %}
+                                 🔴 {{ poliza.estado }}
+                              {% endif %}
+
+                               {% if poliza.estado == "Anulada" %}
+                                  <div style="margin-top:6px;">
+                                     <a href="#"
+                                onclick="document.getElementById('detalle-anulacion-{{ poliza.id }}').style.display='block'; return false;"
+                                style="font-size:12px; text-decoration:none;">
+                                  Ver detalle de anulación
+                                    </a>
+                                  </div>
+
+                                  <div id="detalle-anulacion-{{ poliza.id }}"
+                                     style="display:none; margin-top:8px; padding:8px; background:#f8f9fa; border-radius:6px; font-size:12px;">
+
+                                        <strong>Motivo:</strong> {{ poliza.motivo_anulacion }}<br>
+
+                                        <strong>Anulada por:</strong>
+                                        {% if poliza.anulada_por %}
+                                           {{ poliza.anulada_por.get_full_name|default:poliza.anulada_por.username }}
+                                        {% else %}
+                                            Sin dato
+                                        {% endif %}
+                                        <br>
+
+                                        <strong>Fecha:</strong>
+                                        {% if poliza.fecha_anulacion %}
+                                           {{ poliza.fecha_anulacion|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                           Sin dato
+                                        {% endif %}
+                                     </div>
+                                {% endif %}
+
+                            </td>
+                   <td>        
+                    {% if poliza.ultimo_recibo %}
+                       <a
+                          href="{% url 'ver_recibo' poliza.ultimo_recibo.id %}"
+                                class="boton-tabla"
+                        >
+                                 🧾 {{ poliza.ultimo_recibo.numero_recibo }}
+                        </a>
+                    {% else %}
+                        —
+                    {% endif %}
+                 </td>            
+
+                            <td> 
+
+                                {% if poliza.numero_cuota >= poliza.cantidad_cuotas %}
+                                    <span class="boton-tabla"
+                                        style="background:#198754 !important; color:white !important;">
+                                         ✓ Pagado completo
+                                    </span>
+
+                                {% elif poliza.estado == "Al día" %}
+
+                                    <a href="{% url 'crear_cobro_cliente' cliente.id %}?poliza={{ poliza.id }}"
+                                      class="boton-tabla"
+                                      style="background:#198754 !important; color:white !important;">
+                                      💵 Cobrar
+                                    </a>
+                                
+                                {% elif poliza.estado == "Anulada" %}
+                                    <span class="boton-tabla"
+                                      style="background:#6c757d !important; color:white !important;">
+                                      🚫 Sin cobros
+                                    </span>
+                                
+                                {% elif poliza.estado == "Pendiente" %}
+
+                                     <a href="{% url 'crear_cobro_cliente' cliente.id %}?poliza={{ poliza.id }}"
+                                       class="boton-tabla"
+                                       style="background:#fd7e14 !important; color:white !important;">
+                                       💵 Cobrar
+                                    </a>
+
+                                {% else %}
+
+                                    <a href="{% url 'crear_cobro_cliente' cliente.id %}?poliza={{ poliza.id }}"
+                                       class="boton-tabla"
+                                       style="background:#dc3545 !important; color:white !important;">
+                                       💵 Cobrar
+                                    </a>
+
+                                {% endif %}
+
+                                <br><br>
+
+                                {% if poliza.estado != "Anulada" %}
+                                   <a href="{% url 'editar_poliza' poliza.id %}"
+                                      class="boton-tabla">
+                                     🖊️ Editar
+                                   </a>
+                                {% else %}
+                                    <span class="boton-tabla"
+                                       style="background:#6c757d !important;
+                                       color:white !important;
+                                       cursor:not-allowed;"></span>
+                                        🔒 Bloqueada
+                                    </span>
+                                {% endif %}
+
+                                <br><br>
+                                
+                                {% if poliza.estado != "Anulada" %}
+                                <a href="{% url 'anular_poliza' poliza.id %}"
+                                   class="boton-tabla"
+                                   style="background:#dc3545 !important; color:white !important;">
+                                   🚫 Anular
+                                </a>
+                                
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="8" class="sin-registros">
+                                No hay pólizas cargadas.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="bloque-ficha">
+
+        <div class="bloque-titulo">
+            <h3>💰 Historial de cobros</h3>
+        </div>
+
+        <div class="bloque-contenido">
+
+            <table class="tabla-ficha">
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cuota</th>
+                        <th>Importe</th>
+                        <th>Forma de pago</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for cobro in cobros %}
+
+                        <tr>
+                            <td>{{ cobro.fecha_pago }}</td>
+                            <td>{{ cobro.cuota }}</td>
+                            <td>$ {{ cobro.importe }}</td>
+                            <td>{{ cobro.forma_pago }}</td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="4" class="sin-registros">
+                                No existen cobros registrados.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="bloque-ficha">
+
+        <div class="bloque-titulo">
+            <h3>🧾 Recibos emitidos</h3>
+        </div>
+
+        <div class="bloque-contenido">
+
+            <table class="tabla-ficha">
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Importe</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for recibo in recibos %}
+
+                        <tr>
+                            <td>{{ recibo.fecha }}</td>
+                            <td>$ {{ recibo.importe }}</td>
+
+                            <td>
+                                <a href="{% url 'recibo_pdf' recibo.id %}"
+                                   target="_blank"
+                                   class="boton-tabla">
+                                    🖨️ Ver recibo
+                                </a>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="3" class="sin-registros">
+                                No hay recibos emitidos.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+<div class="bloque-ficha">
+
+    <div class="bloque-titulo">
+        <h3>🕒 Actividad reciente</h3>
+    </div>
+
+    <div class="bloque-contenido">
+
+        <div class="linea-tiempo">
+
+            {% for movimiento in movimientos %}
+
+                <div class="movimiento">
+
+                    <div class="punto-movimiento"></div>
+
+                    <div class="contenido-movimiento">
+
+                        <div class="cabecera-movimiento">
+
+                            <strong>
+                                {% if movimiento.tipo == "cliente" %}
+                                    👤
+                                {% elif movimiento.tipo == "riesgo" %}
+                                    🛡️
+                                {% elif movimiento.tipo == "poliza" %}
+                                    📄
+                                {% elif movimiento.tipo == "cobro" %}
+                                    💰
+                                {% elif movimiento.tipo == "recibo" %}
+                                    🧾
+                                {% elif movimiento.tipo == "whatsapp" %}
+                                    📲
+                                {% elif movimiento.tipo == "endoso" %}
+                                    ✍️
+                                {% elif movimiento.tipo == "aseguradora" %}
+                                    🔄
+                                {% else %}
+                                    📌
+                                {% endif %}
+
+                                {{ movimiento.titulo }}
+                            </strong>
+
+                            <span>
+                                {{ movimiento.fecha|date:"d/m/Y H:i" }}
+                            </span>
+
+                        </div>
+
+                        {% if movimiento.descripcion %}
+                            <p>{{ movimiento.descripcion }}</p>
+                        {% endif %}
+
+                        <small>
+                            Realizado por:
+                            {% if movimiento.usuario %}
+                                {{ movimiento.usuario.get_full_name|default:movimiento.usuario.username }}
+                            {% else %}
+                                Sistema
+                            {% endif %}
+                        </small>
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="sin-registros">
+                    Todavía no hay movimientos registrados.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+{% endblock %}

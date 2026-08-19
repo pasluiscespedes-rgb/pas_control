@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Riesgo - Fortex</title>
+    <link rel="stylesheet" href="{% static 'principal/css/estilos.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav class="fortex-navbar">
+    <div class="fortex-navbar-contenido">
+        <span class="fortex-marca">
+            🐺 FORTEX Gestión Integral
+        </span>
+
+        <a href="/" class="fortex-volver">
+            ⬅ Volver al Escritorio
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card shadow">
+        <div class="card-body">
+
+            <h3>🛡️ Nuevo Riesgo</h3>
+
+            <form method="POST"
+              id="form-riesgo"
+              onsubmit="return confirmarGuardadoRiesgo(event)"
+            >
+                {% csrf_token %}
+
+                {% if errores %}
+                   <div class="alerta-errores">
+                      <strong>⚠️ No se pudo guardar el riesgo</strong>
+
+                   <ul>
+                     {% for error in errores %}
+                       <li>{{ error }}</li>
+                     {% endfor %}
+                   </ul>
+                 </div>
+                {% endif %}
+
+                <label>Cliente</label>
+
+                <select class="form-select mb-3" name="cliente" required>
+
+                   <option value="">
+                     Seleccione un cliente
+                   </option>
+
+                {% for cliente in clientes %}
+
+                   <option
+                     value="{{ cliente.id }}"
+                     {% if datos.cliente == cliente.id|stringformat:"s" %}selected{% endif %}
+                   >
+                      {{ cliente.apellido }}, {{ cliente.nombre }} - DNI {{ cliente.dni }}
+                   </option>
+
+                   {% endfor %}
+
+                </select>
+
+                <label>Tipo de Riesgo</label>
+                <select class="form-select mb-4" name="tipo_riesgo"
+                id="tipo_riesgo">   
+                    <option>Automotor</option>
+                    <option>Motocicleta</option>
+                    <option>Hogar</option>
+                    <option>Accidentes Personales</option>
+                    <option>Caución</option>
+                    <option>Agro</option>
+                    <option>Vida</option>
+                    <option>Comercio</option>
+                </select>
+
+                <h5>🚗 Datos del vehículo</h5>
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="patente"
+                  placeholder="Patente"
+                  value="{{ datos.patente|default:'' }}"
+                  required
+                >
+
+                <select class="form-control mb-3" name="marca" id="marca" required>
+                  <option value="">Seleccione una marca</option>
+
+                  {% for marca in marcas %}
+                    <option value="{{ marca.nombre }}">
+                      {{ marca.nombre }}
+                    </option>
+                  {% endfor %}
+
+                  <option value="OTRA">➕ Otra marca / escribir manualmente</option>
+                </select>
+
+                <input
+                   class="form-control mb-3"
+                   type="text"
+                   name="marca_manual"
+                   id="marca_manual"
+                   placeholder="Escriba la marca"
+                   style="display:none;"
+                >
+
+                <select class="form-control mb-3" name="modelo" id="modelo" required>
+                  <option value="">Seleccione un modelo</option>
+
+                   {% for modelo in modelos %}
+                   <option
+                      value="{{ modelo.nombre }}"
+                      data-marca="{{ modelo.marca.nombre }}"
+                      data-tipo="{{ modelo.tipo }}"
+                    >
+                      {{ modelo.marca.nombre }} - {{ modelo.nombre }}
+                   </option>
+                   {% endfor %}
+
+                  <option value="OTRO">➕ Otro modelo / escribir manualmente</option>
+                </select>
+
+                <input
+                   class="form-control mb-3"
+                   type="text"
+                   name="modelo_manual"
+                   id="modelo_manual"
+                   placeholder="Escriba el modelo"
+                   style="display:none;"
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="number"
+                  name="anio"
+                  placeholder="Año"
+                  min="1900"
+                  max="2100"
+                  value="{{ datos.anio|default:'' }}"
+                  required
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="motor"
+                  placeholder="Número de motor"
+                  value="{{ datos.motor|default:'' }}"
+                  required
+                >
+
+                <input
+                  class="form-control mb-3"
+                  type="text"
+                  name="chasis"
+                  placeholder="Número de chasis"
+                  value="{{ datos.chasis|default:'' }}"
+                  required
+>
+
+                <label>Cliente</label>
+
+                <select class="form-select mb-3" name="cliente" required>
+
+                   <option value="">
+                    Seleccione un cliente
+                   </option>
+
+                   {% for cliente in clientes %}
+
+                       <option
+                         value="{{ cliente.id }}"
+                         {% if datos.cliente == cliente.id|stringformat:"s" %}selected{% endif %}
+                        >
+                           {{ cliente.apellido }}, {{ cliente.nombre }} — DNI {{ cliente.dni }}
+                       </option>
+
+                     {% endfor %}
+
+                </select>
+
+                    <label>Uso del vehículo</label>
+                    <select class="form-select mb-3" name="uso" required>
+                
+                     <option value="">Uso del vehículo</option>
+
+                     <option value="Particular" {% if datos.uso == "Particular" %}selected{% endif %}>Particular
+                     </option>
+
+                     <option value="Comercial">Comercial</option>
+
+
+                     <option value="Taxi" {% if datos.uso == "Taxi" %}selected{% endif %}>Taxi
+                     </option>
+
+                     <option value="Furgón" {% if datos.uso == "Furgón" %}selected{% endif %}>Furgón
+                     </option>
+
+                     <option value="Camión" {% if datos.uso == "Camión" %}selected{% endif %}>Camión
+                     </option>
+
+                     <option value="Acoplado" {% if datos.uso == "Acoplado" %}selected{% endif %}>Acoplado
+                     </option>
+
+                </select>
+
+        <div class="grupo-botones">
+
+            <button class="btn btn-success" type="submit">
+               💾 Guardar Cliente
+            </button>
+
+            <a href="/" class="btn btn-secondary">
+                Cancelar
+            </a>
+
+          </div>
+
+            </form>
+
+      
+            <script>
+            function confirmarGuardadoRiesgo(event) {
+              const formulario = event.target;
+
+              if (!formulario.checkValidity()) {
+                  formulario.reportValidity();
+                  return false;
+              }
+
+                  return confirm("¿Confirma que desea registrar este riesgo en FORTEX?");
+}
+</script>
+
+<script>
+const marcaSelect = document.getElementById("marca");
+const modeloSelect = document.getElementById("modelo");
+const tipoRiesgoSelect = document.getElementById("tipo_riesgo");
+const marcaManual = document.getElementById("marca_manual");
+const modeloManual = document.getElementById("modelo_manual");
+
+const opcionesModelo = Array.from(modeloSelect.options);
+const opcionesMarca = Array.from(marcaSelect.options);
+
+function actualizarMarcaManual() {
+    const esOtraMarca = marcaSelect.value === "OTRA";
+
+    marcaManual.style.display = esOtraMarca ? "block" : "none";
+    marcaManual.required = esOtraMarca;
+
+    if (!esOtraMarca) {
+        marcaManual.value = "";
+    }
+}
+
+function actualizarMarcasPorTipo() {
+    const tipoSeleccionado = tipoRiesgoSelect.value;
+    const tipoEsperado = tipoSeleccionado === "Motocicleta" ? "Moto" : "Auto";
+
+    const marcasPermitidas = new Set();
+
+    opcionesModelo.forEach(function(opcion) {
+        if (opcion.dataset.tipo === tipoEsperado && opcion.dataset.marca) {
+            marcasPermitidas.add(opcion.dataset.marca);
+        }
+    });
+
+    marcaSelect.innerHTML =
+        '<option value="">Seleccione una marca</option>';
+
+    opcionesMarca.forEach(function(opcion) {
+        if (
+            opcion.value === "OTRA" ||
+            marcasPermitidas.has(opcion.value)
+        ) {
+            marcaSelect.appendChild(opcion.cloneNode(true));
+        }
+    });
+
+    marcaSelect.value = "";
+}
+
+function actualizarModelos() {
+    const marcaSeleccionada = marcaSelect.value;
+    const tipoSeleccionado = tipoRiesgoSelect.value;
+
+    modeloSelect.innerHTML =
+        '<option value="">Seleccione un modelo</option>';
+
+    if (marcaSeleccionada && marcaSeleccionada !== "OTRA") {
+        opcionesModelo.forEach(function(opcion) {
+            const marcaModelo = opcion.dataset.marca;
+            const tipoModelo = opcion.dataset.tipo;
+            const tipoEsperado = tipoSeleccionado === "Motocicleta" ? "Moto" : "Auto";
+
+            if (
+                marcaModelo === marcaSeleccionada &&
+                tipoModelo === tipoEsperado
+            ) { 
+                modeloSelect.appendChild(opcion.cloneNode(true));
+            }
+        });
+    }
+
+    const opcionManual = document.createElement("option");
+    opcionManual.value = "OTRO";
+    opcionManual.textContent =
+        "➕ Otro modelo / escribir manualmente";
+
+    modeloSelect.appendChild(opcionManual);
+
+    modeloSelect.value = "";
+    actualizarModeloManual();
+}
+
+function actualizarModeloManual() {
+    const esOtroModelo = modeloSelect.value === "OTRO";
+
+    modeloManual.style.display = esOtroModelo ? "block" : "none";
+    modeloManual.required = esOtroModelo;
+
+    if (!esOtroModelo) {
+        modeloManual.value = "";
+    }
+}
+
+marcaSelect.addEventListener("change", function() {
+    actualizarMarcaManual();
+    actualizarModelos();
+});
+
+modeloSelect.addEventListener(
+    "change",
+    actualizarModeloManual
+);
+
+tipoRiesgoSelect.addEventListener("change", function() {
+    actualizarMarcasPorTipo();
+    actualizarModelos();
+});
+
+actualizarMarcaManual();
+actualizarMarcasPorTipo();
+actualizarModelos();
+</script>
+
+</body>
+</html>

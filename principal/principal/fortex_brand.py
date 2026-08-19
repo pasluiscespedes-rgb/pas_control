@@ -1,0 +1,7 @@
+COLOR_AZUL = "#0B3D91"
+COLOR_GRIS = "#4B5563"
+COLOR_NEGRO = "#111827"
+
+NOMBRE_MARCA = "FORTEX"
+SUBTITULO_MARCA = "Gestión Integral"
+DESCRIPCION_MARCA = "Administradores de Riesgos"
