@@ -4,3 +4,9 @@ __pycache__/
 *.pyo
 *.log
 .vscode/
+
+db.sqlite3
+backups/
+backups_postgresql/
+*.sqlite3
+*.dump
