@@ -11,3 +11,5 @@ backups_postgresql/
 *.sqlite3
 *.dump
 staticfiles/
+
+datos_fortex_railway.json
