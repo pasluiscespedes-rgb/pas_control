@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Vehículos - FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #07111f;
+            color: #ffffff;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            color: #9fb3c8;
+            margin-bottom: 25px;
+        }
+
+        .resumen {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta {
+            background: #0d1b2a;
+            padding: 16px 20px;
+            border-radius: 12px;
+            min-width: 180px;
+        }
+
+        .tarjeta strong {
+            display: block;
+            color: #9fb3c8;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .tarjeta span {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            background: #0d1b2a;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .filtros form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #b8c7d9;
+        }
+
+        select {
+            padding: 9px 10px;
+            border-radius: 7px;
+            border: 1px solid #30445c;
+            background: #07111f;
+            color: white;
+            min-width: 150px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-limpiar {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            background: #2b3b4f;
+            color: white;
+            border: 1px solid #53677f;
+        }
+
+        .btn-limpiar:hover {
+            background: #3a5068;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d1b2a;
+            margin-bottom: 30px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #26384d;
+            text-align: center;
+        }
+
+        th {
+            background: #13263b;
+            font-size: 13px;
+        }
+
+        td:first-child,
+        th:first-child {
+            text-align: left;
+        }
+
+        .vacio {
+            padding: 30px;
+            text-align: center;
+            color: #9fb3c8;
+        }
+
+        h2 {
+            margin-top: 30px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Reporte de Vehículos / Riesgos</h1>
+
+    <div class="subtitulo">
+        Distribución de vehículos por tipo, uso, marca y año
+    </div>
+
+    <div class="resumen">
+
+        <div class="tarjeta">
+            <strong>Total de vehículos</strong>
+            <span>{{ total_vehiculos }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Clientes con vehículos</strong>
+            <span>{{ total_clientes }}</span>
+        </div>
+
+    </div>
+
+    <div class="filtros">
+
+        <form method="get">
+
+            <div class="campo">
+                <label>Tipo</label>
+
+                <select name="tipo">
+                    <option value="">Todos</option>
+
+                    {% for valor, texto in tipos %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == tipo_seleccionado %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Uso</label>
+
+                <select name="uso">
+                    <option value="">Todos</option>
+
+                    {% for valor, texto in usos %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == uso_seleccionado %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Marca</label>
+
+                <select name="marca">
+                    <option value="">Todas</option>
+
+                    {% for marca in marcas %}
+                        <option
+                            value="{{ marca }}"
+                            {% if marca == marca_seleccionada %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ marca }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Año</label>
+
+                <select name="anio">
+                    <option value="">Todos</option>
+
+                    {% for anio in anios %}
+                        <option
+                            value="{{ anio }}"
+                            {% if anio|stringformat:"s" == anio_seleccionado %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ anio }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">
+                Aplicar filtros
+            </button>
+
+            <a
+                href="{% url 'reporte_vehiculos' %}"
+                class="btn-limpiar"
+            >
+                Limpiar filtros
+            </a>
+
+        </form>
+    </div>
+
+    <h2>Resumen por tipo</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Clientes</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for fila in resumen_tipos %}
+                <tr>
+                    <td>{{ fila.tipo }}</td>
+                    <td>{{ fila.cantidad }}</td>
+                    <td>{{ fila.clientes }}</td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="3" class="vacio">
+                        No existen vehículos para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+    <h2>Detalle de vehículos</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Patente</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Año</th>
+                <th>Uso</th>
+                <th>Cliente</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for vehiculo in vehiculos %}
+                <tr>
+                    <td>{{ vehiculo.tipo }}</td>
+                    <td>{{ vehiculo.patente }}</td>
+                    <td>{{ vehiculo.marca }}</td>
+                    <td>{{ vehiculo.modelo }}</td>
+                    <td>
+                        {% if vehiculo.anio %}
+                            {{ vehiculo.anio }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ vehiculo.uso }}</td>
+                    <td>{{ vehiculo.cliente }}</td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="7" class="vacio">
+                        No existen vehículos para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</body>
+</html>

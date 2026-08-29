@@ -1,0 +1,222 @@
+{% load fortex_formatos %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte por Aseguradora - FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #07111f;
+            color: #ffffff;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            color: #9fb3c8;
+            margin-bottom: 25px;
+        }
+
+        .filtros {
+            background: #0d1b2a;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .filtros form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #b8c7d9;
+        }
+
+        input,
+        select {
+            padding: 9px 10px;
+            border-radius: 7px;
+            border: 1px solid #30445c;
+            background: #07111f;
+            color: white;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d1b2a;
+        }
+
+        th,
+        td {
+            padding: 11px 9px;
+            border-bottom: 1px solid #26384d;
+            text-align: center;
+        }
+
+        th {
+            background: #13263b;
+            font-size: 13px;
+        }
+
+        td:first-child,
+        th:first-child {
+            text-align: left;
+        }
+
+        .total {
+            font-weight: bold;
+        }
+
+        .vacio {
+            padding: 30px;
+            text-align: center;
+            color: #9fb3c8;
+        }
+
+        .btn-limpiar {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            background: #2b3b4f;
+            color: white;
+        }
+
+        .btn-limpiar:hover {
+            background: #3a5068;
+            color: white;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>Reporte por Aseguradora</h1>
+    <div class="subtitulo">
+        Cartera, asegurados e ingresos por compañía
+    </div>
+
+    <div class="filtros">
+        <form method="get">
+
+            <div class="campo">
+                <label>Desde</label>
+                <input
+                    type="date"
+                    name="fecha_desde"
+                    value="{{ fecha_desde }}"
+                >
+            </div>
+
+            <div class="campo">
+                <label>Hasta</label>
+                <input
+                    type="date"
+                    name="fecha_hasta"
+                    value="{{ fecha_hasta }}"
+                >
+            </div>
+
+            <div class="campo">
+                <label>Aseguradora</label>
+                <select name="compania">
+                    <option value="">Todas</option>
+
+                    {% for compania in companias %}
+                        <option
+                            value="{{ compania }}"
+                            {% if compania == compania_filtro %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ compania }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">
+                Aplicar filtros
+            </button>
+
+            <a href="{% url 'reporte_aseguradoras' %}" class="btn-limpiar">
+               Limpiar filtros
+        </a>
+
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Aseguradora</th>
+                <th>Pólizas</th>
+                <th>Clientes</th>
+                <th>Al día</th>
+                <th>Pendientes</th>
+                <th>Morosas</th>
+                <th>Vencidas</th>
+                <th>Anuladas</th>
+                <th>Total cobrado</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for fila in reporte %}
+                <tr>
+                    <td>{{ fila.compania }}</td>
+                    <td>{{ fila.cantidad_polizas }}</td>
+                    <td>{{ fila.cantidad_clientes }}</td>
+                    <td>{{ fila.al_dia }}</td>
+                    <td>{{ fila.pendientes }}</td>
+                    <td>{{ fila.morosas }}</td>
+                    <td>{{ fila.vencidas }}</td>
+                    <td>{{ fila.anuladas }}</td>
+                    <td class="total">
+                        {{ fila.total_cobrado|dinero_ar }}
+                    </td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="9" class="vacio">
+                        No existen datos para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</body>
+</html>

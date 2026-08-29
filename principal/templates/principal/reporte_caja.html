@@ -1,0 +1,378 @@
+{% load fortex_formatos %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Caja - FORTEX</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 28px 38px;
+            font-family: Arial, sans-serif;
+            background:
+                radial-gradient(circle at 50% 100%, #073a78 0%, #071a36 35%, #050a12 75%);
+            background-attachment: fixed;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .subtitulo {
+            margin-top: 4px;
+            color: #2494ff;
+            font-size: 14px;
+        }
+
+        .tarjetas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 28px 0;
+        }
+
+        .tarjeta {
+            min-width: 150px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            background: rgba(7, 18, 36, 0.82);
+            border: 1px solid rgba(30, 115, 255, 0.20);
+        }
+
+        .tarjeta span {
+            display: block;
+            color: #2494ff;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .tarjeta strong {
+            font-size: 19px;
+        }
+
+        .filtros {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 10px;
+            margin-bottom: 28px;
+            padding: 15px;
+            background: rgba(5, 18, 38, 0.55);
+            border-radius: 8px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .campo label {
+            color: #42a5ff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            height: 38px;
+            min-width: 170px;
+            padding: 0 10px;
+            color: white;
+            background: #071326;
+            border: 1px solid #176ed0;
+            border-radius: 5px;
+        }
+
+        button,
+        .btn-limpiar {
+            height: 38px;
+            padding: 0 18px;
+            border: 0;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button {
+            background: #f5f5f5;
+            color: #444;
+        }
+
+        .btn-limpiar {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #086fd6;
+            color: white;
+        }
+
+        .tabla-contenedor {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            padding: 10px;
+            text-align: left;
+            background: linear-gradient(90deg, #0872d5, #159eea);
+            color: white;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(255,255,255,.15);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            background: rgba(8, 77, 151, .45);
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(12, 101, 190, .40);
+        }
+
+        tbody tr:hover {
+            background: rgba(21, 130, 235, .55);
+        }
+
+        .positivo {
+            color: #6dff8c;
+            font-weight: bold;
+        }
+
+        .sin-datos {
+            text-align: center;
+            padding: 30px;
+            color: #9bb8d8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Reporte de Caja / Cierres</h1>
+
+    <div class="subtitulo">
+        Auditoría histórica de ingresos, gastos, medios de pago y saldos de caja
+    </div>
+
+
+    <div class="tarjetas">
+
+        <div class="tarjeta">
+            <span>Total cobrado</span>
+            <strong>{{ resumen.total_cobrado|default:0|dinero_ar }}</strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Gastos</span>
+            <strong>{{ resumen.total_gastos|default:0|dinero_ar }}</strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Saldo neto</span>
+            <strong class="positivo">
+                {{ resumen.saldo_neto|default:0|dinero_ar }}
+            </strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Efectivo</span>
+            <strong>{{ resumen.efectivo|default:0|dinero_ar }}</strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Tarjeta</span>
+            <strong>{{ resumen.tarjeta|default:0|dinero_ar }}</strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Transferencia</span>
+            <strong>{{ resumen.transferencia|default:0|dinero_ar }}</strong>
+        </div>
+
+        <div class="tarjeta">
+            <span>Debito</span>
+            <strong>{{ resumen.cbu|default:0|dinero_ar }}</strong>
+        </div>
+
+    </div>
+
+
+    <form method="get" class="filtros">
+
+        <div class="campo">
+            <label>Desde</label>
+            <input
+                type="date"
+                name="fecha_desde"
+                value="{{ fecha_desde }}"
+            >
+        </div>
+
+        <div class="campo">
+            <label>Hasta</label>
+            <input
+                type="date"
+                name="fecha_hasta"
+                value="{{ fecha_hasta }}"
+            >
+        </div>
+
+        <div class="campo">
+            <label>Operador</label>
+
+            <select name="operador">
+                <option value="">Todos</option>
+
+                {% for op in operadores %}
+                    <option
+                        value="{{ op.usuario_id }}"
+                        {% if operador_seleccionado == op.usuario_id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ op.usuario__username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Sucursal</label>
+
+            <select name="sucursal">
+                <option value="">Todas</option>
+
+                {% for sucursal in sucursales %}
+                    <option
+                        value="{{ sucursal.id }}"
+                        {% if sucursal_seleccionada == sucursal.id|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ sucursal.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit">
+            Aplicar filtros
+        </button>
+
+        <a href="?" class="btn-limpiar">
+            Limpiar filtros
+        </a>
+
+    </form>
+
+
+    <div class="tabla-contenedor">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Turno</th>
+                    <th>Operador</th>
+                    <th>Sucursal</th>
+                    <th>Total cobrado</th>
+                    <th>Gastos</th>
+                    <th>Saldo neto</th>
+                    <th>Efectivo</th>
+                    <th>Tarjeta</th>
+                    <th>Transferencia</th>
+                    <th>Debito</th>
+                    <th>Cierre</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for cierre in cierres %}
+
+                    <tr>
+                        <td>{{ cierre.fecha|date:"d/m/Y" }}</td>
+
+                        <td>
+                            {% if cierre.turno %}
+                                {{ cierre.turno.id }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if cierre.usuario %}
+                                {{ cierre.usuario.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if cierre.turno and cierre.turno.sucursal %}
+                                {{ cierre.turno.sucursal.nombre }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>{{ cierre.total_cobrado|dinero_ar }}</td>
+
+                        <td>{{ cierre.total_gastos|dinero_ar }}</td>
+
+                        <td class="positivo">
+                            {{ cierre.saldo_neto|dinero_ar }}
+                        </td>
+
+                        <td>{{ cierre.efectivo|dinero_ar }}</td>
+
+                        <td>{{ cierre.tarjeta|dinero_ar }}</td>
+
+                        <td>{{ cierre.transferencia|dinero_ar }}</td>
+
+                        <td>{{ cierre.cbu|dinero_ar }}</td>
+
+                        <td>
+                            {{ cierre.fecha_hora_cierre|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="12" class="sin-datos">
+                            No hay cierres de caja para los filtros seleccionados.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</body>
+</html>

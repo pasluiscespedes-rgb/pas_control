@@ -1,0 +1,66 @@
+{% extends "principal/base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🧾 Recibos registrados</h2>
+
+        <div>
+            <a href="{% url 'inicio' %}" class="btn btn-secondary">
+                ← Volver al Escritorio
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <p><strong>Recibos: {{ recibos|length }}</strong></p>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Póliza</th>
+                        <th>Cuota</th>
+                        <th>Importe</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for recibo in recibos %}
+                    <tr>
+                        <td>{{ recibo.id }}</td>
+                        <td>{{ recibo.poliza.cliente }}</td>
+                        <td>{{ recibo.poliza.numero_poliza }}</td>
+                        <td>{{ recibo.cuota }}</td>
+                        <td>$ {{ recibo.importe }}</td>
+                        <td>
+                            <a href="{% url 'ver_recibo' recibo.id %}"
+                               class="btn btn-sm btn-primary">
+                                Ver
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No hay recibos registrados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

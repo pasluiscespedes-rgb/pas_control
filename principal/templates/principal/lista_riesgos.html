@@ -1,0 +1,135 @@
+{% extends "principal/base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🛡️ Riesgos registrados</h2>
+
+        <div>
+            <a href="{% url 'inicio' %}" class="btn btn-secondary">
+                ⬅ Volver al Escritorio
+            </a>
+
+            <a href="{% url 'crear_riesgo' %}" class="btn btn-primary">
+                ➕ Nuevo Riesgo
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="GET">
+                <div class="row g-2">
+
+                    <div class="col-md-9">
+                        <input
+                            type="text"
+                            name="q"
+                            class="form-control"
+                            value="{{ busqueda }}"
+                            placeholder="Buscar por patente, marca, modelo o cliente"
+                        >
+                    </div>
+
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            🔎 Buscar
+                        </button>
+
+                        <a href="{% url 'lista_riesgos' %}" class="btn btn-secondary">
+                            Limpiar
+                        </a>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <strong>🚗 Riesgos: {{ cantidad_riesgos }}</strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Cliente</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Año</th>
+                            <th>Uso</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for riesgo in riesgos %}
+
+                        <tr>
+                            <td>
+                                <strong>{{ riesgo.patente }}</strong>
+                            </td>
+
+                            <td>
+                                <a href="{% url 'detalle_cliente' riesgo.cliente.id %}">
+                                    {{ riesgo.cliente.apellido }}, {{ riesgo.cliente.nombre }}
+                                </a>
+                            </td>
+
+                            <td>{{ riesgo.marca }}</td>
+
+                            <td>{{ riesgo.modelo }}</td>
+
+                            <td>
+                                {{ riesgo.anio|default:"-" }}
+                            </td>
+
+                            <td>
+                                {{ riesgo.uso|default:"-" }}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{% url 'editar_riesgo' riesgo.id %}"
+                                    class="btn btn-sm btn-primary"
+                                >
+                                    ✏️ Editar
+                                </a>
+                            </td>
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No se encontraron riesgos.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

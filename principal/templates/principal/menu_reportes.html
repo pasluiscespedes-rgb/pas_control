@@ -1,0 +1,214 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Centro de Reportes - FORTEX</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #ffffff;
+            background:
+                radial-gradient(circle at 50% 30%, rgba(0, 119, 255, 0.18), transparent 34%),
+                linear-gradient(145deg, #07111f 0%, #030914 55%, #07111f 100%);
+        }
+
+        .reportes-contenedor {
+            width: min(1180px, 94%);
+            margin: 0 auto;
+            padding: 35px 0 50px;
+        }
+
+        .reportes-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .reportes-cabecera h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .reportes-cabecera p {
+            margin: 7px 0 0;
+            color: #64b5ff;
+            font-size: 14px;
+        }
+
+        .volver {
+            text-decoration: none;
+            color: #ffffff;
+            border: 1px solid #168cff;
+            background: rgba(0, 105, 210, 0.16);
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .volver:hover {
+            background: #087dd8;
+            box-shadow: 0 0 18px rgba(0, 140, 255, 0.45);
+        }
+
+        .reportes-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+        }
+
+        .reporte-card {
+           position: relative;
+           min-height: 205px;
+           padding: 0;
+           border-radius: 18px;
+           border: none;
+           overflow: hidden;
+           text-decoration: none;
+           color: #ffffff;
+           display: block;
+           background: transparent;
+
+           transition:
+            transform 0.25s ease,
+            filter 0.25s ease;
+        }
+
+       .reporte-card img {
+          width: 100%;
+          height: 100%;
+          min-height: 205px;
+          display: block;
+          object-fit: cover;
+        }
+
+        .reporte-card:hover {
+            transform: translateY(-5px);
+            border-color: #29a9ff;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.35),
+                0 0 22px rgba(0, 140, 255, 0.22);
+        }
+
+        .reporte-icono {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .reporte-card h2 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .reporte-card span {
+            margin-top: 7px;
+            font-size: 12px;
+            color: #86c9ff;
+            line-height: 1.35;
+        }
+
+        @media (max-width: 1000px) {
+            .reportes-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 650px) {
+            .reportes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .reportes-cabecera {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="reportes-contenedor">
+
+    <div class="reportes-cabecera">
+        <div>
+            <h1>Centro de Reportes</h1>
+            <p>FORTEX · Control, auditoría y análisis de gestión</p>
+        </div>
+
+        <a href="{% url 'inicio' %}" class="volver">
+            ← Volver al Escritorio
+        </a>
+    </div>
+
+    <div class="reportes-grid">
+
+        <a href="{% url 'reporte_ingresos' %}" class="reporte-card">
+          <img src="{% static 'principal/img/reportes/reporte_ingresos.png' %}"
+             alt="Reporte de Ingresos">
+          </a>
+
+        <a href="{% url 'reporte_comisiones' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_comisiones.png' %}"
+         alt="Reporte de Comisiones">
+</a>
+
+<a href="{% url 'reporte_aseguradoras' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_aseguradoras.png' %}"
+         alt="Reporte de Aseguradoras">
+</a>
+
+<a href="{% url 'reporte_vehiculos' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_vehiculos.png' %}"
+         alt="Reporte de Vehículos y Riesgos">
+</a>
+
+<a href="{% url 'reporte_polizas' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_polizas.png' %}"
+         alt="Reporte de Pólizas">
+</a>
+
+<a href="{% url 'reporte_clientes' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_clientes.png' %}"
+         alt="Reporte de Clientes">
+</a>
+
+<a href="{% url 'reporte_produccion' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_produccion.png' %}"
+         alt="Reporte de Producción y Altas">
+</a>
+
+<a href="{% url 'reporte_cobranza' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_cobranza.png' %}"
+         alt="Reporte de Cobranza">
+</a>
+
+<a href="{% url 'reporte_plus' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_plus.png' %}"
+         alt="Reporte de Plus">
+</a>
+
+<a href="{% url 'reporte_caja' %}" class="reporte-card">
+    <img src="{% static 'principal/img/reportes/reporte_caja.png' %}"
+         alt="Reporte de Caja y Cierres">
+</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

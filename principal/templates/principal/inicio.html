@@ -9,220 +9,256 @@ Inicio | FORTEX Gestión Integral
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet">
 <link rel="stylesheet"
-      href="{% static 'principal/css/estilos.css' %}?v=6">
+      href="{% static 'principal/css/estilos.css' %}?v=60">
 {% endblock %}
 
 {% block content %}
 
+<div class="fortex-dashboard">
+   <svg class="circuito-fortex-svg" aria-hidden="true">
+    <path id="circuito-fortex-path"></path>
+   </svg>
+    
+    <section class="fortex-nucleo">
 
-<div class="container-fluid">
+      <a href="{% url 'lista_clientes' %}"
+        class="fortex-modulo-svg modulo-clientes-svg">
 
-    <div class="row mb-4 g-3">
-
-        <!-- Clientes -->
-        <div class="col-md-2">
-
-            <a href="/admin/clientes/cliente/" class="enlace-tarjeta">
-
-                <div class="card text-center tarjeta-resumen tarjeta-clientes"
-                     style="border-top: 6px solid #0d6efd !important;">
-
-                    <div class="card-body">
-                        <h5>👥 Clientes</h5>
-                        <h2>{{ cantidad_clientes }}</h2>
-                    </div>
-
-                </div>
-
-            </a>
-
-        </div>
-
-        <!-- Pólizas -->
-        <div class="col-md-2">
-
-            <div class="card text-center tarjeta-resumen tarjeta-polizas"
-                 style="border-top: 6px solid #6f42c1 !important;">
-
-                <div class="card-body">
-                    <h5>📄 Pólizas</h5>
-                    <h2>{{ total_polizas }}</h2>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Vigentes -->
-        <div class="col-md-2">
-
-            <div class="card text-center tarjeta-resumen tarjeta-vigentes"
-                 style="border-top: 6px solid #198754 !important;">
-
-                <div class="card-body">
-                    <h5>🟢 Vigentes</h5>
-                    <h2>{{ polizas_vigentes }}</h2>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Por vencer -->
-        <div class="col-md-2">
-
-            <div class="card text-center tarjeta-resumen tarjeta-por-vencer"
-                 style="border-top: 6px solid #fd7e14 !important;">
-
-                <div class="card-body">
-                    <h5>🟠 Por vencer</h5>
-                    <h2>{{ polizas_por_vencer }}</h2>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Vencidas -->
-   <div class="col-md-2">
-
-    <div class="card text-center tarjeta-resumen tarjeta-vencidas"
-         style="border-top: 6px solid #dc3545 !important;">
-
-        <div class="card-body">
-            <h5>🔴 Vencidas</h5>
-            <h2>{{ polizas_vencidas }}</h2>
-        </div>
+         <div class="fortex-modulo-contenido">
+            
+            <img src="{% static 'principal/img/icono_cliente.png' %}"
+               alt="Clientes"
+               class="icono-modulo-fortex">
 
     </div>
 
+</a>
+
+      <a href="{% url 'lista_riesgos' %}"
+        class="fortex-modulo-svg modulo-riesgos-svg">
+
+         <div class="fortex-modulo-contenido">
+            <img src="{% static 'principal/img/icono_riesgos.png' %}"
+              alt="Riesgos"
+              class="icono-modulo-fortex">
+         </div>
+
+      </a>
+      
+      <a href="{% url 'lista_polizas' %}"
+        class="fortex-modulo-svg modulo-polizas-svg">
+
+         <div class="fortex-modulo-contenido">
+           <img src="{% static 'principal/img/icono_polizas.png' %}"
+              alt="Pólizas"
+              class="icono-modulo-fortex">
 </div>
 
-</div>
+      </a>
 
-<div class="row mb-4 g-3">
+      <!-- NÚCLEO CENTRAL FORTEX -->
+      <div class="fortex-nucleo-centro nucleo-lobo-fortex">
 
-   <!-- Vehículos -->
-<div class="col-md-6">
+        <img
+          src="{% static 'principal/svg/engranaje_fortex.svg' %}"
+          class="engranaje-maestro-fortex"
+          alt=""
+        >
+        <img
+          src="{% static 'principal/img/fortex_logo_redondo.png' %}"
+          alt="FORTEX Gestión Integral"
+          class="fortex-logo-central"
+         >
+          <span class="ojo-fortex ojo-izquierdo"></span>
+          <span class="ojo-fortex ojo-derecho"></span>
 
-    <a href="/admin/vehiculos/vehiculo/" class="enlace-tarjeta">
+          <span class="flama-fortex flama-izquierda"></span>
+          <span class="flama-fortex flama-derecha"></span>
+         
+      </div>
+      
+      <a href="{% url 'cobros:historial_cobros' %}"
+         class="fortex-modulo-svg modulo-cobros-svg">
 
-        <div class="card text-center tarjeta-resumen"
-             style="border-top: 6px solid #0ea5e9 !important;">
+         <div class="fortex-modulo-contenido">
+          <img src="{% static 'principal/img/icono_cobros.png' %}"
+            alt="Cobros"
+            class="icono-modulo-fortex">
+         </div>
 
-            <div class="card-body">
-                <h5>🚗 Vehículos</h5>
-                <h2>{{ total_vehiculos }}</h2>
-            </div>
+      </a>
 
-        </div>
+      <a href="{% url 'lista_recibos' %}"
+         class="fortex-modulo-svg modulo-recibos-svg">
 
+         <div class="fortex-modulo-contenido">
+            <img src="{% static 'principal/img/icono_recibos.png' %}"
+              alt="Recibos"
+              class="icono-modulo-fortex">
+         </div>
+      </a>
+
+      <a href="{% url 'menu_reportes' %}"
+         class="fortex-modulo-svg modulo-reportes-svg">
+
+         <div class="fortex-modulo-contenido">
+            <img src="{% static 'principal/img/icono_reportes.png' %}"
+              alt="Reportes"
+              class="icono-modulo-fortex">
+         </div>
+
+      </a>
+
+</section>
+
+<!-- ACCESOS RÁPIDOS FORTEX -->
+<section class="fortex-accesos-rapidos">
+
+    <a href="{% url 'centro_vencimientos' %}"
+       class="fortex-acceso-rapido acceso-vencimientos">
+
+         <img src="{% static 'principal/img/icono_vencimientos.png' %}"
+           alt="Vencimientos"
+           class="icono-acceso-fortex">
+         <span class="etiqueta-acceso-fortex">VENCIMIENTOS</span>
     </a>
 
-</div>
+    
+    <a href="{% url 'agenda_telefonos' %}"
+        class="fortex-acceso-rapido acceso-agenda">
 
-    <!-- Cobrado hoy -->
-    <div class="col-md-6">
-    <a href="{% url 'caja_diaria' %}" class="enlace-tarjeta">
+         <img src="{% static 'principal/img/icono_agenda.png' %}"
+            alt="Agenda"
+            class="icono-acceso-fortex">
 
-        <div class="card text-center tarjeta-resumen"
-             style="border-top: 6px solid #10b981 !important; cursor:pointer;">
+          <span class="etiqueta-acceso-fortex">AGENDA</span>
 
-            <div class="card-body">
-                <h5>💰 Cobrado hoy</h5>
-                <h2>${{ cobrado_hoy }}</h2>
-            </div>
+     </a>
+   
+    <a href="{% url 'caja_diaria' %}"
+        class="fortex-acceso-rapido acceso-caja">
 
-        </div>
+         <img src="{% static 'principal/img/icono_caja.png' %}"
+           alt="Caja"
+           class="icono-acceso-fortex">
 
-    </a>
-  </div>
+         <span class="etiqueta-acceso-fortex">CAJA</span>
+
+     </a>
 
     
 
+    <a href="{% url 'abrir_turno' %}"
+        class="fortex-acceso-rapido acceso-turno">
+
+         <img src="{% static 'principal/img/icono_abrir turno.png' %}"
+           alt="Abrir turno"
+           class="icono-acceso-fortex">
+
+         <span class="etiqueta-acceso-fortex">ABRIR TURNO</span>
+
+     </a>
+
+
+</section>
+
 </div>
 
-    <div class="row">
+<script>
+window.addEventListener("load", function () {
+    window.scrollTo(0, 1);
+});
+</script>
 
-        <div class="col-md-3">
-            <div class="list-group">
-                <a href="/" class="list-group-item list-group-item-action active">🏠 Escritorio</a>
-                 <a href="{% url 'lista_clientes' %}" class="list-group-item list-group-item-action">👥 Clientes</a>
-                <a href="/admin/vehiculos/vehiculo/" class="list-group-item list-group-item-action">🛡️ Riesgos</a>
-                <a href="/admin/polizas/poliza/" class="list-group-item list-group-item-action">📄 Pólizas</a>
-                <a href="{% url 'cobros:historial_cobros' %}" class="list-group-item list-group-item-action">🔥 Cobros</a>
-                <a href="#" class="list-group-item list-group-item-action">🧾 Recibos</a>
-                <a href="#" class="list-group-item list-group-item-action">📲 WhatsApp</a>
-                <a href="#" class="list-group-item list-group-item-action">📊 Reportes</a>
-                <a href="/admin/" class="list-group-item list-group-item-action">⚙️ Configuración</a>
-            </div>
-        </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
-        <div class="col-md-9">
+    const dashboard = document.querySelector(".fortex-dashboard");
+    const lobo = document.querySelector(".nucleo-lobo-fortex");
+    const circuito = document.querySelector("#circuito-fortex-path");
 
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="mb-3">
+    const modulos = document.querySelectorAll(
+        ".fortex-modulo-svg, .fortex-acceso-rapido"
+    );
 
-    <a href="/vencimientos/" class="btn btn-danger w-100 mb-2">
-    ⏰ Centro de Vencimientos
-</a>
-                    
-    <a href="/clientes/nuevo/" class="btn btn-success">
-        ➕ Nuevo Cliente
-    </a>
-    <a href="/riesgos/nuevo/" class="btn btn-dark">
-        🛡️ Nuevo Riesgo
-    </a>
-    <a href="{% url 'crear_poliza' %}" class="btn btn-primary">
-    📄 Nueva Póliza
-</a>
-</div>
-                    <h4>🔍 Búsqueda rápida</h4>
+    if (!dashboard || !lobo || !circuito) return;
 
-                    <form method="GET" class="d-flex">
-                        <input class="form-control me-2" type="text" name="buscar" placeholder="Buscar por apellido, DNI o patente">
-                        <button class="btn btn-primary" type="submit">Buscar</button>
-                        <a href="/" class="btn btn-secondary ms-2">Limpiar</a>
-                    </form>
-                </div>
-            </div>
 
-            <div class="card">
-                <div class="card-body">
-                    <h4>👤 Clientes registrados</h4>
+    function crearCircuito(origen) {
 
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Apellido</th>
-                                <th>Nombre</th>
-                                <th>DNI</th>
-                                <th>WhatsApp</th>
-                            </tr>
-                        </thead>
+        const area = dashboard.getBoundingClientRect();
+        const inicio = origen.getBoundingClientRect();
+        const destino = lobo.getBoundingClientRect();
 
-                        <tbody>
-                            {% for cliente in clientes %}
-                            <tr>
-                                <td>
-    <a href="/clientes/{{ cliente.id }}/">
-        {{ cliente.apellido }}
-    </a>
-</td>
-                                <td>{{ cliente.nombre }}</td>
-                                <td>{{ cliente.dni }}</td>
-                                <td>{{ cliente.whatsapp }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        const x1 =
+            inicio.left +
+            inicio.width / 2 -
+            area.left;
 
-                </div>
-            </div>
+        const y1 =
+            inicio.top +
+            inicio.height / 2 -
+            area.top;
 
-        </div>
-    </div>
-</div>
+        const x2 =
+            destino.left +
+            destino.width / 2 -
+            area.left;
+
+        const y2 =
+            destino.top +
+            destino.height / 2 -
+            area.top;
+
+
+        /*
+         Circuito angular:
+         horizontal → diagonal corta →
+         horizontal → llegada al núcleo
+        */
+
+        const direccion = x2 > x1 ? 1 : -1;
+
+        const tramo1 = x1 + (55 * direccion);
+        const tramo2 = tramo1 + (35 * direccion);
+
+        const mitadY = y1 + ((y2 - y1) * 0.5);
+
+
+        const ruta = `
+            M ${x1} ${y1}
+            L ${tramo1} ${y1}
+            L ${tramo2} ${mitadY}
+            L ${x2 - (45 * direccion)} ${mitadY}
+            L ${x2} ${y2}
+        `;
+
+        circuito.setAttribute("d", ruta);
+
+        circuito.classList.add("activo");
+        lobo.classList.add("energia-activa");
+    }
+
+
+    function apagarCircuito() {
+        circuito.classList.remove("activo");
+        lobo.classList.remove("energia-activa");
+    }
+
+
+    modulos.forEach(modulo => {
+
+        modulo.addEventListener("mouseenter", function () {
+            crearCircuito(modulo);
+        });
+
+        modulo.addEventListener("mouseleave", apagarCircuito);
+
+    });
+
+});
+
+</script>
 
 {% endblock %}
+

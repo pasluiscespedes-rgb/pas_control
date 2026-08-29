@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import GastoCaja, Aseguradora
-from .models import GastoCaja, Aseguradora, CierreCaja
-
+from .models import GastoCaja, Aseguradora, CierreCaja, Sucursal, PerfilUsuario
+from django import forms
 
 @admin.register(GastoCaja)
 class GastoCajaAdmin(admin.ModelAdmin):
@@ -30,3 +29,25 @@ class CierreCajaAdmin(admin.ModelAdmin):
     )
 
     ordering = ("-fecha",)   
+
+@admin.register(Sucursal)
+class SucursalAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "provincia", "codigo", "activa")
+    search_fields = ("nombre", "provincia", "codigo")
+    list_filter = ("provincia", "activa")
+
+class PerfilUsuarioForm(forms.ModelForm):
+    class Meta:
+        model = PerfilUsuario
+        fields = ("usuario", "sucursal", "activo")
+        labels = {
+            "usuario": "Usuario",
+            "sucursal": "Sucursal",
+            "activo": "Activo",
+        }
+@admin.register(PerfilUsuario)
+class PerfilUsuarioAdmin(admin.ModelAdmin):
+    form = PerfilUsuarioForm
+    list_display = ("usuario", "sucursal", "activo")
+    list_filter = ("sucursal", "activo")
+    search_fields = ("usuario__username",)   

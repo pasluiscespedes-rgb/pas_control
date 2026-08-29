@@ -22,8 +22,8 @@ body {
 }
 
 .barra-superior {
-    min-height: 94px;
-    padding: 12px 32px;
+    min-height: 76px;
+    padding: 6px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;

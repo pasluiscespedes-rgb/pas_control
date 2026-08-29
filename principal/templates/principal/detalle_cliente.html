@@ -59,7 +59,12 @@ Ficha de {{ cliente.apellido }} {{ cliente.nombre }} | FORTEX
                 ⬅ Clientes
             </a>
 
-            <a href="{% url 'crear_riesgo' %}"
+            <a href="{% url 'inicio' %}"
+               class="accion-ficha">
+                🏠 Volver al Escritorio
+            </a>
+
+            <a href="{% url 'crear_riesgo_cliente' cliente.id %}"
                class="accion-ficha">
                 🛡️ Nuevo Riesgo
             </a>

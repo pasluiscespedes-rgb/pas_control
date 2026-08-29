@@ -10,3 +10,4 @@ backups/
 backups_postgresql/
 *.sqlite3
 *.dump
+staticfiles/

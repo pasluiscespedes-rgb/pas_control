@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 
 from .models import Cobro
+from principal.views import calcular_proximo_vencimiento, actualizar_estado_poliza
 
 @login_required
 def anular_cobro(request, cobro_id):
@@ -25,6 +26,44 @@ def anular_cobro(request, cobro_id):
         cobro.motivo_anulacion = motivo
         cobro.anulado_por = request.user
         cobro.save()
+
+        # Recalcular la póliza después de anular el cobro
+        poliza = cobro.poliza
+
+        cuotas_pagadas = set()
+
+        cobros_activos = Cobro.objects.filter(
+          poliza=poliza,
+         anulado=False,
+        )
+
+        for cobro_activo in cobros_activos:
+          inicio = cobro_activo.cuota
+          fin = inicio + cobro_activo.cantidad_cuotas - 1
+
+          cuotas_pagadas.update(
+             range(inicio, fin + 1)
+        )
+
+        # Buscar hasta qué cuota están pagadas consecutivamente desde la cuota 1
+        ultima_cuota_consecutiva = 0
+
+        for numero in range(1, poliza.cantidad_cuotas + 1):
+          if numero in cuotas_pagadas:
+              ultima_cuota_consecutiva = numero
+          else:
+             break
+
+        poliza.numero_cuota = ultima_cuota_consecutiva
+
+        # El próximo vencimiento corresponde a la primera cuota pendiente
+        poliza.fecha_vencimiento = calcular_proximo_vencimiento(
+          poliza.fecha_alta,
+          ultima_cuota_consecutiva + 1,
+        )
+
+        actualizar_estado_poliza(poliza)
+        poliza.save()
 
         messages.success(
             request,

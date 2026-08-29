@@ -19,6 +19,7 @@
             <thead>
                 <tr>
                     <th>Operador</th>
+                    <th>Sucursal</th>
                     <th>Apertura</th>
                     <th>Cierre</th>
                     <th>Total cobrado</th>
@@ -35,6 +36,14 @@
                 <tr>
                     <td>
                         {{ turno.usuario.get_full_name|default:turno.usuario.username }}
+                    </td>
+
+                    <td>
+                      {% if turno.sucursal %}
+                         {{ turno.sucursal }}
+                      {% else %}
+                          -
+                      {% endif %}
                     </td>
 
                     <td>

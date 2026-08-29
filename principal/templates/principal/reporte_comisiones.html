@@ -1,5 +1,7 @@
 {% extends "principal/base.html" %}
 
+{% load fortex_formatos %}
+
 {% block content %}
 
 <form method="get" class="row g-3 mb-4">
@@ -45,21 +47,21 @@
         <div class="col-md-4">
             <div class="card p-3">
                 <strong>Total cobrado</strong>
-                <h4>${{ total_importe|floatformat:2 }}</h4>
+                <h4>{{ total_importe|dinero_ar }}</h4>
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card p-3">
                 <strong>Total plus interno</strong>
-                <h4>${{ total_plus|floatformat:2 }}</h4>
+                <h4>{{ total_plus|dinero_ar }}</h4>
             </div>
         </div>
 
         <div class="col-md-4">
             <div class="card p-3">
                 <strong>Total comisiones</strong>
-                <h4>${{ total_comision|floatformat:2 }}</h4>
+                <h4>{{ total_comision|dinero_ar }}</h4>
             </div>
         </div>
 
@@ -87,7 +89,7 @@
                 {% for cobro in cobros %}
 
                 <tr>
-                    <td>{{ cobro.fecha_pago|date:"d/m/Y" }}</td>
+                    <td>{{ cobro.fecha_pago|fecha_ar }}</td>
 
                     <td>
                         {{ cobro.cliente.apellido }}
@@ -96,18 +98,18 @@
 
                     <td>{{ cobro.poliza.compania }}</td>
 
-                    <td>${{ cobro.importe|floatformat:2 }}</td>
+                    <td>{{ cobro.importe|dinero_ar }}</td>
 
-                    <td>${{ cobro.plus|floatformat:2 }}</td>
+                    <td>{{ cobro.plus|dinero_ar }}</td>
 
                     <td>
-                        ${{cobro.base_comision|floatformat:2}}</td>
+                        {{ cobro.base_comision|dinero_ar }}</td>
 
                     <td>
                         {{ cobro.poliza.porcentaje_comision|floatformat:2 }}%
                     </td>
 
-                    <td>${{ cobro.comision|floatformat:2 }}</td>
+                    <td>{{ cobro.comision|dinero_ar }}</td>
                 </tr>
 
                 {% empty %}

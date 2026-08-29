@@ -28,12 +28,13 @@ from django.contrib.auth.decorators import login_required
 from principal.models import MovimientoCliente
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
-from .models import GastoCaja, Aseguradora, CierreCaja, TurnoCaja
+from .models import GastoCaja, Aseguradora, CierreCaja, TurnoCaja, PerfilUsuario, Sucursal
 from decimal import Decimal
 from django.contrib import messages
 from backup_db import crear_backup
+import subprocess
+from pathlib import Path
 from django.utils import timezone
-
 
 
 
@@ -186,8 +187,8 @@ def detalle_cliente(request, cliente_id):
 @csrf_exempt
 def crear_cliente(request):
     if request.method == "POST":
-        apellido = request.POST.get("apellido", "").strip()
-        nombre = request.POST.get("nombre", "").strip()
+        apellido = request.POST.get("apellido", "").strip().upper()
+        nombre = request.POST.get("nombre", "").strip().upper()
         dni = request.POST.get("dni", "").strip()
         fecha_nacimiento = request.POST.get("fecha_nacimiento", "").strip()
         whatsapp = request.POST.get("whatsapp", "").strip()
@@ -215,7 +216,7 @@ def crear_cliente(request):
         if Cliente.objects.filter(whatsapp=whatsapp).exists():
          errores.append("Ya existe un cliente con ese WhatsApp.") 
 
-         if errores:
+        if errores:
             return render(
               request,
              "principal/crear_cliente.html",
@@ -231,17 +232,17 @@ def crear_cliente(request):
           dni=dni,
           fecha_nacimiento=fecha_nacimiento,
           whatsapp=whatsapp,
-          calle=request.POST.get("calle"),
+          calle=request.POST.get("calle", "").strip().upper(),
           numero=request.POST.get("numero"),
           piso=request.POST.get("piso"),
           departamento=request.POST.get("departamento"),
-          barrio=request.POST.get("barrio"),
-          localidad=request.POST.get("localidad"),
-          provincia=request.POST.get("provincia"),
+          barrio=request.POST.get("barrio", "").strip().upper(),
+          localidad=request.POST.get("localidad", "").strip().upper(),
+          provincia=request.POST.get("provincia", "").strip().upper(),
           codigo_postal=request.POST.get("codigo_postal"),
           email=request.POST.get("email"),
           telefono_alternativo=request.POST.get("telefono_alternativo"),
-          observaciones=request.POST.get("observaciones"),
+          observaciones=request.POST.get("observaciones", "").strip().upper(),
         )
 
         MovimientoCliente.objects.create(
@@ -251,6 +252,11 @@ def crear_cliente(request):
             descripcion="Se dio de alta el cliente en FORTEX.",
             usuario=request.user,
         )
+
+        messages.success(
+           request,
+           f"Cliente {cliente.apellido}, {cliente.nombre} guardado correctamente."
+)
 
         return redirect("detalle_cliente", cliente_id=cliente.id)
 
@@ -510,8 +516,13 @@ def editar_cliente(request, cliente_id):
 
 
 @csrf_exempt
-def crear_riesgo(request):
+def crear_riesgo(request, cliente_id=None):
     clientes = Cliente.objects.all()
+    cliente_preseleccionado = None
+
+    if cliente_id:
+       cliente_preseleccionado = Cliente.objects.get(id=cliente_id)
+
     marcas = MarcaVehiculo.objects.filter(activa=True).order_by("nombre")
     modelos = ModeloVehiculo.objects.filter(activa=True).select_related("marca").order_by("marca__nombre", "nombre")
 
@@ -525,14 +536,14 @@ def crear_riesgo(request):
         modelo = request.POST.get("modelo", "").strip()
 
         if marca == "OTRA":
-            marca = request.POST.get("marca_manual", "").strip()
+            marca = request.POST.get("marca_manual", "").strip().upper()
 
         if modelo == "OTRO":
-            modelo = request.POST.get("modelo_manual", "").strip()
+            modelo = request.POST.get("modelo_manual", "").strip().upper()
 
         anio = request.POST.get("anio", "").strip()
-        motor = request.POST.get("motor", "").strip()
-        chasis = request.POST.get("chasis", "").strip()
+        motor = request.POST.get("motor", "").strip().upper()
+        chasis = request.POST.get("chasis", "").strip().upper()
         uso = request.POST.get("uso", "").strip()
 
         errores = [] 
@@ -567,7 +578,7 @@ def crear_riesgo(request):
 
         
 
-        cliente = Cliente.objects.get(id=cliente_id)
+        
 
         if errores:
            return render(
@@ -579,9 +590,12 @@ def crear_riesgo(request):
               "marcas": marcas,
               "modelos": modelos,
               "datos": request.POST,
+              "cliente_preseleccionado": cliente_preseleccionado,
               
             },
         )
+
+        cliente = Cliente.objects.get(id=cliente_id)
 
         vehiculo = Vehiculo.objects.create(
           cliente=cliente,
@@ -604,12 +618,18 @@ def crear_riesgo(request):
           usuario=request.user,
         )
 
+        messages.success(
+          request,
+          f"Riesgo {vehiculo.patente} guardado correctamente."
+)
+
         return redirect("detalle_cliente", cliente_id=cliente.id)
 
     return render(request, "principal/crear_riesgo.html", {
         "clientes": clientes,
         "marcas": marcas,
         "modelos": modelos,
+        "cliente_preseleccionado": cliente_preseleccionado,
     })
 
 def editar_riesgo(request, riesgo_id):
@@ -727,6 +747,16 @@ def editar_riesgo(request, riesgo_id):
         },
     )
 
+def lista_polizas(request):
+    polizas = Poliza.objects.all().order_by("-id")
+
+    return render(
+        request,
+        "principal/lista_polizas.html",
+        {
+            "polizas": polizas,
+        },
+    )
 
 @csrf_exempt
 def crear_poliza(request, cliente_id=None):
@@ -748,17 +778,17 @@ def crear_poliza(request, cliente_id=None):
         tipo_seguro = request.POST.get(
             "tipo_seguro",
             ""
-        ).strip()
+        ).strip().upper()
 
         compania = request.POST.get(
             "compania",
             ""
-        ).strip()
+        ).strip().upper()
 
         numero_poliza = request.POST.get(
             "numero_poliza",
             ""
-        ).strip()
+        ).strip().upper()
 
         fecha_alta = request.POST.get("fecha_alta")
         periodicidad = request.POST.get("periodicidad", "").strip()
@@ -838,20 +868,19 @@ def crear_poliza(request, cliente_id=None):
           cantidad_cuotas = 1 
 
         poliza = Poliza.objects.create(
-            cliente=cliente,
-            vehiculo=vehiculo,
-            tipo_seguro=request.POST.get("tipo_seguro"),
-            compania=request.POST.get("compania"),
-            porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
-            numero_poliza=request.POST.get("numero_poliza"),
-            fecha_alta=fecha_alta,
-            fecha_vencimiento=fecha_vencimiento,
-            periodicidad=periodicidad,
-            cantidad_cuotas=cantidad_cuotas,
-            numero_cuota=0,
-            estado=request.POST.get("estado") or "Pendiente",
-            observaciones=request.POST.get("observaciones"),
-            
+          cliente=cliente,
+          vehiculo=vehiculo,
+          tipo_seguro=tipo_seguro,
+          compania=compania,
+          porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
+          numero_poliza=numero_poliza,
+          fecha_alta=fecha_alta,
+          fecha_vencimiento=fecha_vencimiento,
+          periodicidad=periodicidad,
+          cantidad_cuotas=cantidad_cuotas,
+          numero_cuota=0,
+          estado=request.POST.get("estado") or "Pendiente",
+          observaciones=request.POST.get("observaciones"),
         )
 
         MovimientoCliente.objects.create(
@@ -1342,7 +1371,10 @@ def crear_cobro(request, cliente_id=None):
           range(cuota_pagada, cuota_final + 1)
         )
 
-        for cobro_anterior in Cobro.objects.filter(poliza=poliza):
+        for cobro_anterior in Cobro.objects.filter(
+          poliza=poliza,
+          anulado=False,
+        ):
            inicio = cobro_anterior.cuota
            fin = inicio + cobro_anterior.cantidad_cuotas - 1
 
@@ -1471,6 +1503,16 @@ def crear_cobro(request, cliente_id=None):
            "formas_pago": Cobro.FORMAS_PAGO,
         })
 
+def lista_recibos(request):
+    recibos = Recibo.objects.all().order_by("-id")
+
+    return render(
+        request,
+        "principal/lista_recibos.html",
+        {
+            "recibos": recibos,
+        },
+    )
 
 def ver_recibo(request, recibo_id):
     recibo = Recibo.objects.get(id=recibo_id)
@@ -1986,106 +2028,152 @@ def lista_clientes(request):
         contexto,
     )
 
+@login_required
+def lista_riesgos(request):
+    busqueda = request.GET.get("q", "").strip()
+
+    riesgos = (
+        Vehiculo.objects
+        .select_related("cliente")
+        .all()
+        .order_by("cliente__apellido", "patente")
+    )
+
+    if busqueda:
+        riesgos = riesgos.filter(
+            Q(patente__icontains=busqueda)
+            | Q(marca__icontains=busqueda)
+            | Q(modelo__icontains=busqueda)
+            | Q(cliente__apellido__icontains=busqueda)
+            | Q(cliente__nombre__icontains=busqueda)
+        )
+
+    contexto = {
+        "riesgos": riesgos,
+        "busqueda": busqueda,
+        "cantidad_riesgos": riesgos.count(),
+    }
+
+    return render(
+        request,
+        "principal/lista_riesgos.html",
+        contexto,
+    )
+
 from django.db.models import Sum
 from datetime import date
 
 
+@login_required
 def caja_diaria(request):
-    hoy = date.today()
-
     turno_abierto = TurnoCaja.objects.filter(
-      usuario=request.user,
-      abierto=True,
+        usuario=request.user,
+        abierto=True,
     ).first()
 
     if turno_abierto:
-      cobros = Cobro.objects.filter(
-        turno=turno_abierto,
-        anulado=False,
-    )
+        cobros = Cobro.objects.filter(
+            turno=turno_abierto,
+            anulado=False,
+        )
+
+        gastos = GastoCaja.objects.filter(
+            turno=turno_abierto,
+        )
     else:
-      cobros = Cobro.objects.none()
+        cobros = Cobro.objects.none()
+        gastos = GastoCaja.objects.none()
 
-    total = cobros.aggregate(Sum("importe"))["importe__sum"] or 0
+    total = (
+        cobros.aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
-    efectivo = cobros.filter(forma_pago="Efectivo").aggregate(
-        Sum("importe")
-    )["importe__sum"] or 0
+    efectivo = (
+        cobros.filter(forma_pago="Efectivo")
+        .aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
-    tarjeta = cobros.filter(forma_pago="Tarjeta").aggregate(
-        Sum("importe")
-    )["importe__sum"] or 0
+    tarjeta = (
+        cobros.filter(forma_pago="Tarjeta")
+        .aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
-    transferencia = cobros.filter(
-      forma_pago="Transferencia"
-    ).aggregate(
-       Sum("importe")
-    )["importe__sum"] or 0
+    transferencia = (
+        cobros.filter(forma_pago="Transferencia")
+        .aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
-    cbu = cobros.filter(
-      forma_pago="CBU"
-    ).aggregate(
-       Sum("importe")
-    )["importe__sum"] or 0
+    debito = (
+        cobros.filter(forma_pago="Debito")
+        .aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
-    gastos = GastoCaja.objects.filter(fecha=hoy)
-
-    total_gastos = gastos.aggregate(
-        Sum("importe")
-    )["importe__sum"] or 0
+    total_gastos = (
+        gastos.aggregate(Sum("importe"))["importe__sum"] or 0
+    )
 
     saldo_neto = total - total_gastos
 
-    
-
     resumen_companias = (
-    cobros
-    .values("poliza__compania")
-    .annotate(
-        total_importe=Sum("importe"),
-        cantidad_cobros=Count("id"),
+        cobros
+        .values("poliza__compania")
+        .annotate(
+            total_importe=Sum("importe"),
+            cantidad_cobros=Count("id"),
+        )
+        .order_by("poliza__compania")
     )
-    .order_by("poliza__compania")
-    )  
 
-    return render(request, "principal/caja_diaria.html", {
-    "cobros": cobros,
-    "total": total,
-    "efectivo": efectivo,
-    "tarjeta": tarjeta,
-    "transferencia": transferencia,
-    "cbu": cbu,
-    "gastos": gastos,
-    "total_gastos": total_gastos,
-    "saldo_neto": saldo_neto,
-    "resumen_companias": resumen_companias,
-    "turno_abierto": turno_abierto,
-    "es_admin": request.user.is_superuser,
-})
+    return render(
+        request,
+        "principal/caja_diaria.html",
+        {
+            "cobros": cobros,
+            "total": total,
+            "efectivo": efectivo,
+            "tarjeta": tarjeta,
+            "transferencia": transferencia,
+            "debito": debito,
+            "gastos": gastos,
+            "total_gastos": total_gastos,
+            "saldo_neto": saldo_neto,
+            "resumen_companias": resumen_companias,
+            "turno_abierto": turno_abierto,
+            "es_admin": request.user.is_superuser,
+        },
+    )
 
 from django.http import HttpResponse
 
+@login_required
 def caja_pdf(request):
     hoy = date.today()
 
-    cobros = Cobro.objects.filter(
-        fecha_pago=hoy
-    ).select_related(
-        "cliente",
-        "poliza",
-    )
+    # Buscar el último turno del usuario.
+    # Puede estar abierto o cerrado.
+    turno = TurnoCaja.objects.filter(
+        usuario=request.user,
+    ).order_by("-id").first()
+
+    if turno:
+        cobros = Cobro.objects.filter(
+            turno=turno,
+            anulado=False,
+        ).select_related(
+            "cliente",
+            "poliza",
+        )
+
+        gastos = GastoCaja.objects.filter(
+            turno=turno,
+        )
+    else:
+        cobros = Cobro.objects.none()
+        gastos = GastoCaja.objects.none()
 
     total = cobros.aggregate(
         Sum("importe")
     )["importe__sum"] or 0
-
-    gastos = GastoCaja.objects.filter(fecha=hoy)
-
-    total_gastos = gastos.aggregate(
-    Sum("importe")
-    )["importe__sum"] or 0
-
-    saldo_neto = total - total_gastos
 
     efectivo = cobros.filter(
         forma_pago="Efectivo"
@@ -2100,28 +2188,42 @@ def caja_pdf(request):
     )["importe__sum"] or 0
 
     transferencia = cobros.filter(
-        forma_pago="CBU"
+        forma_pago="Transferencia"
     ).aggregate(
         Sum("importe")
     )["importe__sum"] or 0
+
+    debito = cobros.filter(
+        forma_pago="Debito"
+    ).aggregate(
+        Sum("importe")
+    )["importe__sum"] or 0
+
+    total_gastos = gastos.aggregate(
+        Sum("importe")
+    )["importe__sum"] or 0
+
+    saldo_neto = total - total_gastos
 
     return render(
         request,
         "principal/caja_pdf.html",
         {
             "hoy": hoy,
+            "turno": turno,
             "cobros": cobros,
             "total": total,
             "efectivo": efectivo,
             "tarjeta": tarjeta,
             "transferencia": transferencia,
+            "debito": debito,
             "gastos": gastos,
             "total_gastos": total_gastos,
             "saldo_neto": saldo_neto,
         },
     )
 
-from django.contrib.auth.decorators import login_required
+
 
 @login_required
 def abrir_turno(request):
@@ -2137,8 +2239,25 @@ def abrir_turno(request):
         )
         return redirect("caja_diaria")
 
+    try:
+      perfil = request.user.perfil_fortex
+    except PerfilUsuario.DoesNotExist:
+        messages.error(
+          request,
+          "No podés abrir caja porque tu usuario no tiene un perfil asignado."
+        )
+        return redirect("caja_diaria")
+
+    if not perfil.activo or not perfil.sucursal:
+        messages.error(
+         request,
+        "No podés abrir caja porque no tenés una sucursal activa asignada."
+       )
+        return redirect("caja_diaria")
+
     TurnoCaja.objects.create(
-        usuario=request.user
+      usuario=request.user,
+      sucursal=perfil.sucursal,
     )
 
     messages.success(
@@ -2186,9 +2305,15 @@ def cerrar_caja(request):
     )["importe__sum"] or 0
 
     transferencia = cobros.filter(
-        forma_pago="CBU"
+    forma_pago="Transferencia"
     ).aggregate(
-        Sum("importe")
+    Sum("importe")
+    )["importe__sum"] or 0
+
+    debito = cobros.filter(
+    forma_pago="Debito"
+    ).aggregate(
+    Sum("importe")
     )["importe__sum"] or 0
 
     gastos = GastoCaja.objects.filter(
@@ -2202,15 +2327,17 @@ def cerrar_caja(request):
     saldo_neto = total - total_gastos
 
     CierreCaja.objects.create(
-        fecha=hoy,
-        total_cobrado=total,
-        total_gastos=total_gastos,
-        saldo_neto=saldo_neto,
-        efectivo=efectivo,
-        tarjeta=tarjeta,
-        transferencia=transferencia,
-        usuario=request.user,
-    )
+    fecha=hoy,
+    turno=turno_abierto,
+    total_cobrado=total,
+    total_gastos=total_gastos,
+    saldo_neto=saldo_neto,
+    efectivo=efectivo,
+    tarjeta=tarjeta,
+    transferencia=transferencia,
+    debito=debito,
+    usuario=request.user,
+)
 
     turno_abierto.total_cobrado = total
     turno_abierto.total_gastos = total_gastos
@@ -2229,7 +2356,18 @@ def cerrar_caja(request):
     ]
 )
 
-    crear_backup()
+    script_backup = Path(settings.BASE_DIR) / "pas_control" / "backup_postgres.ps1"
+
+    subprocess.run(
+    [
+        "powershell.exe",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(script_backup),
+    ],
+    check=True,
+    )
 
     messages.success(
         request,
@@ -2344,4 +2482,1051 @@ def reporte_comisiones(request):
             "fecha_desde": fecha_desde,
             "fecha_hasta": fecha_hasta,
         },
+    )
+
+@login_required
+def reporte_ingresos(request):
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    forma_pago = request.GET.get("forma_pago", "")
+
+    queryset = Cobro.objects.select_related(
+        "cliente",
+        "poliza",
+    )
+
+    # No contar cobros anulados
+    queryset = queryset.filter(anulado=False)
+
+    if fecha_desde:
+        queryset = queryset.filter(
+            fecha_pago__gte=fecha_desde
+        )
+
+    if fecha_hasta:
+        queryset = queryset.filter(
+            fecha_pago__lte=fecha_hasta
+        )
+
+    if forma_pago:
+        queryset = queryset.filter(
+            forma_pago=forma_pago
+        )
+
+    cobros = list(
+        queryset.order_by("-fecha_pago", "-id")
+    )
+
+    total_ingresos = sum(
+        c.importe for c in cobros
+    )
+
+    total_efectivo = sum(
+        c.importe for c in cobros
+        if c.forma_pago == "Efectivo"
+    )
+
+    total_transferencia = sum(
+        c.importe for c in cobros
+        if c.forma_pago == "Transferencia"
+    )
+
+    total_debito = sum(
+    c.importe for c in cobros
+    if c.forma_pago == "Débito"
+    )
+
+    total_tarjeta = sum(
+    c.importe for c in cobros
+    if c.forma_pago == "Tarjeta"
+    )
+
+    return render(
+        request,
+        "principal/reporte_ingresos.html",
+        {
+            "cobros": cobros,
+            "total_ingresos": total_ingresos,
+            "total_efectivo": total_efectivo,
+            "total_transferencia": total_transferencia,
+            "total_debito": total_debito,
+            "total_tarjeta": total_tarjeta,
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "forma_pago": forma_pago,
+            "formas_pago": Cobro.FORMAS_PAGO,
+        },
+    )
+
+@login_required
+def reporte_aseguradoras(request):
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    compania_filtro = request.GET.get("compania", "")
+
+    polizas = Poliza.objects.all()
+
+    if fecha_desde:
+        polizas = polizas.filter(
+            fecha_alta__gte=fecha_desde
+        )
+
+    if fecha_hasta:
+        polizas = polizas.filter(
+            fecha_alta__lte=fecha_hasta
+        )
+
+    if compania_filtro:
+        polizas = polizas.filter(
+            compania=compania_filtro
+        )
+
+    companias = (
+        Poliza.objects
+        .values_list("compania", flat=True)
+        .exclude(compania="")
+        .distinct()
+        .order_by("compania")
+    )
+
+    reporte = []
+
+    nombres_companias = (
+        polizas
+        .values_list("compania", flat=True)
+        .exclude(compania="")
+        .distinct()
+        .order_by("compania")
+    )
+
+    for compania in nombres_companias:
+
+        polizas_compania = polizas.filter(
+            compania=compania
+        )
+
+        cobros_compania = Cobro.objects.filter(
+            poliza__in=polizas_compania,
+            anulado=False,
+        )
+
+        if fecha_desde:
+            cobros_compania = cobros_compania.filter(
+                fecha_pago__gte=fecha_desde
+            )
+
+        if fecha_hasta:
+            cobros_compania = cobros_compania.filter(
+                fecha_pago__lte=fecha_hasta
+            )
+
+        reporte.append({
+            "compania": compania,
+
+            "cantidad_polizas":
+                polizas_compania.count(),
+
+            "cantidad_clientes":
+                polizas_compania
+                .values("cliente")
+                .distinct()
+                .count(),
+
+            "al_dia":
+                polizas_compania
+                .filter(estado="Al día")
+                .count(),
+
+            "pendientes":
+                polizas_compania
+                .filter(estado="Pendiente")
+                .count(),
+
+            "morosas":
+                polizas_compania
+                .filter(estado="Morosa")
+                .count(),
+
+            "vencidas":
+                polizas_compania
+                .filter(estado="Vencida")
+                .count(),
+
+            "anuladas":
+                polizas_compania
+                .filter(estado="Anulada")
+                .count(),
+
+            "total_cobrado":
+                cobros_compania
+                .aggregate(
+                    total=Sum("importe")
+                )["total"] or 0,
+        })
+
+    return render(
+        request,
+        "principal/reporte_aseguradoras.html",
+        {
+            "reporte": reporte,
+            "companias": companias,
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "compania_filtro": compania_filtro,
+        },
+    )
+
+@login_required
+def reporte_vehiculos(request):
+
+    tipo = request.GET.get("tipo", "")
+    uso = request.GET.get("uso", "")
+    marca = request.GET.get("marca", "")
+    anio = request.GET.get("anio", "")
+
+    vehiculos = Vehiculo.objects.select_related(
+        "cliente"
+    ).all()
+
+    # Filtros
+    if tipo:
+        vehiculos = vehiculos.filter(tipo=tipo)
+
+    if uso:
+        vehiculos = vehiculos.filter(uso=uso)
+
+    if marca:
+        vehiculos = vehiculos.filter(marca=marca)
+
+    if anio:
+        vehiculos = vehiculos.filter(anio=anio)
+
+    # Resumen por tipo
+    resumen_tipos = (
+        vehiculos
+        .values("tipo")
+        .annotate(
+            cantidad=Count("id"),
+            clientes=Count("cliente", distinct=True),
+        )
+        .order_by("tipo")
+    )
+
+    total_vehiculos = vehiculos.count()
+
+    total_clientes = vehiculos.values(
+        "cliente"
+    ).distinct().count()
+
+    # Opciones para filtros
+    marcas = (
+        Vehiculo.objects
+        .exclude(marca="")
+        .values_list("marca", flat=True)
+        .distinct()
+        .order_by("marca")
+    )
+
+    anios = (
+        Vehiculo.objects
+        .exclude(anio__isnull=True)
+        .values_list("anio", flat=True)
+        .distinct()
+        .order_by("-anio")
+    )
+
+    return render(
+        request,
+        "principal/reporte_vehiculos.html",
+        {
+            "vehiculos": vehiculos.order_by(
+                "tipo",
+                "marca",
+                "modelo"
+            ),
+            "resumen_tipos": resumen_tipos,
+            "total_vehiculos": total_vehiculos,
+            "total_clientes": total_clientes,
+
+            "tipos": Vehiculo.TIPO_CHOICES,
+            "usos": Vehiculo.USO_CHOICES,
+            "marcas": marcas,
+            "anios": anios,
+
+            "tipo_seleccionado": tipo,
+            "uso_seleccionado": uso,
+            "marca_seleccionada": marca,
+            "anio_seleccionado": anio,
+        },
+    )
+
+@login_required
+def reporte_polizas(request):
+
+    estado = request.GET.get("estado", "")
+    compania = request.GET.get("compania", "")
+    tipo_seguro = request.GET.get("tipo_seguro", "")
+
+    polizas = Poliza.objects.select_related(
+        "cliente",
+        "vehiculo",
+    ).all()
+
+    # Filtros
+    if estado:
+        polizas = polizas.filter(estado=estado)
+
+    if compania:
+        polizas = polizas.filter(compania=compania)
+
+    if tipo_seguro:
+        polizas = polizas.filter(tipo_seguro=tipo_seguro)
+
+    # Totales generales según los filtros aplicados
+    total_polizas = polizas.count()
+
+    total_clientes = polizas.values(
+        "cliente"
+    ).distinct().count()
+
+    al_dia = polizas.filter(
+        estado="Al día"
+    ).count()
+
+    pendientes = polizas.filter(
+        estado="Pendiente"
+    ).count()
+
+    morosas = polizas.filter(
+        estado="Morosa"
+    ).count()
+
+    vencidas = polizas.filter(
+        estado="Vencida"
+    ).count()
+
+    anuladas = polizas.filter(
+        estado="Anulada"
+    ).count()
+
+    # Compañías existentes para el selector
+    companias = (
+        Poliza.objects
+        .exclude(compania="")
+        .values_list("compania", flat=True)
+        .distinct()
+        .order_by("compania")
+    )
+
+    return render(
+        request,
+        "principal/reporte_polizas.html",
+        {
+            "polizas": polizas.order_by(
+                "compania",
+                "cliente__apellido",
+                "cliente__nombre",
+            ),
+
+            "total_polizas": total_polizas,
+            "total_clientes": total_clientes,
+            "al_dia": al_dia,
+            "pendientes": pendientes,
+            "morosas": morosas,
+            "vencidas": vencidas,
+            "anuladas": anuladas,
+
+            "estados": Poliza.ESTADOS,
+            "tipos_seguro": Poliza.TIPOS_SEGURO,
+            "companias": companias,
+
+            "estado_seleccionado": estado,
+            "compania_seleccionada": compania,
+            "tipo_seguro_seleccionado": tipo_seguro,
+        },
+    )
+
+@login_required
+def reporte_clientes(request):
+
+    buscar = request.GET.get("buscar", "").strip()
+    estado = request.GET.get("estado", "")
+    provincia = request.GET.get("provincia", "")
+    localidad = request.GET.get("localidad", "")
+
+    clientes = Cliente.objects.all()
+
+    # Búsqueda por nombre, apellido o DNI
+    if buscar:
+        clientes = clientes.filter(
+            Q(nombre__icontains=buscar)
+            | Q(apellido__icontains=buscar)
+            | Q(dni__icontains=buscar)
+        )
+
+    # Filtro por estado
+    if estado:
+        clientes = clientes.filter(
+            estado=estado
+        )
+
+    # Filtro por provincia
+    if provincia:
+        clientes = clientes.filter(
+            provincia=provincia
+        )
+
+    # Filtro por localidad
+    if localidad:
+        clientes = clientes.filter(
+            localidad=localidad
+        )
+
+    # Totales según filtros aplicados
+    total_clientes = clientes.count()
+
+    activos = clientes.filter(
+        estado="Activo"
+    ).count()
+
+    inactivos = clientes.filter(
+        estado="Inactivo"
+    ).count()
+
+    prospectos = clientes.filter(
+        estado="Prospecto"
+    ).count()
+
+    # Clientes que poseen al menos una póliza
+    clientes_con_poliza = clientes.filter(
+        poliza__isnull=False
+    ).distinct()
+
+    total_con_poliza = clientes_con_poliza.count()
+
+    # Clientes sin ninguna póliza
+    clientes_sin_poliza = clientes.filter(
+        poliza__isnull=True
+    )
+
+    total_sin_poliza = clientes_sin_poliza.count()
+
+    # Valores disponibles para filtros
+    provincias = (
+        Cliente.objects
+        .exclude(provincia="")
+        .values_list("provincia", flat=True)
+        .distinct()
+        .order_by("provincia")
+    )
+
+    localidades = (
+        Cliente.objects
+        .exclude(localidad="")
+        .values_list("localidad", flat=True)
+        .distinct()
+        .order_by("localidad")
+    )
+
+    # Datos para el detalle
+    clientes = (
+        clientes
+        .annotate(
+            cantidad_polizas=Count(
+                "poliza",
+                distinct=True
+            ),
+            cantidad_vehiculos=Count(
+                "vehiculo",
+                distinct=True
+            ),
+        )
+        .order_by(
+            "apellido",
+            "nombre",
+        )
+    )
+
+    return render(
+        request,
+        "principal/reporte_clientes.html",
+        {
+            "clientes": clientes,
+
+            "total_clientes": total_clientes,
+            "activos": activos,
+            "inactivos": inactivos,
+            "prospectos": prospectos,
+            "total_con_poliza": total_con_poliza,
+            "total_sin_poliza": total_sin_poliza,
+
+            "estados": [
+                ("Activo", "Activo"),
+                ("Inactivo", "Inactivo"),
+                ("Prospecto", "Prospecto"),
+            ],
+
+            "provincias": provincias,
+            "localidades": localidades,
+
+            "buscar": buscar,
+            "estado_seleccionado": estado,
+            "provincia_seleccionada": provincia,
+            "localidad_seleccionada": localidad,
+        },
+    )
+
+@login_required
+def reporte_produccion(request):
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    compania = request.GET.get("compania", "")
+    tipo_seguro = request.GET.get("tipo_seguro", "")
+
+    polizas = Poliza.objects.select_related(
+        "cliente",
+        "vehiculo",
+    )
+
+    # Filtros
+    if fecha_desde:
+        polizas = polizas.filter(
+            fecha_alta__gte=fecha_desde
+        )
+
+    if fecha_hasta:
+        polizas = polizas.filter(
+            fecha_alta__lte=fecha_hasta
+        )
+
+    if compania:
+        polizas = polizas.filter(
+            compania=compania
+        )
+
+    if tipo_seguro:
+        polizas = polizas.filter(
+            tipo_seguro=tipo_seguro
+        )
+
+    # Totales generales
+    total_altas = polizas.count()
+
+    total_clientes = (
+        polizas
+        .values("cliente_id")
+        .distinct()
+        .count()
+    )
+
+    total_aseguradoras = (
+        polizas
+        .exclude(compania="")
+        .values("compania")
+        .distinct()
+        .count()
+    )
+
+    total_vehiculos = (
+        polizas
+        .exclude(vehiculo__isnull=True)
+        .values("vehiculo_id")
+        .distinct()
+        .count()
+    )
+
+    # Resumen por aseguradora
+    resumen_aseguradoras = (
+        polizas
+        .values("compania")
+        .annotate(
+            cantidad=Count("id"),
+            clientes=Count(
+                "cliente_id",
+                distinct=True
+            ),
+        )
+        .order_by("-cantidad", "compania")
+    )
+
+    # Opciones para filtros
+    companias = (
+        Poliza.objects
+        .exclude(compania="")
+        .values_list("compania", flat=True)
+        .distinct()
+        .order_by("compania")
+    )
+
+    # Detalle
+    polizas = polizas.order_by(
+        "-fecha_alta",
+        "-id",
+    )
+
+    return render(
+        request,
+        "principal/reporte_produccion.html",
+        {
+            "polizas": polizas,
+
+            "total_altas": total_altas,
+            "total_clientes": total_clientes,
+            "total_aseguradoras": total_aseguradoras,
+            "total_vehiculos": total_vehiculos,
+
+            "resumen_aseguradoras": resumen_aseguradoras,
+
+            "companias": companias,
+            "tipos_seguro": Poliza.TIPOS_SEGURO,
+
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "compania_seleccionada": compania,
+            "tipo_seguro_seleccionado": tipo_seguro,
+        },
+    )
+
+@login_required
+def reporte_cobranza(request):
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    compania = request.GET.get("compania", "")
+    estado = request.GET.get("estado", "")
+    forma_pago = request.GET.get("forma_pago", "")
+
+    # ==========================================
+    # COBROS VÁLIDOS
+    # ==========================================
+
+    cobros = Cobro.objects.select_related(
+        "cliente",
+        "poliza",
+        "poliza__vehiculo",
+    ).filter(
+        anulado=False
+    )
+
+    if fecha_desde:
+        cobros = cobros.filter(
+            fecha_pago__gte=fecha_desde
+        )
+
+    if fecha_hasta:
+        cobros = cobros.filter(
+            fecha_pago__lte=fecha_hasta
+        )
+
+    if compania:
+        cobros = cobros.filter(
+            poliza__compania=compania
+        )
+
+    if estado:
+        cobros = cobros.filter(
+            poliza__estado=estado
+        )
+
+    if forma_pago:
+        cobros = cobros.filter(
+            forma_pago=forma_pago
+        )
+
+    cobros = cobros.order_by(
+        "-fecha_pago",
+        "-id"
+    )
+
+    # ==========================================
+    # TOTALES DE COBRANZA
+    # ==========================================
+
+    total_cobrado = sum(
+        c.importe for c in cobros
+    )
+
+    total_operaciones = cobros.count()
+
+    clientes_cobrados = cobros.values(
+        "cliente_id"
+    ).distinct().count()
+
+    # ==========================================
+    # CARTERA
+    # ==========================================
+
+    polizas = Poliza.objects.select_related(
+        "cliente",
+        "vehiculo",
+    )
+
+    if compania:
+        polizas = polizas.filter(
+            compania=compania
+        )
+
+    if estado:
+        polizas = polizas.filter(
+            estado=estado
+        )
+
+    total_morosas = polizas.filter(
+        estado="Morosa"
+    ).count()
+
+    total_vencidas = polizas.filter(
+        estado="Vencida"
+    ).count()
+
+    total_pendientes = polizas.filter(
+        estado="Pendiente"
+    ).count()
+
+    # Pólizas que requieren atención
+    cartera_deuda = polizas.filter(
+        estado__in=[
+            "Pendiente",
+            "Morosa",
+            "Vencida",
+        ]
+    ).order_by(
+        "fecha_vencimiento",
+        "cliente__apellido",
+        "cliente__nombre",
+    )
+
+    clientes_con_deuda = cartera_deuda.values(
+        "cliente_id"
+    ).distinct().count()
+
+    # ==========================================
+    # ÚLTIMO COBRO DE CADA PÓLIZA CON DEUDA
+    # ==========================================
+
+    detalle_deuda = []
+
+    for poliza in cartera_deuda:
+
+        ultimo_cobro = Cobro.objects.filter(
+            poliza=poliza,
+            anulado=False,
+        ).order_by(
+            "-fecha_pago",
+            "-id"
+        ).first()
+
+        detalle_deuda.append({
+            "poliza": poliza,
+            "ultimo_cobro": ultimo_cobro,
+        })
+
+    # ==========================================
+    # OPCIONES PARA FILTROS
+    # ==========================================
+
+    companias = Poliza.objects.exclude(
+        compania=""
+    ).values_list(
+        "compania",
+        flat=True
+    ).distinct().order_by(
+        "compania"
+    )
+
+    return render(
+        request,
+        "principal/reporte_cobranza.html",
+        {
+            "cobros": cobros,
+
+            "total_cobrado": total_cobrado,
+            "total_operaciones": total_operaciones,
+            "clientes_cobrados": clientes_cobrados,
+
+            "total_pendientes": total_pendientes,
+            "total_morosas": total_morosas,
+            "total_vencidas": total_vencidas,
+            "clientes_con_deuda": clientes_con_deuda,
+
+            "detalle_deuda": detalle_deuda,
+
+            "companias": companias,
+            "estados": Poliza.ESTADOS,
+            "formas_pago": Cobro.FORMAS_PAGO,
+
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "compania_seleccionada": compania,
+            "estado_seleccionado": estado,
+            "forma_pago_seleccionada": forma_pago,
+        },
+    )
+
+@login_required
+def reporte_plus(request):
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    compania = request.GET.get("compania", "")
+    operador = request.GET.get("operador", "")
+    sucursal = request.GET.get("sucursal", "")
+    estado = request.GET.get("estado", "")
+
+    # Solo cobros que realmente tengan Plus
+    cobros = Cobro.objects.select_related(
+        "cliente",
+        "poliza",
+        "poliza__vehiculo",
+        "registrado_por",
+        "turno",
+        "turno__sucursal",
+        "anulado_por",
+    ).filter(
+        plus__gt=0
+    )
+
+    # ==========================================
+    # FILTROS
+    # ==========================================
+
+    if fecha_desde:
+        cobros = cobros.filter(
+            fecha_pago__gte=fecha_desde
+        )
+
+    if fecha_hasta:
+        cobros = cobros.filter(
+            fecha_pago__lte=fecha_hasta
+        )
+
+    if compania:
+        cobros = cobros.filter(
+            poliza__compania=compania
+        )
+
+    if operador:
+        cobros = cobros.filter(
+            registrado_por_id=operador
+        )
+
+    if sucursal:
+        cobros = cobros.filter(
+            turno__sucursal_id=sucursal
+        )
+
+    if estado == "valido":
+        cobros = cobros.filter(
+            anulado=False
+        )
+
+    elif estado == "anulado":
+        cobros = cobros.filter(
+            anulado=True
+        )
+
+    # ==========================================
+    # TOTALES DE AUDITORÍA
+    # ==========================================
+
+    total_plus_valido = cobros.filter(
+        anulado=False
+    ).aggregate(
+        total=Sum("plus")
+    )["total"] or 0
+
+    total_plus_anulado = cobros.filter(
+        anulado=True
+    ).aggregate(
+        total=Sum("plus")
+    )["total"] or 0
+
+    operaciones_validas = cobros.filter(
+        anulado=False
+    ).count()
+
+    operaciones_anuladas = cobros.filter(
+        anulado=True
+    ).count()
+
+    if operaciones_validas:
+        promedio_plus = (
+            total_plus_valido / operaciones_validas
+        )
+    else:
+        promedio_plus = 0
+
+    # ==========================================
+    # OPCIONES DE FILTROS
+    # ==========================================
+
+    companias = (
+        Poliza.objects
+        .exclude(compania="")
+        .values_list("compania", flat=True)
+        .distinct()
+        .order_by("compania")
+    )
+
+    operadores = (
+        Cobro.objects
+        .filter(
+            plus__gt=0,
+            registrado_por__isnull=False,
+        )
+        .values(
+            "registrado_por_id",
+            "registrado_por__username",
+        )
+        .distinct()
+        .order_by("registrado_por__username")
+    )
+
+    sucursales = (
+        Sucursal.objects
+        .filter(activa=True)
+        .order_by("provincia", "nombre")
+    )
+
+    # ==========================================
+    # DETALLE
+    # ==========================================
+
+    cobros = cobros.order_by(
+        "-fecha_pago",
+        "-fecha_registro",
+        "-id",
+    )
+
+    return render(
+        request,
+        "principal/reporte_plus.html",
+        {
+            "cobros": cobros,
+
+            "total_plus_valido": total_plus_valido,
+            "total_plus_anulado": total_plus_anulado,
+            "operaciones_validas": operaciones_validas,
+            "operaciones_anuladas": operaciones_anuladas,
+            "promedio_plus": promedio_plus,
+
+            "companias": companias,
+            "operadores": operadores,
+            "sucursales": sucursales,
+
+            "fecha_desde": fecha_desde,
+            "fecha_hasta": fecha_hasta,
+            "compania_seleccionada": compania,
+            "operador_seleccionado": operador,
+            "sucursal_seleccionada": sucursal,
+            "estado_seleccionado": estado,
+        },
+    )
+
+@login_required
+def reporte_caja(request):
+    # Reportes exclusivos para administrador
+    if not request.user.is_staff:
+        return redirect("inicio")
+
+    cierres = CierreCaja.objects.select_related(
+        "usuario",
+        "turno",
+        "turno__sucursal",
+    ).order_by("-fecha_hora_cierre")
+
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    operador = request.GET.get("operador", "")
+    sucursal = request.GET.get("sucursal", "")
+
+    if fecha_desde:
+        cierres = cierres.filter(fecha__gte=fecha_desde)
+
+    if fecha_hasta:
+        cierres = cierres.filter(fecha__lte=fecha_hasta)
+
+    if operador:
+        cierres = cierres.filter(usuario_id=operador)
+
+    if sucursal:
+        cierres = cierres.filter(turno__sucursal_id=sucursal)
+
+    resumen = cierres.aggregate(
+        total_cobrado=Sum("total_cobrado"),
+        total_gastos=Sum("total_gastos"),
+        saldo_neto=Sum("saldo_neto"),
+        efectivo=Sum("efectivo"),
+        tarjeta=Sum("tarjeta"),
+        transferencia=Sum("transferencia"),
+        cbu=Sum("cbu"),
+    )
+
+    operadores = (
+        CierreCaja.objects
+        .exclude(usuario=None)
+        .values("usuario_id", "usuario__username")
+        .distinct()
+        .order_by("usuario__username")
+    )
+
+    sucursales = (
+        Sucursal.objects
+        .filter(activa=True)
+        .order_by("nombre")
+    )
+
+    context = {
+        "cierres": cierres,
+        "resumen": resumen,
+        "operadores": operadores,
+        "sucursales": sucursales,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "operador_seleccionado": operador,
+        "sucursal_seleccionada": sucursal,
+    }
+
+    return render(
+        request,
+        "principal/reporte_caja.html",
+        context,
+    )
+
+@login_required
+def menu_reportes(request):
+    if not request.user.is_staff:
+        return redirect("inicio")
+
+    return render(
+        request,
+        "principal/menu_reportes.html"
+    )
+
+@login_required
+def agenda_telefonos(request):
+    buscar = request.GET.get("buscar", "").strip()
+
+    clientes = Cliente.objects.all().order_by("apellido", "nombre")
+
+    if buscar:
+        clientes = clientes.filter(
+            Q(apellido__icontains=buscar) |
+            Q(nombre__icontains=buscar) |
+            Q(dni__icontains=buscar) |
+            Q(whatsapp__icontains=buscar)
+        )
+
+    contexto = {
+        "clientes": clientes,
+        "buscar": buscar,
+    }
+
+    return render(
+        request,
+        "principal/agenda_telefonos.html",
+        contexto
     )

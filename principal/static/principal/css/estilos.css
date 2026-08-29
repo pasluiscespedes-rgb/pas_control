@@ -2,7 +2,7 @@ body {
     font-family: Arial, sans-serif;
     background: #eef2f6;
     margin: 0;
-    padding: 25px;
+    padding: 9px;
     color: #1f2933;
 }
 
@@ -498,4 +498,1390 @@ label {
 .boton-rojo{
     background:#dc2626 !important;
     color:white;
+}
+
+/* =====================================================
+   FORTEX - NUEVO CENTRO DE OPERACIONES
+   ===================================================== */
+
+.fortex-dashboard {
+    width: calc(100vw - 20px);
+    margin-left: calc(50% - 50vw + 10px);
+    margin-right: 0;
+    min-height: calc(100vh - 110px);
+    padding: 18px 40px 25px;
+
+    background-image: url("../img/fondo_fortex.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    color: #ffffff;
+    
+}
+
+
+
+/* ENCABEZADO */
+
+.fortex-hero {
+    max-width: none;
+    width: 100%;
+    margin: 0 auto 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    border: 1px solid  gba(78, 191, 255, 0.25);
+    border-radius: 18px;
+    background:  gba(8, 22, 40, 0.72);
+    box-shadow: 0 15px 40px  gba(0, 0, 0, 0.25);
+}
+
+.fortex-etiqueta {
+    color: #55c9ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.fortex-hero h1 {
+    margin: 5px 0;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.fortex-hero p {
+    margin: 0;
+    color: #a9bad0;
+}
+
+.fortex-estado {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #b9c9da;
+    font-size: 14px;
+}
+
+.fortex-punto {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #20e39a;
+    box-shadow: 0 0 14px #20e39a;
+}
+
+/* NÚCLEO CENTRAL */
+
+.fortex-nucleo {
+    position: relative;
+    max-width: 1250px;
+    min-height: 400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.fortex-nucleo::before {
+    content: "";
+    position: absolute;
+    width: 430px;
+    height: 430px;
+    border-radius: 50%;
+    border: 1px solid gba(70, 190, 255, 0.16);
+    box-shadow:
+        0 0 60px gba(0, 153, 255, 0.12),
+        inset 0 0 60px gba(0, 153, 255, 0.08);
+}
+
+.fortex-nucleo::after {
+    content: "";
+    position: absolute;
+    width: 330px;
+    height: 330px;
+    border-radius: 50%;
+    border: 1px dashed gba(78, 203, 255, 0.25);
+}
+
+.fortex-nucleo-centro {
+    position: relative;
+    z-index: 4;
+
+    width: 290px;
+    height: 290px;
+    border-radius: 50%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(circle at 40% 30%, #173e6d 0%, #0b1a2e 58%, #050b12 100%);
+
+    border: 10px solid #30343a;
+
+    box-shadow:
+        0 0 0 4px #11161d,
+        0 0 0 7px rgba(80, 195, 255, 0.35),
+        0 0 35px rgba(0, 174, 255, 0.40),
+        0 0 90px rgba(0, 102, 255, 0.18),
+        inset 0 0 45px rgba(65, 190, 255, 0.14);
+}
+
+.fortex-logo-circular {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 46px;
+    font-weight: 800;
+    color: #ffffff;
+    border: 2px solid #59d1ff;
+    background: gba(0, 145, 220, 0.18);
+    box-shadow:
+        0 0 18px gba(62, 203, 255, 0.7),
+        inset 0 0 18px gba(62, 203, 255, 0.25);
+}
+
+.fortex-nucleo-centro h2 {
+    margin: 0;
+    font-size: 29px;
+    letter-spacing: 5px;
+    font-weight: 800;
+}
+
+.fortex-nucleo-centro p {
+    margin: 6px 0 0;
+    color: #62d2ff;
+    font-size: 11px;
+    letter-spacing: 3px;
+}
+
+/* CELULAR / TABLET */
+
+@media (max-width: 768px) {
+    .fortex-dashboard {
+        padding: 18px 14px 40px;
+    }
+
+    .fortex-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .fortex-nucleo {
+        min-height: 420px;
+    }
+
+    .fortex-nucleo::before {
+        width: 340px;
+        height: 340px;
+    }
+
+    .fortex-nucleo::after {
+        width: 280px;
+        height: 280px;
+    }
+
+    .fortex-nucleo-centro {
+        width: 210px;
+        height: 210px;
+    }
+}
+
+/* =========================================
+   FORTEX - MÓDULOS DEL CENTRO DE OPERACIONES
+   ========================================= */
+
+.fortex-modulo {
+    position: absolute;
+    width: 150px;
+    height: 72px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    text-decoration: none;
+    color: #dcecff;
+
+    background: rgba(7, 22, 45, 0.82);
+    border: 1px solid rgba(78, 191, 255, 0.35);
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.28),
+        inset 0 0 18px rgba(0, 153, 255, 0.05);
+
+    transition: 0.25s ease;
+    z-index: 5;
+}
+
+.fortex-modulo span {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.fortex-modulo strong {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+}
+
+/* IZQUIERDA */
+
+.modulo-clientes {
+    left: 12%;
+    top: 12%;
+}
+
+.modulo-riesgos {
+    left: 5%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modulo-recibos {
+    left: 12%;
+    bottom: 12%;
+}
+
+/* DERECHA */
+
+.modulo-polizas {
+    right: 12%;
+    top: 12%;
+}
+
+.modulo-cobros {
+    right: 5%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modulo-reportes {
+    right: 12%;
+    bottom: 12%;
+}
+
+/* EFECTO AL PASAR EL MOUSE */
+
+.fortex-modulo:hover {
+    border-color: #55c9ff;
+    background: rgba(9, 35, 67, 0.95);
+
+    box-shadow:
+        0 0 25px rgba(0, 153, 255, 0.28),
+        inset 0 0 20px rgba(0, 153, 255, 0.08);
+}
+
+/* =========================================
+   FORTEX - CONEXIONES AL NÚCLEO
+   ========================================= */
+
+.fortex-modulo::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    height: 1px;
+    width: 90px;
+
+    background: linear-gradient(
+        90deg,
+        rgba(85, 201, 255, 0.15),
+        rgba(85, 201, 255, 0.75)
+    );
+
+    box-shadow: 0 0 6px rgba(85, 201, 255, 0.35);
+    pointer-events: none;
+}
+
+/* Tarjetas de la izquierda */
+.modulo-clientes::after,
+.modulo-riesgos::after,
+.modulo-recibos::after {
+    left: 100%;
+}
+
+/* Tarjetas de la derecha */
+.modulo-polizas::after,
+.modulo-cobros::after,
+.modulo-reportes::after {
+    right: 100%;
+    transform: rotate(180deg);
+}
+
+/* DIAGONALES HACIA EL NÚCLEO */
+
+.modulo-clientes::after {
+    width: 150px;
+    transform-origin: left center;
+    transform: rotate(18deg);
+}
+
+.modulo-recibos::after {
+    width: 150px;
+    transform-origin: left center;
+    transform: rotate(-18deg);
+}
+
+.modulo-polizas::after {
+    width: 150px;
+    transform-origin: right center;
+    transform: rotate(-18deg);
+}
+
+.modulo-reportes::after {
+    width: 150px;
+    transform-origin: right center;
+    transform: rotate(18deg);
+}
+
+/* =========================================
+   FORTEX - ENGRANAJES PRINCIPALES
+   ========================================= */
+
+.fortex-modulo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    color: #ffffff;
+    text-decoration: none;
+
+    background:
+        radial-gradient(circle at 50% 45%, #172331 0%, #0a111a 58%, #03070c 100%);
+
+    border: 7px solid #3a4048;
+
+    box-shadow:
+        0 0 0 3px #11161c,
+        0 0 0 5px rgba(83, 199, 255, 0.22),
+        0 0 24px rgba(0, 163, 255, 0.20),
+        inset 0 0 24px rgba(90, 200, 255, 0.08);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+
+    z-index: 5;
+}
+
+.fortex-modulo::before {
+    content: "";
+    position: absolute;
+
+    width: 172px;
+    height: 172px;
+    border-radius: 50%;
+
+    background:
+        repeating-conic-gradient(
+            from 0deg,
+            #555b63 0deg 7deg,
+            #1b2027 7deg 15deg
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 0 66px,
+            #000 67px 85px,
+            transparent 86px
+        );
+
+    mask:
+        radial-gradient(
+            circle,
+            transparent 0 66px,
+            #000 67px 85px,
+            transparent 86px
+        );
+
+    z-index: -1;
+    pointer-events: none;
+}
+
+.fortex-modulo span {
+    font-size: 28px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(70, 190, 255, 0.65));
+}
+
+.fortex-modulo strong {
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px rgba(60, 190, 255, 0.35);
+}
+
+.fortex-modulo:hover {
+    transform: scale(1.06);
+
+    border-color: #5d6873;
+
+    box-shadow:
+        0 0 0 3px #11161c,
+        0 0 0 5px rgba(83, 199, 255, 0.48),
+        0 0 32px rgba(0, 174, 255, 0.48),
+        inset 0 0 30px rgba(79, 198, 255, 0.13);
+}
+
+/* Conserva la corrección vertical de los módulos del centro */
+.modulo-riesgos:hover,
+.modulo-cobros:hover {
+    transform: translateY(-50%) scale(1.06);
+}
+
+/* =========================================
+   FORTEX - DISTRIBUCIÓN DE ENGRANAJES
+   ========================================= */
+
+.modulo-clientes {
+    left: 18%;
+    top: 4%;
+}
+
+.modulo-riesgos {
+    left: 7%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modulo-recibos {
+    left: 18%;
+    bottom: 4%;
+}
+
+.modulo-polizas {
+    right: 18%;
+    top: 4%;
+}
+
+.modulo-cobros {
+    right: 7%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modulo-reportes {
+    right: 18%;
+    bottom: 4%;
+}
+
+/* necesitamos más altura para formar el círculo */
+.fortex-nucleo {
+    min-height: 650px;
+}
+
+/* ==========================================
+   FORTEX - ENGRANAJE METÁLICO DEFINITIVO
+   ========================================== */
+
+/* =========================================
+   FORTEX - CUERPO METÁLICO DE LOS MÓDULOS
+   ========================================= */
+
+.fortex-modulo {
+    background:
+        radial-gradient(
+            circle at 50% 42%,
+            #18212b 0%,
+            #0a1118 58%,
+            #02060a 100%
+        );
+
+    border: 5px solid #202a35;
+
+    box-shadow:
+    0 0 0 3px #11161c,
+    inset 0 0 0 3px rgba(0, 174, 255, 0.72),
+    inset 0 0 12px rgba(0, 174, 255, 0.30),
+    0 0 16px rgba(0, 110, 220, 0.18);
+}
+
+.fortex-modulo::after {
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 115, 255, 0.10),
+        rgba(0, 190, 255, 0.95),
+        rgba(120, 220, 255, 0.90)
+    );
+
+    box-shadow:
+        0 0 7px rgba(0, 174, 255, 0.65),
+        0 0 14px rgba(0, 110, 255, 0.25);
+}   
+.fortex-modulo::before {
+    content: "";
+    position: absolute;
+
+    width: 194px;
+    height: 194px;
+    border-radius: 50%;
+
+    background:
+        repeating-conic-gradient(
+            from 0deg,
+            #15191f 0deg 2deg,
+            #5d6670 2deg 4deg,
+            #c5ccd3 4deg 6deg,
+            #7b858f 6deg 9deg,
+            #2b3037 9deg 12deg,
+            transparent 12deg 22.5deg
+        );
+
+    -webkit-mask:
+        radial-gradient(
+            circle,
+            transparent 0 70px,
+            #000 69px 86px
+        );
+
+    mask:
+        radial-gradient(
+            circle,
+            transparent 0 70px,
+            #000 69px 86px
+        );
+
+    filter:
+        drop-shadow(0 4px 3px rgba(0, 0, 0, 0.95))
+        drop-shadow(0 0 6px rgba(0, 174, 255, 0.60))
+        drop-shadow(0 0 12px rgba(0, 90, 180, 0.22));
+
+    z-index: -1;
+    pointer-events: none;
+}
+
+
+/* LOGO CENTRAL FORTEX */
+
+.fortex-logo-central {
+    width: 260px;
+    height: 260px;
+    object-fit: cover;
+    border-radius: 50%;
+
+    filter:
+        drop-shadow(0 0 12px rgba(0, 174, 255, 0.55))
+        drop-shadow(0 0 30px rgba(0, 102, 255, 0.30));
+}
+
+/* =========================================
+   FORTEX - MÓDULO SVG
+   ========================================= */
+
+.fortex-modulo-svg {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none;
+    z-index: 5;
+
+    background-image: url("../svg/engranaje_fortex.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.fortex-engranaje-svg {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+    pointer-events: none;
+}
+
+.fortex-modulo-contenido {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+    color: #ffffff;
+    text-align: center;
+    pointer-events: none;
+}
+
+.fortex-modulo-contenido span {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.fortex-modulo-contenido strong {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+}
+
+.fortex-modulo-svg:hover {
+    transform: scale(1.04);
+    filter: drop-shadow(0 0 12px rgba(0, 174, 255, 0.55));
+}
+
+/* CONSERVAR CENTRADO AL HACER HOVER */
+.modulo-riesgos-svg:hover,
+.modulo-cobros-svg:hover {
+    transform: translateY(-50%) scale(1.04);
+}
+
+
+/* POSICIÓN DEL NUEVO ENGRANAJE CLIENTES */
+
+.modulo-clientes-svg {
+    left: 18%;
+    top: 12%;
+}
+
+/* POSICIÓN NUEVO ENGRANAJE RIESGOS */
+.modulo-riesgos-svg {
+    left: 7%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* POSICIÓN NUEVO ENGRANAJE PÓLIZAS */
+.modulo-polizas-svg {
+    right: 18%;
+    top: 12%;
+}
+
+/* POSICIÓN NUEVO ENGRANAJE COBROS */
+.modulo-cobros-svg {
+    right: 7%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* POSICIÓN NUEVO ENGRANAJE RECIBOS */
+.modulo-recibos-svg {
+    left: 18%;
+    bottom: 12%;
+}
+
+/* POSICIÓN NUEVO ENGRANAJE REPORTES */
+.modulo-reportes-svg {
+    right: 18%;
+    bottom: 12%;
+}
+
+.fortex-modulo-svg .fortex-modulo-contenido {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: 20;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    color: #ffffff;
+}
+
+.fortex-modulo-svg .fortex-modulo-contenido span {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.fortex-modulo-svg .fortex-modulo-contenido strong {
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    color: #ffffff;
+}
+
+/* =========================================
+   ACCESOS RÁPIDOS FORTEX
+   ========================================= */
+
+.fortex-accesos-rapidos {
+    position: relative;
+    top: -45px;
+
+    width: 100%;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.fortex-acceso-rapido {
+    position: relative;
+    width: 82px;
+    height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none;
+    color: #ffffff;
+
+    background:
+        radial-gradient(circle,
+        #071a2d 0%,
+        #03101e 55%,
+        #020812 100%);
+
+    border: 3px solid #00aeff;
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 10px rgba(0, 174, 255, 0.8),
+        0 0 25px rgba(0, 174, 255, 0.45);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.fortex-acceso-rapido:hover {
+    transform: scale(1.08);
+
+    box-shadow:
+        0 0 15px rgba(0, 174, 255, 1),
+        0 0 35px rgba(0, 174, 255, 0.7);
+}
+
+.fortex-acceso-rapido .fortex-modulo-contenido {
+    position: static;
+    transform: none;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+.fortex-acceso-rapido span {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.fortex-acceso-rapido strong {
+    margin-top: 5px;
+    font-size: 7px;
+    letter-spacing: 1px;
+    color: #ffffff;
+}
+
+/* MINI ENGRANAJE ACCESOS RÁPIDOS FORTEX */
+
+.fortex-mini-engranaje {
+    position: absolute;
+    width: 105px;
+    height: 105px;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: 1;
+    pointer-events: none;
+}
+
+.fortex-acceso-rapido .fortex-modulo-contenido {
+    z-index: 2;
+}
+
+/* CAJA - ACCESO RÁPIDO FORTEX */
+.acceso-caja {
+    position: relative;
+}
+
+/* ICONOS NUEVOS FORTEX */
+.icono-modulo-fortex {
+    width: 105px;
+    height: 105px;
+    object-fit: contain;
+    display: block;
+}
+
+.modulo-cobros-svg .icono-modulo-fortex {
+    width: 101px;
+    height: 101px;
+    transform: translateX(-1px);
+}
+
+/* ICONOS ACCESOS RÁPIDOS FORTEX */
+.icono-acceso-fortex {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    display: block;
+}
+
+.fortex-acceso-rapido {
+    position: relative;
+}
+
+.etiqueta-acceso-fortex {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 8px);
+
+    transform: translate(-50%, -12px) scale(0.92);
+    opacity: 0;
+    visibility: hidden;
+
+    min-width: 150px;
+    padding: 10px 18px;
+
+    background:
+        linear-gradient(135deg, #07111f, #0b2440);
+
+    border: 2px solid #00aeff;
+    border-radius: 10px;
+
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-align: center;
+
+    box-shadow:
+        0 0 12px rgba(0, 174, 255, 0.8),
+        0 0 25px rgba(0, 174, 255, 0.35);
+
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0.22s;
+
+    pointer-events: none;
+    z-index: 20;
+}
+
+.fortex-acceso-rapido:hover .etiqueta-acceso-fortex {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0) scale(1);
+}
+
+/* =========================================
+   CIRCUITO INTERACTIVO FORTEX
+   ========================================= */
+
+.fortex-dashboard {
+    position: relative;
+}
+
+.circuito-fortex-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 4;
+    overflow: visible;
+}
+
+#circuito-fortex-path {
+    fill: none;
+    stroke: #00c8ff;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    filter:
+        drop-shadow(0 0 4px #00c8ff)
+        drop-shadow(0 0 10px rgba(0, 174, 255, 0.9));
+
+    stroke-dasharray: 12 10;
+    stroke-dashoffset: 300;
+
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#circuito-fortex-path.activo {
+    opacity: 1;
+    animation: energiaFortex 0.75s linear infinite;
+}
+
+@keyframes energiaFortex {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+
+/* LOBO CENTRAL */
+
+.nucleo-lobo-fortex {
+    position: relative;
+    z-index: 5;
+    transition:
+        filter 0.3s ease,
+        transform 0.3s ease;
+}
+
+.nucleo-lobo-fortex.energia-activa {
+    transform: scale(1.025);
+
+    filter:
+        drop-shadow(0 0 8px rgba(0, 210, 255, 0.9))
+        drop-shadow(0 0 22px rgba(0, 120, 255, 0.75));
+}
+
+
+/* RESPLANDOR / FLAMA ELÉCTRICA */
+
+.nucleo-lobo-fortex::after {
+    content: "";
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 70%;
+    height: 70%;
+
+    transform: translate(-50%, -50%) scale(0.7);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            ellipse,
+            rgba(0, 220, 255, 0.55) 0%,
+            rgba(0, 125, 255, 0.28) 35%,
+            transparent 72%
+        );
+
+    filter: blur(10px);
+
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.nucleo-lobo-fortex.energia-activa::after {
+    animation: flamaFortex 0.65s ease-in-out infinite alternate;
+}
+
+@keyframes flamaFortex {
+    from {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    to {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(1.15);
+    }
+}
+
+/* =========================================
+   OJOS ELÉCTRICOS DEL LOBO FORTEX
+   ========================================= */
+
+.nucleo-lobo-fortex {
+    position: relative;
+}
+
+.ojo-fortex {
+    position: absolute;
+
+    width: 4%;
+    aspect-ratio: 1 / 0.55;
+
+    top: 39.1%;
+
+    border-radius: 50%;
+
+    background: #d9fbff;
+
+    box-shadow:
+        0 0 4px #ffffff,
+        0 0 8px #00eaff,
+        0 0 15px #00aaff,
+        0 0 25px #006eff;
+
+    opacity: 0;
+
+    transform: translate(-50%, -50%) scale(0.2);
+
+    pointer-events: none;
+
+    z-index: 10;
+}
+
+.ojo-izquierdo {
+    left: 42.1%;
+}
+
+.ojo-derecho {
+    left: 57.9%;
+}
+
+
+/* Se activan cuando llega la energía */
+
+.nucleo-lobo-fortex.energia-activa .ojo-fortex {
+    animation: encenderOjosFortex 0.65s ease-out forwards,
+               pulsoOjosFortex 0.8s ease-in-out 0.65s infinite alternate;
+}
+
+
+@keyframes encenderOjosFortex {
+
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.2);
+    }
+
+    55% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.35);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+
+@keyframes pulsoOjosFortex {
+
+    from {
+        opacity: 0.75;
+
+        filter: brightness(1);
+    }
+
+    to {
+        opacity: 1;
+
+        filter: brightness(2);
+    }
+}
+
+/* =========================================
+   FLAMAS ELÉCTRICAS FORTEX
+   ========================================= */
+
+.flama-fortex {
+    position: absolute;
+    top: 39.1%;
+
+    width: 12%;
+    height: 2.4%;
+
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,0.95),
+            rgba(0,234,255,0.95),
+            rgba(0,110,255,0.65),
+            transparent
+        );
+
+    border-radius: 50%;
+
+    filter:
+        blur(1px)
+        drop-shadow(0 0 6px #00eaff)
+        drop-shadow(0 0 14px #006eff);
+
+    transform-origin: left center;
+}
+
+.flama-izquierda {
+    left: 42%;
+    transform: translate(-100%, -50%) scaleX(0);
+}
+
+.flama-derecha {
+    left: 58%;
+    transform: translate(0, -50%) scaleX(0);
+}
+
+
+/* ACTIVACIÓN */
+
+.nucleo-lobo-fortex.energia-activa .flama-izquierda {
+    animation: disparoFlamaIzquierda 0.85s ease-out forwards;
+}
+
+.nucleo-lobo-fortex.energia-activa .flama-derecha {
+    animation: disparoFlamaDerecha 0.85s ease-out forwards;
+}
+
+
+@keyframes disparoFlamaIzquierda {
+
+    0% {
+        opacity: 0;
+        transform: translate(-100%, -50%) scaleX(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translate(-100%, -50%) scaleX(1.25);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translate(-100%, -50%) scaleX(1.45);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-100%, -50%) scaleX(1.7);
+    }
+}
+
+@keyframes disparoFlamaDerecha {
+
+    0% {
+        opacity: 0;
+        transform: translate(0, -50%) scaleX(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translate(0, -50%) scaleX(1.25);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translate(0, -50%) scaleX(1.45);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(0, -50%) scaleX(1.7);
+    }
+}
+
+/* =====================================================
+   PRUEBA ROTACIÓN ENGRANAJE ORIGINAL - SOLO CLIENTES
+   ===================================================== */
+
+/* Quitamos únicamente el fondo del módulo CLIENTES */
+.modulo-clientes-svg {
+    background-image: none;
+}
+
+/* Recreamos ESE MISMO engranaje como capa independiente */
+.modulo-clientes-svg::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../svg/engranaje_fortex.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    z-index: 1;
+    pointer-events: none;
+
+    transform: rotate(0deg);
+    transition: transform 1s ease;
+}
+
+/* El PNG de CLIENTES queda por encima y NO gira */
+.modulo-clientes-svg .fortex-modulo-contenido {
+        z-index: 2;
+}
+
+/* Giramos solamente el engranaje */
+.modulo-clientes-svg:hover::before {
+    transform: rotate(90deg);
+}
+/* =====================================================
+   ROTACIÓN ENGRANAJE ORIGINAL - RIESGOS
+   ===================================================== */
+
+.modulo-riesgos-svg {
+    background-image: none;
+}
+
+.modulo-riesgos-svg::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../svg/engranaje_fortex.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    z-index: 1;
+    pointer-events: none;
+
+    transform: rotate(0deg);
+    transition: transform 1s ease;
+}
+
+.modulo-riesgos-svg .fortex-modulo-contenido {
+    z-index: 2;
+}
+
+.modulo-riesgos-svg:hover::before {
+    transform: rotate(90deg);
+}
+
+/* =====================================================
+   ROTACIÓN ENGRANAJES ORIGINALES - RESTO DE MÓDULOS
+   ===================================================== */
+
+/* Quitamos el background original para recrearlo
+   como capa giratoria independiente */
+
+.modulo-polizas-svg,
+.modulo-cobros-svg,
+.modulo-recibos-svg,
+.modulo-reportes-svg {
+    background-image: none;
+}
+
+
+/* Capa del engranaje SVG */
+
+.modulo-polizas-svg::before,
+.modulo-cobros-svg::before,
+.modulo-recibos-svg::before,
+.modulo-reportes-svg::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background-image: url("../svg/engranaje_fortex.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    z-index: 1;
+    pointer-events: none;
+
+    transform: rotate(0deg);
+    transition: transform 1s ease;
+}
+
+
+/* Iconos centrales siempre por encima */
+
+.modulo-polizas-svg .fortex-modulo-contenido,
+.modulo-cobros-svg .fortex-modulo-contenido,
+.modulo-recibos-svg .fortex-modulo-contenido,
+.modulo-reportes-svg .fortex-modulo-contenido {
+    z-index: 2;
+}
+
+
+/* Giro al pasar el mouse */
+
+.modulo-polizas-svg:hover::before,
+.modulo-cobros-svg:hover::before,
+.modulo-recibos-svg:hover::before,
+.modulo-reportes-svg:hover::before {
+    transform: rotate(90deg);
+}
+
+/* AJUSTE TAMAÑO ABRIR TURNO */
+
+.acceso-turno .icono-acceso-fortex {
+    transform: scale(1.20);
+}
+
+/* =========================================
+   ENGRANAJE MAESTRO CENTRAL FORTEX
+   ========================================= */
+
+.nucleo-lobo-fortex {
+    position: relative;
+}
+
+.engranaje-maestro-fortex {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 125%;
+    height: 125%;
+
+    object-fit: contain;
+
+    z-index: 0;
+    pointer-events: none;
+}
+
+.fortex-lobo-central {
+    .fortex-lobo-central {
+    position: relative !important;
+    z-index: 10 !important;
+}
+}
+
+/* GIRO CONTINUO DEL ENGRANAJE MAESTRO */
+
+.engranaje-maestro-fortex {
+    animation: giro-maestro-fortex 18s linear infinite;
+}
+
+@keyframes giro-maestro-fortex {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.fecha-corta {
+    width: 320px !important;
+    max-width: 320px !important;
 }

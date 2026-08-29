@@ -1,0 +1,201 @@
+{% extends "principal/base.html" %}
+
+{% load fortex_formatos %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>💰 Reporte de Ingresos</h2>
+
+        <a href="{% url 'inicio' %}" class="btn btn-secondary">
+            ← Volver al Escritorio
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="get" class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Fecha desde</label>
+                    <input
+                        type="date"
+                        name="fecha_desde"
+                        class="form-control"
+                        value="{{ fecha_desde }}"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Fecha hasta</label>
+                    <input
+                        type="date"
+                        name="fecha_hasta"
+                        class="form-control"
+                        value="{{ fecha_hasta }}"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Forma de pago</label>
+
+                    <select name="forma_pago" class="form-select">
+
+                        <option value="">Todas</option>
+
+                        {% for valor, texto in formas_pago %}
+                            <option
+                                value="{{ valor }}"
+                                {% if forma_pago == valor %}selected{% endif %}
+                            >
+                                {{ texto }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+
+                    <button type="submit" class="btn btn-primary">
+                        Filtrar
+                    </button>
+
+                    <a href="{% url 'reporte_ingresos' %}"
+                       class="btn btn-secondary">
+                        Limpiar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <strong>Total ingresos</strong>
+                    <h4>{{ total_ingresos|dinero_ar }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <strong>Efectivo</strong>
+                    <h4>{{ total_efectivo|dinero_ar }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <strong>Transferencias</strong>
+                    <h4>{{ total_transferencia|dinero_ar }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <strong>Débito</strong>
+                    <h4>{{ total_debito|dinero_ar }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <strong>Tarjeta</strong>
+                    <h4>{{ total_tarjeta|dinero_ar }}</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <table class="table table-hover">
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Aseguradora</th>
+                        <th>Forma de pago</th>
+                        <th>Cuotas</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for cobro in cobros %}
+
+                    <tr>
+                        <td>{{ cobro.fecha_pago|fecha_ar }}</td>
+
+                        <td>
+                            {{ cobro.cliente.apellido }},
+                            {{ cobro.cliente.nombre }}
+                        </td>
+
+                        <td>
+                            {{ cobro.poliza.compania }}
+                        </td>
+
+                        <td>
+                            {{ cobro.forma_pago }}
+                        </td>
+
+                        <td>
+                            {% if cobro.cantidad_cuotas > 1 %}
+                                {{ cobro.cuota }} -
+                                {{ cobro.cuota|add:cobro.cantidad_cuotas|add:"-1" }}
+                            {% else %}
+                                {{ cobro.cuota }}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                           {{ cobro.importe|dinero_ar }}
+                        </td>
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No hay ingresos para el período seleccionado.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

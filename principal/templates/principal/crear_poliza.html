@@ -152,7 +152,9 @@
                       type="date"
                       name="fecha_alta"
                       value="{{ datos.fecha_alta|default:'' }}"
-                      required>
+                      required
+                      style="width: 320px !important; max-width: 320px !important;"
+                >
 
                 <label>Periodicidad</label>
                 <select class="form-select mb-3" name="periodicidad">
@@ -204,7 +206,7 @@
                 <div class="grupo-botones">
 
                    <button class="btn btn-success" type="submit">
-                      💾 Guardar Cliente
+                      💾 Guardar Poliza
                    </button>
 
                    <a href="/" class="btn btn-secondary">

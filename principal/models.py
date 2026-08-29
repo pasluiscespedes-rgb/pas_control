@@ -78,11 +78,58 @@ class GastoCaja(models.Model):
 
     fecha_hora = models.DateTimeField(auto_now_add=True) 
 
+class Sucursal(models.Model):
+    nombre = models.CharField(
+        max_length=120
+    )
+
+    provincia = models.CharField(
+        max_length=80
+    )
+
+    codigo = models.CharField(
+        max_length=20,
+        unique=True
+    )
+
+    activa = models.BooleanField(
+        default=True
+    )
+
+    def __str__(self):
+        return f"{self.provincia} - {self.nombre}"
+
+class PerfilUsuario(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="perfil_fortex"
+    )
+
+    sucursal = models.ForeignKey(
+        Sucursal,
+        on_delete=models.PROTECT,
+        related_name="usuarios"
+    )
+
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.usuario} - {self.sucursal}"    
+
 class TurnoCaja(models.Model):
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="turnos_caja"
+    )
+
+    sucursal = models.ForeignKey(
+        Sucursal,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="turnos"
     )
 
     fecha_apertura = models.DateTimeField(auto_now_add=True)
@@ -154,6 +201,26 @@ class CierreCaja(models.Model):
         max_digits=12,
         decimal_places=2,
         default=0
+    )
+
+    debito = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    turno = models.ForeignKey(
+    "TurnoCaja",
+    on_delete=models.PROTECT,
+    null=True,
+    blank=True,
+    related_name="cierres",
+    )
+
+    cbu = models.DecimalField(
+    max_digits=12,
+    decimal_places=2,
+    default=0
     )
 
     fecha_hora_cierre = models.DateTimeField(auto_now_add=True)

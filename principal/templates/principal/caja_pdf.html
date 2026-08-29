@@ -1,3 +1,4 @@
+{% load fortex_formatos %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -45,15 +46,41 @@
 <h1>FORTEX Gestión Integral</h1>
 <h2>Cierre Diario de Caja</h2>
 
-<p><strong>Fecha:</strong> {{ hoy }}</p>
+<p><strong>Fecha:</strong> {{ hoy|fecha_ar }}</p>
+
+{% if turno %}
+<p><strong>Sucursal:</strong> {{ turno.sucursal }}</p>
+
+<p>
+    <strong>Operador:</strong>
+    {{ turno.usuario.get_full_name|default:turno.usuario.username }}
+</p>
+
+<p><strong>Nº de turno:</strong> {{ turno.id }}</p>
+
+<p>
+    <strong>Apertura:</strong>
+    {{ turno.fecha_apertura|date:"d/m/Y H:i" }}
+</p>
+
+<p>
+    <strong>Cierre:</strong>
+    {% if turno.fecha_cierre %}
+        {{ turno.fecha_cierre|date:"d/m/Y H:i" }}
+    {% else %}
+        Turno abierto
+    {% endif %}
+</p>
+{% endif %}
 
 <div class="resumen">
-    <p><strong>Total:</strong> ${{ total }}</p>
-    <p><strong>Efectivo:</strong> ${{ efectivo }}</p>
-    <p><strong>Tarjeta:</strong> ${{ tarjeta }}</p>
-    <p><strong>CBU:</strong> ${{ transferencia }}</p>
-    <p><strong>Gastos del día:</strong> ${{ total_gastos|floatformat:2 }}</p>
-    <p><strong>Saldo neto:</strong> ${{ saldo_neto|floatformat:2 }}</p>
+    <p><strong>Total:</strong> {{ total|dinero_ar }}</p>
+    <p><strong>Efectivo:</strong> {{ efectivo|dinero_ar }}</p>
+    <p><strong>Tarjeta:</strong> {{ tarjeta|dinero_ar }}</p>
+    <p><strong>Transferencia:</strong> {{ transferencia|dinero_ar }}</p>
+    <p><strong>DEBITO:</strong> {{ debito|dinero_ar }}</p>
+    <p><strong>Gastos del día:</strong> {{ total_gastos|dinero_ar }}</p>
+    <p><strong>Saldo neto:</strong> {{ saldo_neto|dinero_ar }}</p>
 </div>
 <h3>Gastos del día</h3>
 
@@ -69,7 +96,7 @@
         {% for gasto in gastos %}
         <tr>
             <td>{{ gasto.concepto }}</td>
-            <td>${{ gasto.importe|floatformat:2 }}</td>
+            <td>{{ gasto.importe|dinero_ar }}</td>
             <td>{{ gasto.usuario|default:"-" }}</td>
         </tr>
         {% empty %}
@@ -83,6 +110,7 @@
 
 <tr>
     <th>Cliente</th>
+    <th>Patente</th>
     <th>Póliza</th>
     <th>Forma de pago</th>
     <th>Importe</th>
@@ -90,17 +118,24 @@
 
 {% for cobro in cobros %}
 
-<tr>
-    <td>{{ cobro.cliente }}</td>
-    <td>{{ cobro.poliza.numero_poliza }}</td>
-    <td>{{ cobro.forma_pago }}</td>
-    <td>${{ cobro.importe }}</td>
-</tr>
+<td>{{ cobro.cliente }}</td>
+
+<td>
+    {% if cobro.poliza.vehiculo %}
+        {{ cobro.poliza.vehiculo.patente }}
+    {% else %}
+        -
+    {% endif %}
+</td>
+
+<td>{{ cobro.poliza.numero_poliza }}</td>
+<td>{{ cobro.forma_pago }}</td>
+<td>{{ cobro.importe|dinero_ar }}</td>
 
 {% empty %}
 
 <tr>
-    <td colspan="4">
+    <td colspan="5">
         No existen cobros registrados.
     </td>
 </tr>

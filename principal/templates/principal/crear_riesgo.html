@@ -49,24 +49,43 @@
 
                 <label>Cliente</label>
 
-                <select class="form-select mb-3" name="cliente" required>
+{% if cliente_preseleccionado %}
 
-                   <option value="">
-                     Seleccione un cliente
-                   </option>
+    <input
+        type="text"
+        class="form-control mb-3"
+        value="{{ cliente_preseleccionado.apellido }}, {{ cliente_preseleccionado.nombre }} - DNI {{ cliente_preseleccionado.dni }}"
+        readonly
+    >
 
-                {% for cliente in clientes %}
+    <input
+        type="hidden"
+        name="cliente"
+        value="{{ cliente_preseleccionado.id }}"
+    >
 
-                   <option
-                     value="{{ cliente.id }}"
-                     {% if datos.cliente == cliente.id|stringformat:"s" %}selected{% endif %}
-                   >
-                      {{ cliente.apellido }}, {{ cliente.nombre }} - DNI {{ cliente.dni }}
-                   </option>
+{% else %}
 
-                   {% endfor %}
+    <select class="form-select mb-3" name="cliente" required>
 
-                </select>
+        <option value="">
+            Seleccione un cliente
+        </option>
+
+        {% for cliente in clientes %}
+
+            <option
+                value="{{ cliente.id }}"
+                {% if datos.cliente == cliente.id|stringformat:"s" %}selected{% endif %}
+            >
+                {{ cliente.apellido }}, {{ cliente.nombre }} - DNI {{ cliente.dni }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+{% endif %}
 
                 <label>Tipo de Riesgo</label>
                 <select class="form-select mb-4" name="tipo_riesgo"
@@ -167,26 +186,7 @@
                   required
 >
 
-                <label>Cliente</label>
-
-                <select class="form-select mb-3" name="cliente" required>
-
-                   <option value="">
-                    Seleccione un cliente
-                   </option>
-
-                   {% for cliente in clientes %}
-
-                       <option
-                         value="{{ cliente.id }}"
-                         {% if datos.cliente == cliente.id|stringformat:"s" %}selected{% endif %}
-                        >
-                           {{ cliente.apellido }}, {{ cliente.nombre }} — DNI {{ cliente.dni }}
-                       </option>
-
-                     {% endfor %}
-
-                </select>
+                
 
                     <label>Uso del vehículo</label>
                     <select class="form-select mb-3" name="uso" required>
@@ -216,7 +216,7 @@
         <div class="grupo-botones">
 
             <button class="btn btn-success" type="submit">
-               💾 Guardar Cliente
+               💾 Guardar Riesgo
             </button>
 
             <a href="/" class="btn btn-secondary">

@@ -87,12 +87,13 @@
                 <label>Fecha de nacimiento</label>
 
                 <input
-                  class="form-control mb-3"
+                  class="form-control mb-3 fecha-corta"
                   type="date"
                   name="fecha_nacimiento"
                   placeholder="Fecha nacimiento"
                   value="{{ datos.fecha_nacimiento|default:'' }}"
                   required
+                  style="width: 320px !important; max-width: 320px !important;"
                 >
 
                 <hr>

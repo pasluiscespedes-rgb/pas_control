@@ -23,12 +23,24 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(z!4u1p+j37vb_ya(z2#2x4iy2i(^7_*4@a!y&a4viy9h4aco!'
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "fortex-clave-local-desarrollo"
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv(
+    "DJANGO_DEBUG",
+    "True"
+).lower() == "true"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost"
+    ).split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -51,6 +63,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,6 +105,11 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
+
+# WhatsApp Cloud API - FORTEX
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
 
 # DATABASES = {
 #     'default': {
@@ -136,7 +154,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 LOGIN_URL = "/cuentas/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/cuentas/login/"
+# Seguridad de sesión FORTEX
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

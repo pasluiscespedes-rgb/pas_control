@@ -1,0 +1,414 @@
+{% load fortex_formatos %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Cobranza - FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #07111f;
+            color: #ffffff;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        .subtitulo {
+            color: #9fb3c8;
+            margin-bottom: 25px;
+        }
+
+        .resumen {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta {
+            background: #0d1b2a;
+            padding: 15px 18px;
+            border-radius: 12px;
+            min-width: 150px;
+        }
+
+        .tarjeta strong {
+            display: block;
+            color: #9fb3c8;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .tarjeta span {
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            background: #0d1b2a;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .filtros form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #b8c7d9;
+        }
+
+        input,
+        select {
+            padding: 9px 10px;
+            border-radius: 7px;
+            border: 1px solid #30445c;
+            background: #07111f;
+            color: white;
+            min-width: 160px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-limpiar {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            background: #2b3b4f;
+            color: white;
+            border: 1px solid #53677f;
+        }
+
+        .btn-limpiar:hover {
+            background: #3a5068;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d1b2a;
+            margin-bottom: 25px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #26384d;
+            text-align: center;
+        }
+
+        th {
+            background: #13263b;
+            font-size: 13px;
+        }
+
+        td:first-child,
+        th:first-child {
+            text-align: left;
+        }
+
+        .vacio {
+            padding: 30px;
+            text-align: center;
+            color: #9fb3c8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Reporte de Cobranza / Morosidad</h1>
+
+    <div class="subtitulo">
+        Estado de cobranza, cartera pendiente y últimos pagos registrados
+    </div>
+
+    <div class="resumen">
+
+        <div class="tarjeta">
+            <strong>Total cobrado</strong>
+            <span>{{ total_cobrado|dinero_ar }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Operaciones</strong>
+            <span>{{ total_operaciones }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Clientes cobrados</strong>
+            <span>{{ clientes_cobrados }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Pendientes</strong>
+            <span>{{ total_pendientes }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Morosas</strong>
+            <span>{{ total_morosas }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Vencidas</strong>
+            <span>{{ total_vencidas }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Clientes con deuda</strong>
+            <span>{{ clientes_con_deuda }}</span>
+        </div>
+
+    </div>
+
+    <div class="filtros">
+        <form method="get">
+
+            <div class="campo">
+                <label>Desde</label>
+                <input
+                    type="date"
+                    name="fecha_desde"
+                    value="{{ fecha_desde }}"
+                >
+            </div>
+
+            <div class="campo">
+                <label>Hasta</label>
+                <input
+                    type="date"
+                    name="fecha_hasta"
+                    value="{{ fecha_hasta }}"
+                >
+            </div>
+
+            <div class="campo">
+                <label>Aseguradora</label>
+
+                <select name="compania">
+                    <option value="">Todas</option>
+
+                    {% for compania in companias %}
+                        <option
+                            value="{{ compania }}"
+                            {% if compania == compania_seleccionada %}selected{% endif %}
+                        >
+                            {{ compania }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Estado de póliza</label>
+
+                <select name="estado">
+                    <option value="">Todos</option>
+
+                    {% for valor, texto in estados %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == estado_seleccionado %}selected{% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Forma de pago</label>
+
+                <select name="forma_pago">
+                    <option value="">Todas</option>
+
+                    {% for valor, texto in formas_pago %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == forma_pago_seleccionada %}selected{% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">
+                Aplicar filtros
+            </button>
+
+            <a
+                href="{% url 'reporte_cobranza' %}"
+                class="btn-limpiar"
+            >
+                Limpiar filtros
+            </a>
+
+        </form>
+    </div>
+
+
+    <h2>Cobros registrados</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Aseguradora</th>
+                <th>Póliza</th>
+                <th>Patente</th>
+                <th>Cuota</th>
+                <th>Forma de pago</th>
+                <th>Importe</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for cobro in cobros %}
+                <tr>
+                    <td>{{ cobro.fecha_pago|date:"d/m/Y" }}</td>
+                    <td>{{ cobro.cliente }}</td>
+                    <td>{{ cobro.poliza.compania }}</td>
+                    <td>{{ cobro.poliza.numero_poliza|default:"-" }}</td>
+
+                    <td>
+                        {% if cobro.poliza.vehiculo %}
+                            {{ cobro.poliza.vehiculo.patente }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ cobro.cuota }} / {{ cobro.cantidad_cuotas }}
+                    </td>
+
+                    <td>{{ cobro.forma_pago }}</td>
+
+                    <td>
+                        {{ cobro.importe|dinero_ar }}
+                    </td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="8" class="vacio">
+                        No existen cobros para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+
+    <h2>Cartera pendiente / morosa / vencida</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Aseguradora</th>
+                <th>Póliza</th>
+                <th>Patente</th>
+                <th>Estado</th>
+                <th>Cuota actual</th>
+                <th>Vencimiento</th>
+                <th>Último pago</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for fila in detalle_deuda %}
+
+                <tr>
+                    <td>{{ fila.poliza.cliente }}</td>
+
+                    <td>{{ fila.poliza.compania }}</td>
+
+                    <td>
+                        {{ fila.poliza.numero_poliza|default:"-" }}
+                    </td>
+
+                    <td>
+                        {% if fila.poliza.vehiculo %}
+                            {{ fila.poliza.vehiculo.patente }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>{{ fila.poliza.estado }}</td>
+
+                    <td>
+                        {{ fila.poliza.numero_cuota }} /
+                        {{ fila.poliza.cantidad_cuotas }}
+                    </td>
+
+                    <td>
+                        {% if fila.poliza.fecha_vencimiento %}
+                            {{ fila.poliza.fecha_vencimiento|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if fila.ultimo_cobro %}
+                            {{ fila.ultimo_cobro.fecha_pago|date:"d/m/Y" }}
+                        {% else %}
+                            Sin pagos
+                        {% endif %}
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="8" class="vacio">
+                        No existen pólizas pendientes, morosas o vencidas para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</body>
+</html>

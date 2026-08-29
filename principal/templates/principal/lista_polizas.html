@@ -1,0 +1,70 @@
+{% extends "principal/base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🛡️ Pólizas registradas</h2>
+
+        <div>
+            <a href="{% url 'inicio' %}" class="btn btn-secondary">
+                ← Volver al Escritorio
+            </a>
+
+            <a href="{% url 'crear_poliza' %}" class="btn btn-primary">
+                + Nueva Póliza
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <p><strong>Pólizas: {{ polizas|length }}</strong></p>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Aseguradora</th>
+                        <th>Cuotas</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for poliza in polizas %}
+                    <tr>
+                        <td>{{ poliza.numero_poliza }}</td>
+                        <td>{{ poliza.cliente }}</td>
+                        <td>{{ poliza.compania|default:"SIN COMPAÑÍA" }}</td>
+                        <td>{{ poliza.numero_cuota }} / {{ poliza.cantidad_cuotas }}</td>
+                        <td>{{ poliza.estado }}</td>
+                        <td>
+                            <a href="{% url 'ver_poliza' poliza.id %}"
+                               class="btn btn-sm btn-primary">
+                                Ver
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No hay pólizas registradas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

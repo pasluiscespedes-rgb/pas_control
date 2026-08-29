@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Pólizas - FORTEX</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #07111f;
+            color: #ffffff;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitulo {
+            color: #9fb3c8;
+            margin-bottom: 25px;
+        }
+
+        .resumen {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta {
+            background: #0d1b2a;
+            padding: 15px 18px;
+            border-radius: 12px;
+            min-width: 130px;
+        }
+
+        .tarjeta strong {
+            display: block;
+            color: #9fb3c8;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .tarjeta span {
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            background: #0d1b2a;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .filtros form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            color: #b8c7d9;
+        }
+
+        select {
+            padding: 9px 10px;
+            border-radius: 7px;
+            border: 1px solid #30445c;
+            background: #07111f;
+            color: white;
+            min-width: 180px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-limpiar {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            background: #2b3b4f;
+            color: white;
+            border: 1px solid #53677f;
+        }
+
+        .btn-limpiar:hover {
+            background: #3a5068;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d1b2a;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #26384d;
+            text-align: center;
+        }
+
+        th {
+            background: #13263b;
+            font-size: 13px;
+        }
+
+        td:first-child,
+        th:first-child {
+            text-align: left;
+        }
+
+        .vacio {
+            padding: 30px;
+            text-align: center;
+            color: #9fb3c8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Reporte de Pólizas / Estado de Cartera</h1>
+
+    <div class="subtitulo">
+        Estado general y distribución de la cartera de pólizas
+    </div>
+
+    <div class="resumen">
+
+        <div class="tarjeta">
+            <strong>Total pólizas</strong>
+            <span>{{ total_polizas }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Clientes</strong>
+            <span>{{ total_clientes }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Al día</strong>
+            <span>{{ al_dia }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Pendientes</strong>
+            <span>{{ pendientes }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Morosas</strong>
+            <span>{{ morosas }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Vencidas</strong>
+            <span>{{ vencidas }}</span>
+        </div>
+
+        <div class="tarjeta">
+            <strong>Anuladas</strong>
+            <span>{{ anuladas }}</span>
+        </div>
+
+    </div>
+
+    <div class="filtros">
+
+        <form method="get">
+
+            <div class="campo">
+                <label>Estado</label>
+
+                <select name="estado">
+                    <option value="">Todos</option>
+
+                    {% for valor, texto in estados %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == estado_seleccionado %}selected{% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Aseguradora</label>
+
+                <select name="compania">
+                    <option value="">Todas</option>
+
+                    {% for compania in companias %}
+                        <option
+                            value="{{ compania }}"
+                            {% if compania == compania_seleccionada %}selected{% endif %}
+                        >
+                            {{ compania }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Tipo de seguro</label>
+
+                <select name="tipo_seguro">
+                    <option value="">Todos</option>
+
+                    {% for valor, texto in tipos_seguro %}
+                        <option
+                            value="{{ valor }}"
+                            {% if valor == tipo_seguro_seleccionado %}selected{% endif %}
+                        >
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit">
+                Aplicar filtros
+            </button>
+
+            <a
+                href="{% url 'reporte_polizas' %}"
+                class="btn-limpiar"
+            >
+                Limpiar filtros
+            </a>
+
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Aseguradora</th>
+                <th>Póliza</th>
+                <th>Tipo</th>
+                <th>Vehículo</th>
+                <th>Estado</th>
+                <th>Cuota</th>
+                <th>Próximo vencimiento</th>
+                <th>Fin de vigencia</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for poliza in polizas %}
+                <tr>
+                    <td>{{ poliza.cliente }}</td>
+                    <td>{{ poliza.compania }}</td>
+                    <td>{{ poliza.numero_poliza|default:"-" }}</td>
+                    <td>{{ poliza.tipo_seguro }}</td>
+
+                    <td>
+                        {% if poliza.vehiculo %}
+                            {{ poliza.vehiculo.patente }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>{{ poliza.estado }}</td>
+
+                    <td>
+                        {{ poliza.numero_cuota }} / {{ poliza.cantidad_cuotas }}
+                    </td>
+
+                    <td>
+                        {% if poliza.fecha_vencimiento %}
+                            {{ poliza.fecha_vencimiento|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if poliza.fecha_fin_vigencia %}
+                            {{ poliza.fecha_fin_vigencia|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="9" class="vacio">
+                        No existen pólizas para los filtros seleccionados.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</body>
+</html>
