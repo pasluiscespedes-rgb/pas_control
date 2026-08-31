@@ -2007,7 +2007,10 @@ def enviar_aviso_whatsapp(request, poliza_id):
 
 
     if request.method != "POST":
-        return redirect("avisos_del_dia")
+      return HttpResponse(
+        f"<h2>DIAGNÓSTICO 1</h2>"
+        f"<p>Método recibido: {request.method}</p>"
+    )
 
     poliza = get_object_or_404(
         Poliza.objects.select_related("cliente", "vehiculo"),
@@ -2016,18 +2019,16 @@ def enviar_aviso_whatsapp(request, poliza_id):
     
 
     if not poliza.cliente.whatsapp:
-       messages.error(
-        request,
-        "El cliente no tiene un número de WhatsApp registrado."
+        return HttpResponse(
+         "<h2>DIAGNÓSTICO 2</h2>"
+         "<p>El cliente no tiene WhatsApp.</p>"
     )
-    return redirect("avisos_del_dia")
 
     if not poliza.vehiculo or not poliza.vehiculo.patente:
-        messages.error(
-            request,
-            "La póliza no tiene un vehículo o patente válida."
-        )
-    return redirect("avisos_del_dia")
+        return HttpResponse(
+         "<h2>DIAGNÓSTICO 3</h2>"
+         "<p>La póliza no tiene vehículo o patente.</p>"
+    )
 
     numero = str(poliza.cliente.whatsapp or "")
     numero = "".join(c for c in numero if c.isdigit())
