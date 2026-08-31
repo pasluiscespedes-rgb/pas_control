@@ -11,6 +11,11 @@ RUTA_LOGO_FORTEX = (
     / "fortex_logo_redondo.png"
 )
 
+URL_LOGO_FORTEX = (
+    "https://pascontrol-production.up.railway.app/"
+    "static/principal/img/fortex_logo_redondo.png"
+)
+
 def subir_imagen_whatsapp(ruta_imagen):
     url = (
         f"https://graph.facebook.com/"
@@ -57,6 +62,7 @@ def enviar_plantilla_whatsapp(
     idioma="en_US",
     parametros=None,
     media_id_header=None,
+    media_url_header=None,
 ):
     url = (
         f"https://graph.facebook.com/"
@@ -84,7 +90,22 @@ def enviar_plantilla_whatsapp(
     componentes = []
 
     # Encabezado con imagen/logo
-    if media_id_header:
+   
+    if media_url_header:
+        componentes.append(
+            {
+                "type": "header",
+                "parameters": [
+                    {
+                        "type": "image",
+                        "image": {
+                            "link": media_url_header
+                        },
+                    }
+                ],
+            }
+        )
+    elif media_id_header:
         componentes.append(
             {
                 "type": "header",
@@ -143,7 +164,7 @@ def enviar_recordatorio_vencimiento(
             str(fecha_vencimiento),
             str(importe),
         ],
-        media_id_header="4449901031822195",
+        media_url_header=URL_LOGO_FORTEX,
     )
 
 def enviar_cuota_vencida(
@@ -163,7 +184,7 @@ def enviar_cuota_vencida(
             str(fecha_vencimiento),
             str(importe),
         ],
-        media_id_header="4449901031822195",
+        media_url_header=URL_LOGO_FORTEX,
     )
 
 def obtener_importe_referencia(poliza):
