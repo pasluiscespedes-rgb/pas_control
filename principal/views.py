@@ -3530,3 +3530,18 @@ def agenda_telefonos(request):
         "principal/agenda_telefonos.html",
         contexto
     )
+
+from pathlib import Path
+from django.conf import settings
+from django.http import FileResponse
+
+
+def service_worker(request):
+    ruta = Path(settings.BASE_DIR) / "principal" / "static" / "principal" / "service-worker.js"
+
+    response = FileResponse(
+        open(ruta, "rb"),
+        content_type="application/javascript"
+    )
+    response["Service-Worker-Allowed"] = "/"
+    return response
