@@ -2091,10 +2091,11 @@ def enviar_aviso_whatsapp(request, poliza_id):
             )
 
     except Exception as error:
-        messages.error(
-            request,
-            f"No se pudo enviar el WhatsApp: {error}"
-        )
+       return HttpResponse(
+        f"<h2>Error antes de enviar a Meta</h2>"
+        f"<p><strong>Tipo:</strong> {type(error).__name__}</p>"
+        f"<pre>{error}</pre>"
+    )
 
     return redirect("avisos_del_dia")
 
