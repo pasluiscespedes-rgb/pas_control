@@ -255,11 +255,34 @@
                             </a>
 
                             <a
-                                target="_blank"
-                                class="btn btn-warning btn-sm"
-                                href="https://wa.me/549{{ poliza.cliente.whatsapp }}?text=Buen%20día%20{{ poliza.cliente.nombre }}.%0A%0ANos%20comunicamos%20de%20FORTEX%20Gestión%20Integral.%0A%0ASu%20póliza{% if poliza.vehiculo %}%20del%20vehículo%20patente%20{{ poliza.vehiculo.patente }}{% endif %}%20se%20encuentra%20vencida.%0A%0ALe%20solicitamos%20regularizar%20el%20pago%20para%20evitar%20inconvenientes%20con%20la%20cobertura.%0A%0APuede%20abonar%20en%20nuestra%20oficina%20o%20solicitar%20los%20datos%20para%20transferencia.%0A%0AFORTEX%20Gestión%20Integral"
-                            >
-                                📲 WhatsApp
+                                {% if poliza.cliente.whatsapp %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'enviar_aviso_whatsapp' poliza.id %}"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-warning btn-sm"
+                                        >
+                                            📲 WhatsApp
+                                        </button>
+                                    </form>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        disabled
+                                    >
+                                        📵 Sin WhatsApp
+                                    </button>
+
+                                {% endif %}
                             </a>
 
                         </div>
@@ -353,11 +376,34 @@
                             </a>
 
                             <a
-                                target="_blank"
-                                class="btn btn-warning btn-sm"
-                                href="https://wa.me/549{{ poliza.cliente.whatsapp }}?text=Buen%20día%20{{ poliza.cliente.nombre }}.%0A%0ALe%20recordamos%20que%20su%20póliza{% if poliza.vehiculo %}%20del%20vehículo%20patente%20{{ poliza.vehiculo.patente }}{% endif %}%20vence%20hoy%20{{ poliza.fecha_vencimiento|date:'d/m/Y' }}.%0A%0APuede%20abonar%20en%20nuestra%20oficina%20o%20solicitar%20los%20datos%20para%20transferencia.%0A%0AFORTEX%20Gestión%20Integral"
-                            >
-                                📲 WhatsApp
+                                {% if poliza.cliente.whatsapp %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'enviar_aviso_whatsapp' poliza.id %}"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-warning btn-sm"
+                                        >
+                                            📲 WhatsApp
+                                        </button>
+                                    </form>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        disabled
+                                    >
+                                        📵 Sin WhatsApp
+                                    </button>
+
+                                {% endif %}
                             </a>
 
                         </div>
@@ -439,11 +485,34 @@
                             </a>
 
                             <a
-                                target="_blank"
-                                class="btn btn-warning btn-sm"
-                                href="https://wa.me/549{{ poliza.cliente.whatsapp }}?text=Buen%20día%20{{ poliza.cliente.nombre }}.%0A%0ALe%20recordamos%20que%20su%20póliza{% if poliza.vehiculo %}%20del%20vehículo%20patente%20{{ poliza.vehiculo.patente }}{% endif %}%20vence%20el%20{{ poliza.fecha_vencimiento|date:'d/m/Y' }}.%0A%0ALe%20recomendamos%20realizar%20el%20pago%20antes%20del%20vencimiento.%0A%0AFORTEX%20Gestión%20Integral"
-                            >
-                                📲 WhatsApp
+                               {% if poliza.cliente.whatsapp %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'enviar_aviso_whatsapp' poliza.id %}"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-warning btn-sm"
+                                        >
+                                            📲 WhatsApp
+                                        </button>
+                                    </form>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        disabled
+                                    >
+                                        📵 Sin WhatsApp
+                                    </button>
+
+                                {% endif %}
                             </a>
 
                         </div>
@@ -525,11 +594,34 @@
                             </a>
 
                             <a
-                                target="_blank"
-                                class="btn btn-warning btn-sm"
-                                href="https://wa.me/549{{ poliza.cliente.whatsapp }}?text=Buen%20día%20{{ poliza.cliente.nombre }}.%0A%0ALe%20informamos%20que%20su%20póliza{% if poliza.vehiculo %}%20del%20vehículo%20patente%20{{ poliza.vehiculo.patente }}{% endif %}%20vence%20el%20{{ poliza.fecha_vencimiento|date:'d/m/Y' }}.%0A%0APuede%20abonar%20en%20nuestra%20oficina%20o%20solicitar%20los%20datos%20para%20transferencia.%0A%0AFORTEX%20Gestión%20Integral"
-                            >
-                                📲 WhatsApp
+                                {% if poliza.cliente.whatsapp %}
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'enviar_aviso_whatsapp' poliza.id %}"
+                                        class="d-inline"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-warning btn-sm"
+                                        >
+                                            📲 WhatsApp
+                                        </button>
+                                    </form>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        disabled
+                                    >
+                                        📵 Sin WhatsApp
+                                    </button>
+
+                                {% endif %}
                             </a>
 
                         </div>
