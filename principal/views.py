@@ -2004,6 +2004,12 @@ def avisos_del_dia(request):
 
 @login_required
 def enviar_aviso_whatsapp(request, poliza_id):
+
+    return HttpResponse(
+    "<h1>ENTRE A ENVIAR_AVISO_WHATSAPP</h1>"
+    f"<p>Poliza ID: {poliza_id}</p>"
+)
+
     if request.method != "POST":
         return redirect("avisos_del_dia")
 
