@@ -27,6 +27,7 @@ urlpatterns = [
     path("recibos/<int:recibo_id>/pdf/", views.recibo_pdf, name="recibo_pdf"),
     path("vencimientos/",views.centro_vencimientos,name="centro_vencimientos"),
     path("vencimientos/avisos-del-dia/",views.avisos_del_dia,name="avisos_del_dia"),
+    path("vencimientos/avisos-del-dia/<int:poliza_id>/whatsapp/",views.enviar_aviso_whatsapp,name="enviar_aviso_whatsapp",),
     path("caja/", views.caja_diaria, name="caja_diaria"),
     path("caja/turno/abrir/", views.abrir_turno, name="abrir_turno"),
     path("caja/historial-turnos/",views.historial_turnos,name="historial_turnos",),    

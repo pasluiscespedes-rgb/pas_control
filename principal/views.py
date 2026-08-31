@@ -35,7 +35,7 @@ from backup_db import crear_backup
 import subprocess
 from pathlib import Path
 from django.utils import timezone
-
+from principal.whatsapp import (enviar_recordatorio_vencimiento,enviar_cuota_vencida,obtener_importe_referencia,)
 
 
 
@@ -2001,6 +2001,92 @@ def avisos_del_dia(request):
         "principal/avisos_del_dia.html",
         contexto
     )
+
+@login_required
+def enviar_aviso_whatsapp(request, poliza_id):
+    if request.method != "POST":
+        return redirect("avisos_del_dia")
+
+    poliza = get_object_or_404(
+        Poliza.objects.select_related("cliente", "vehiculo"),
+        id=poliza_id,
+    )
+
+    if not poliza.cliente.whatsapp:
+       messages.error(
+        request,
+        "El cliente no tiene un número de WhatsApp registrado."
+    )
+    return redirect("avisos_del_dia")
+
+    if not poliza.vehiculo or not poliza.vehiculo.patente:
+        messages.error(
+            request,
+            "La póliza no tiene un vehículo o patente válida."
+        )
+    return redirect("avisos_del_dia")
+
+    numero = str(poliza.cliente.whatsapp or "")
+    numero = "".join(c for c in numero if c.isdigit())
+
+    # Normalización para celulares argentinos
+    if numero.startswith("0"):
+        numero = numero[1:]
+
+    if numero.startswith("54"):
+        destinatario = numero
+    else:
+        destinatario = "549" + numero
+
+    nombre = poliza.cliente.nombre.strip()
+    patente = poliza.vehiculo.patente.strip()
+    fecha = poliza.fecha_vencimiento.strftime("%d/%m/%Y")
+
+    importe = obtener_importe_referencia(poliza)
+
+    if importe is None:
+        importe_texto = "Consultar con su asesor"
+    else:
+        importe_texto = f"{importe:,.0f}".replace(",", ".")
+
+    try:
+        if poliza.fecha_vencimiento < date.today():
+            respuesta = enviar_cuota_vencida(
+                destinatario=destinatario,
+                nombre=nombre,
+                patente=patente,
+                fecha_vencimiento=fecha,
+                importe=importe_texto,
+            )
+            tipo_aviso = "cuota vencida"
+        else:
+            respuesta = enviar_recordatorio_vencimiento(
+                destinatario=destinatario,
+                nombre=nombre,
+                patente=patente,
+                fecha_vencimiento=fecha,
+                importe=importe_texto,
+            )
+            tipo_aviso = "recordatorio"
+
+        if respuesta.ok:
+            messages.success(
+                request,
+                f"WhatsApp de {tipo_aviso} enviado correctamente a {nombre}."
+            )
+        else:
+            messages.error(
+                request,
+                f"Meta rechazó el envío: {respuesta.text}"
+            )
+
+    except Exception as error:
+        messages.error(
+            request,
+            f"No se pudo enviar el WhatsApp: {error}"
+        )
+
+    return redirect("avisos_del_dia")
 
 @login_required
 def lista_clientes(request):
