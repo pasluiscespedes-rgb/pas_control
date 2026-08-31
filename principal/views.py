@@ -2011,16 +2011,6 @@ def enviar_aviso_whatsapp(request, poliza_id):
         Poliza.objects.select_related("cliente", "vehiculo"),
         id=poliza_id,
     )
-
-    return HttpResponse(
-    f"<h2>Diagnóstico de póliza</h2>"
-    f"<p><strong>ID:</strong> {poliza.id}</p>"
-    f"<p><strong>Cliente:</strong> {poliza.cliente}</p>"
-    f"<p><strong>WhatsApp:</strong> {poliza.cliente.whatsapp}</p>"
-    f"<p><strong>Vehículo:</strong> {poliza.vehiculo}</p>"
-    f"<p><strong>Patente:</strong> "
-    f"{poliza.vehiculo.patente if poliza.vehiculo else 'SIN VEHÍCULO'}</p>"
-)
     
 
     if not poliza.cliente.whatsapp:
