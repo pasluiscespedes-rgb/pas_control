@@ -2070,7 +2070,13 @@ def enviar_aviso_whatsapp(request, poliza_id):
             tipo_aviso = "recordatorio"
 
             print("WHATSAPP STATUS:", respuesta.status_code)
-            print("WHATSAPP RESPUESTA:", respuesta.text)   
+            print("WHATSAPP RESPUESTA:", respuesta.text) 
+
+            return HttpResponse(
+             f"<h2>Respuesta de Meta</h2>"
+             f"<p><strong>Status:</strong> {respuesta.status_code}</p>"
+             f"<pre>{respuesta.text}</pre>"
+            ) 
 
         if respuesta.ok:
             messages.success(
