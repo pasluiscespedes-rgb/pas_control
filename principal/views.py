@@ -2004,31 +2004,48 @@ def avisos_del_dia(request):
 
 @login_required
 def enviar_aviso_whatsapp(request, poliza_id):
-
-
     if request.method != "POST":
-      return HttpResponse(
-        f"<h2>DIAGNÓSTICO 1</h2>"
-        f"<p>Método recibido: {request.method}</p>"
-    )
+        return redirect("avisos_del_dia")
 
     poliza = get_object_or_404(
         Poliza.objects.select_related("cliente", "vehiculo"),
         id=poliza_id,
     )
-    
+
+    # Determinar automáticamente a qué categoría pertenece la póliza
+    hoy = date.today()
+    en_7_dias = hoy + timedelta(days=7)
+    en_15_dias = hoy + timedelta(days=15)
+
+    if poliza.fecha_vencimiento < hoy:
+        categoria = "vencidas"
+    elif poliza.fecha_vencimiento == hoy:
+        categoria = "hoy"
+    elif poliza.fecha_vencimiento <= en_7_dias:
+        categoria = "7_dias"
+    elif poliza.fecha_vencimiento <= en_15_dias:
+        categoria = "15_dias"
+    else:
+        categoria = "hoy"
+
+    url_retorno = (
+        f"/vencimientos/avisos-del-dia/"
+        f"?categoria={categoria}"
+    )
 
     if not poliza.cliente.whatsapp:
-        return HttpResponse(
-         "<h2>DIAGNÓSTICO 2</h2>"
-         "<p>El cliente no tiene WhatsApp.</p>"
-    )
+        messages.error(
+            request,
+            "El cliente no tiene un número de WhatsApp registrado."
+        )
+        return redirect(url_retorno)
 
     if not poliza.vehiculo or not poliza.vehiculo.patente:
-        return HttpResponse(
-         "<h2>DIAGNÓSTICO 3</h2>"
-         "<p>La póliza no tiene vehículo o patente.</p>"
-    )
+        messages.error(
+            request,
+            "La póliza no tiene un vehículo o patente válida."
+        )
+        return redirect(url_retorno)
 
     numero = str(poliza.cliente.whatsapp or "")
     numero = "".join(c for c in numero if c.isdigit())
@@ -2054,7 +2071,7 @@ def enviar_aviso_whatsapp(request, poliza_id):
         importe_texto = f"{importe:,.0f}".replace(",", ".")
 
     try:
-        if poliza.fecha_vencimiento < date.today():
+        if poliza.fecha_vencimiento < hoy:
             respuesta = enviar_cuota_vencida(
                 destinatario=destinatario,
                 nombre=nombre,
@@ -2073,15 +2090,6 @@ def enviar_aviso_whatsapp(request, poliza_id):
             )
             tipo_aviso = "recordatorio"
 
-            print("WHATSAPP STATUS:", respuesta.status_code)
-            print("WHATSAPP RESPUESTA:", respuesta.text) 
-
-            return HttpResponse(
-             f"<h2>Respuesta de Meta</h2>"
-             f"<p><strong>Status:</strong> {respuesta.status_code}</p>"
-             f"<pre>{respuesta.text}</pre>"
-            ) 
-
         if respuesta.ok:
             messages.success(
                 request,
@@ -2094,13 +2102,12 @@ def enviar_aviso_whatsapp(request, poliza_id):
             )
 
     except Exception as error:
-       return HttpResponse(
-        f"<h2>Error antes de enviar a Meta</h2>"
-        f"<p><strong>Tipo:</strong> {type(error).__name__}</p>"
-        f"<pre>{error}</pre>"
-    )
+        messages.error(
+            request,
+            f"No se pudo enviar el WhatsApp: {error}"
+        )
 
-    return redirect("avisos_del_dia")
+    return redirect(url_retorno)
 
 @login_required
 def lista_clientes(request):

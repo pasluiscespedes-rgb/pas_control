@@ -15,6 +15,8 @@
         rel="stylesheet"
     >
 
+
+
     <style>
         body {
             background-color: #eef2f6;
@@ -50,6 +52,14 @@
 </head>
 
 <body>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-3">
+            {{ message }}
+        </div>
+       {% endfor %}
+    {% endif %}
 
 <div class="container-fluid px-4 py-4">
 
@@ -300,7 +310,7 @@
                         </button>
 
                     {% endif %}
-                    
+
                 </div>
 
             </div>
