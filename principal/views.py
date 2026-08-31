@@ -2069,6 +2069,9 @@ def enviar_aviso_whatsapp(request, poliza_id):
             )
             tipo_aviso = "recordatorio"
 
+            print("WHATSAPP STATUS:", respuesta.status_code)
+            print("WHATSAPP RESPUESTA:", respuesta.text)   
+
         if respuesta.ok:
             messages.success(
                 request,
