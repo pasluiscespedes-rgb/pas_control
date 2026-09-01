@@ -949,18 +949,34 @@
 
                                 {% if mensaje.tipo == 'image' and mensaje.media_id %}
 
-                                    <img
-                                        src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
-                                        alt="Imagen de WhatsApp"
-                                        class="wa-media-image"
-                                        loading="lazy"
+                                    <a
+                                        href="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        title="Abrir imagen completa"
                                     >
+                                        <img
+                                            src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                            alt="Imagen de WhatsApp"
+                                            class="wa-media-image"
+                                            loading="lazy"
+                                        >
+                                    </a>
 
                                     {% if mensaje.texto %}
                                         <div class="wa-media-caption">
                                             {{ mensaje.texto }}
                                         </div>
                                     {% endif %}
+
+                                    <div style="margin-top: 8px;">
+                                        <a
+                                            class="wa-client-link"
+                                            href="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}?download=1"
+                                        >
+                                            ⬇ Descargar imagen
+                                        </a>
+                                    </div>
 
 
                                 {% elif mensaje.tipo == 'sticker' and mensaje.media_id %}

@@ -587,16 +587,47 @@ def ver_media_whatsapp(request, mensaje_id):
         content_type=content_type,
     )
 
+    content_type_limpio = content_type.split(";")[0].lower()
+
+    extensiones = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "video/mp4": "mp4",
+        "audio/ogg": "ogg",
+        "audio/mpeg": "mp3",
+        "application/pdf": "pdf",
+    }
+
+    extension = extensiones.get(
+        content_type_limpio,
+        "bin",
+    )
+
     if mensaje.nombre_archivo:
-        nombre_seguro = (
+       nombre_seguro = (
             mensaje.nombre_archivo
             .replace('"', "")
             .replace("\r", "")
             .replace("\n", "")
-        )
+            .replace("/", "_")
+            .replace("\\", "_")
+    )
+    else:
+       nombre_seguro = (
+        f"whatsapp_{mensaje.id}.{extension}"
+    )
 
-        respuesta["Content-Disposition"] = (
-            f'inline; filename="{nombre_seguro}"'
-        )
+    descargar = request.GET.get("download") == "1"
+
+    disposicion = (
+     "attachment"
+     if descargar
+     else "inline"
+    )
+
+    respuesta["Content-Disposition"] = (
+      f'{disposicion}; filename="{nombre_seguro}"'
+    )
 
     return respuesta
