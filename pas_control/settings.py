@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'polizas',
     'recibos',
     'cobros',
-
+    'mensajeria',
 ]
 
 MIDDLEWARE = [
