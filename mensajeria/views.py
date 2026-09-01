@@ -12,6 +12,8 @@ from django.utils import timezone
 from clientes.models import Cliente
 
 from .models import ConversacionWhatsApp, MensajeWhatsApp
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render
 
 
 def _solo_digitos(valor):
@@ -386,3 +388,58 @@ def webhook_whatsapp(request):
     _procesar_payload(payload)
 
     return JsonResponse({"ok": True})
+
+@login_required
+def bandeja_whatsapp(request, conversacion_id=None):
+    conversaciones = (
+        ConversacionWhatsApp.objects
+        .filter(activa=True)
+        .select_related("cliente")
+        .order_by("-ultimo_mensaje_en", "-actualizada_en")
+    )
+
+    conversacion_activa = None
+    mensajes = MensajeWhatsApp.objects.none()
+
+    if conversacion_id is not None:
+        conversacion_activa = get_object_or_404(
+            conversaciones,
+            pk=conversacion_id,
+        )
+
+        mensajes = conversacion_activa.mensajes.all()
+
+        ahora = timezone.now()
+
+        mensajes.filter(
+            direccion=MensajeWhatsApp.DIRECCION_ENTRANTE,
+            leido_en_fortex=False,
+        ).update(
+            leido_en_fortex=True,
+            fecha_leido_en_fortex=ahora,
+        )
+
+        if conversacion_activa.no_leidos:
+            conversacion_activa.no_leidos = 0
+            conversacion_activa.save(
+                update_fields=[
+                    "no_leidos",
+                    "actualizada_en",
+                ]
+            )
+
+    total_no_leidos = sum(
+        conversacion.no_leidos
+        for conversacion in conversaciones
+    )
+
+    return render(
+        request,
+        "mensajeria/bandeja_whatsapp.html",
+        {
+            "conversaciones": conversaciones,
+            "conversacion_activa": conversacion_activa,
+            "mensajes": mensajes,
+            "total_no_leidos": total_no_leidos,
+        },
+    )

@@ -11,4 +11,14 @@ urlpatterns = [
         views.webhook_whatsapp,
         name="webhook_whatsapp",
     ),
+    path(
+        "",
+        views.bandeja_whatsapp,
+        name="bandeja_whatsapp",
+    ),
+    path(
+        "conversacion/<int:conversacion_id>/",
+        views.bandeja_whatsapp,
+        name="conversacion_whatsapp",
+    ),
 ]

@@ -1,0 +1,1208 @@
+{% extends "principal/base.html" %}
+
+{% block title %}WhatsApp | FORTEX Gestión Integral{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --wa-bg: #07111f;
+        --wa-panel: rgba(10, 24, 42, 0.96);
+        --wa-panel-soft: rgba(15, 34, 57, 0.90);
+        --wa-border: rgba(77, 171, 255, 0.18);
+        --wa-blue: #1ca7ff;
+        --wa-cyan: #38d8ff;
+        --wa-text: #edf7ff;
+        --wa-muted: #8ea8bd;
+        --wa-in: rgba(24, 48, 73, 0.96);
+        --wa-out: rgba(11, 101, 151, 0.95);
+        --wa-danger: #ff6677;
+    }
+
+    body {
+        background: var(--wa-bg);
+    }
+
+    .wa-page {
+        min-height: calc(100vh - 90px);
+        padding: 18px;
+        background:
+            radial-gradient(circle at 12% 10%, rgba(28, 167, 255, .10), transparent 32%),
+            radial-gradient(circle at 88% 85%, rgba(56, 216, 255, .07), transparent 30%),
+            #07111f;
+        color: var(--wa-text);
+    }
+
+    .wa-shell {
+        max-width: 1500px;
+        height: calc(100vh - 125px);
+        min-height: 620px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 330px minmax(0, 1fr) 255px;
+        overflow: hidden;
+        border: 1px solid var(--wa-border);
+        border-radius: 22px;
+        background: rgba(5, 15, 27, .92);
+        box-shadow:
+            0 24px 70px rgba(0, 0, 0, .35),
+            0 0 40px rgba(28, 167, 255, .06);
+        backdrop-filter: blur(16px);
+    }
+
+    /* ==============================
+       CONVERSACIONES
+       ============================== */
+
+    .wa-sidebar {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--wa-border);
+        background: linear-gradient(
+            180deg,
+            rgba(13, 30, 51, .98),
+            rgba(7, 20, 35, .98)
+        );
+    }
+
+    .wa-sidebar-header {
+        padding: 19px 18px 15px;
+        border-bottom: 1px solid var(--wa-border);
+    }
+
+    .wa-brand-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .wa-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .wa-brand-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 18px;
+        font-weight: 900;
+        color: white;
+        border: 1px solid rgba(56, 216, 255, .35);
+        background:
+            radial-gradient(circle at 30% 20%, #249dde, #092842 68%);
+        box-shadow: 0 0 20px rgba(28, 167, 255, .20);
+    }
+
+    .wa-brand-text strong {
+        display: block;
+        font-size: 15px;
+        letter-spacing: .5px;
+    }
+
+    .wa-brand-text span {
+        display: block;
+        margin-top: 1px;
+        color: var(--wa-muted);
+        font-size: 11px;
+    }
+
+    .wa-total-badge {
+        min-width: 25px;
+        height: 25px;
+        padding: 0 8px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--wa-blue);
+        color: white;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .wa-search {
+        position: relative;
+    }
+
+    .wa-search input {
+        width: 100%;
+        height: 39px;
+        padding: 0 14px 0 38px;
+        border: 1px solid rgba(77, 171, 255, .14);
+        border-radius: 13px;
+        outline: none;
+        background: rgba(255, 255, 255, .045);
+        color: var(--wa-text);
+        font-size: 13px;
+    }
+
+    .wa-search input::placeholder {
+        color: #71899e;
+    }
+
+    .wa-search input:focus {
+        border-color: rgba(56, 216, 255, .48);
+        box-shadow: 0 0 0 3px rgba(28, 167, 255, .08);
+    }
+
+    .wa-search-icon {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--wa-muted);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .wa-chat-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 7px;
+    }
+
+    .wa-chat-item {
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr) auto;
+        gap: 11px;
+        align-items: center;
+        padding: 11px 10px;
+        margin-bottom: 3px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        color: var(--wa-text);
+        text-decoration: none;
+        transition: .18s ease;
+    }
+
+    .wa-chat-item:hover {
+        color: var(--wa-text);
+        background: rgba(28, 167, 255, .075);
+        border-color: rgba(28, 167, 255, .12);
+    }
+
+    .wa-chat-item.active {
+        background: linear-gradient(
+            90deg,
+            rgba(28, 167, 255, .18),
+            rgba(28, 167, 255, .06)
+        );
+        border-color: rgba(56, 216, 255, .20);
+    }
+
+    .wa-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-weight: 800;
+        font-size: 16px;
+        color: white;
+        background:
+            linear-gradient(145deg, #184e73, #0b2339);
+        border: 1px solid rgba(56, 216, 255, .28);
+        box-shadow: inset 0 0 18px rgba(56, 216, 255, .08);
+    }
+
+    .wa-chat-info {
+        min-width: 0;
+    }
+
+    .wa-chat-name {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        font-weight: 750;
+    }
+
+    .wa-chat-preview {
+        margin-top: 4px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--wa-muted);
+        font-size: 11px;
+    }
+
+    .wa-chat-side {
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 5px;
+        color: var(--wa-muted);
+        font-size: 10px;
+    }
+
+    .wa-unread {
+        min-width: 21px;
+        height: 21px;
+        padding: 0 6px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        color: white;
+        background: var(--wa-blue);
+        font-weight: 800;
+    }
+
+    .wa-empty-list {
+        padding: 38px 18px;
+        text-align: center;
+        color: var(--wa-muted);
+        font-size: 13px;
+    }
+
+    /* ==============================
+       CHAT CENTRAL
+       ============================== */
+
+    .wa-main {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        background:
+            radial-gradient(circle at center, rgba(28, 167, 255, .035), transparent 55%),
+            #081522;
+    }
+
+    .wa-chat-header {
+        min-height: 74px;
+        padding: 12px 17px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid var(--wa-border);
+        background: rgba(12, 28, 47, .96);
+    }
+
+    .wa-chat-person {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .wa-chat-person-text {
+        min-width: 0;
+    }
+
+    .wa-chat-person h2 {
+        margin: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: white;
+        font-size: 16px;
+        font-weight: 750;
+    }
+
+    .wa-chat-person p {
+        margin: 3px 0 0;
+        color: var(--wa-muted);
+        font-size: 11px;
+    }
+
+    .wa-client-link {
+        padding: 7px 10px;
+        border: 1px solid rgba(56, 216, 255, .22);
+        border-radius: 10px;
+        color: var(--wa-cyan);
+        background: rgba(28, 167, 255, .08);
+        text-decoration: none;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .wa-client-link:hover {
+        color: white;
+        background: rgba(28, 167, 255, .16);
+    }
+
+    .wa-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px clamp(16px, 4vw, 54px);
+        scroll-behavior: smooth;
+    }
+
+    .wa-message-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .wa-message-row.in {
+        justify-content: flex-start;
+    }
+
+    .wa-message-row.out {
+        justify-content: flex-end;
+    }
+
+    .wa-bubble {
+        position: relative;
+        max-width: min(72%, 670px);
+        padding: 10px 12px 7px;
+        border: 1px solid rgba(255, 255, 255, .055);
+        border-radius: 14px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .10);
+    }
+
+    .wa-message-row.in .wa-bubble {
+        background: var(--wa-in);
+        border-top-left-radius: 4px;
+    }
+
+    .wa-message-row.out .wa-bubble {
+        background: var(--wa-out);
+        border-top-right-radius: 4px;
+    }
+
+    .wa-message-text {
+        color: #f1f8fd;
+        font-size: 13px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .wa-media-label {
+        margin-bottom: 6px;
+        color: var(--wa-cyan);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .wa-message-meta {
+        margin-top: 5px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 5px;
+        color: rgba(226, 241, 251, .65);
+        font-size: 9px;
+    }
+
+    .wa-status {
+        color: #8de5ff;
+        letter-spacing: -2px;
+        font-size: 12px;
+    }
+
+    .wa-status.failed {
+        color: var(--wa-danger);
+        letter-spacing: 0;
+    }
+
+    .wa-no-chat {
+        flex: 1;
+        display: grid;
+        place-items: center;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .wa-no-chat-inner {
+        max-width: 450px;
+    }
+
+    .wa-no-chat-logo {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 20px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(56, 216, 255, .20);
+        background:
+            radial-gradient(circle at 35% 25%, #1d7fb7, #081b2d 70%);
+        box-shadow: 0 0 45px rgba(28, 167, 255, .13);
+        font-size: 32px;
+    }
+
+    .wa-no-chat h2 {
+        margin: 0 0 9px;
+        color: white;
+        font-size: 21px;
+    }
+
+    .wa-no-chat p {
+        margin: 0;
+        color: var(--wa-muted);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* ==============================
+       ESCRITURA
+       ============================== */
+
+    .wa-composer {
+        padding: 12px 15px;
+        border-top: 1px solid var(--wa-border);
+        background: rgba(11, 27, 45, .98);
+    }
+
+    .wa-composer-box {
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) 43px;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .wa-composer-action,
+    .wa-send {
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(56, 216, 255, .15);
+        color: var(--wa-muted);
+        background: rgba(255, 255, 255, .04);
+    }
+
+    .wa-send {
+        color: white;
+        border-color: rgba(56, 216, 255, .32);
+        background:
+            linear-gradient(145deg, #128bc9, #075c8b);
+    }
+
+    .wa-composer textarea {
+        width: 100%;
+        height: 42px;
+        min-height: 42px;
+        max-height: 100px;
+        resize: none;
+        padding: 11px 14px;
+        border: 1px solid rgba(56, 216, 255, .12);
+        border-radius: 14px;
+        outline: none;
+        color: var(--wa-text);
+        background: rgba(255, 255, 255, .045);
+        font-size: 13px;
+    }
+
+    .wa-composer textarea::placeholder {
+        color: #71899e;
+    }
+
+    .wa-composer-note {
+        margin-top: 5px;
+        padding-left: 50px;
+        color: #688197;
+        font-size: 9px;
+    }
+
+    /* ==============================
+       PANEL DERECHO
+       ============================== */
+
+    .wa-details {
+        min-width: 0;
+        overflow-y: auto;
+        border-left: 1px solid var(--wa-border);
+        background:
+            linear-gradient(
+                180deg,
+                rgba(12, 29, 49, .96),
+                rgba(7, 20, 35, .96)
+            );
+    }
+
+    .wa-details-inner {
+        padding: 22px 17px;
+    }
+
+    .wa-details-title {
+        margin-bottom: 18px;
+        color: var(--wa-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.3px;
+        text-transform: uppercase;
+    }
+
+    .wa-detail-profile {
+        text-align: center;
+        padding-bottom: 19px;
+        border-bottom: 1px solid var(--wa-border);
+    }
+
+    .wa-detail-profile .wa-avatar {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 12px;
+        font-size: 23px;
+    }
+
+    .wa-detail-profile strong {
+        display: block;
+        color: white;
+        font-size: 13px;
+    }
+
+    .wa-detail-profile span {
+        display: block;
+        margin-top: 5px;
+        color: var(--wa-muted);
+        font-size: 11px;
+    }
+
+    .wa-detail-section {
+        padding: 17px 0;
+        border-bottom: 1px solid var(--wa-border);
+    }
+
+    .wa-detail-label {
+        margin-bottom: 5px;
+        color: #6f8ba2;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: .8px;
+    }
+
+    .wa-detail-value {
+        color: #dcecf8;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .wa-detail-active {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 5px;
+        color: #7ee6b3;
+        font-size: 11px;
+    }
+
+    .wa-detail-active::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #49d99a;
+        box-shadow: 0 0 10px rgba(73, 217, 154, .6);
+    }
+
+    .wa-mobile-back {
+        display: none;
+        color: var(--wa-cyan);
+        background: transparent;
+        border: 0;
+        font-size: 20px;
+    }
+
+    /* SCROLL */
+
+    .wa-chat-list::-webkit-scrollbar,
+    .wa-messages::-webkit-scrollbar,
+    .wa-details::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .wa-chat-list::-webkit-scrollbar-thumb,
+    .wa-messages::-webkit-scrollbar-thumb,
+    .wa-details::-webkit-scrollbar-thumb {
+        background: rgba(88, 173, 232, .18);
+        border-radius: 10px;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1100px) {
+        .wa-shell {
+            grid-template-columns: 310px minmax(0, 1fr);
+        }
+
+        .wa-details {
+            display: none;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .wa-page {
+            padding: 0;
+        }
+
+        .wa-shell {
+            width: 100%;
+            height: calc(100vh - 70px);
+            min-height: 0;
+            grid-template-columns: 1fr;
+            border-radius: 0;
+            border-left: 0;
+            border-right: 0;
+        }
+
+        .wa-sidebar {
+            display: flex;
+            border-right: 0;
+        }
+
+        .wa-main {
+            display: none;
+        }
+
+        .wa-shell.chat-open .wa-sidebar {
+            display: none;
+        }
+
+        .wa-shell.chat-open .wa-main {
+            display: flex;
+        }
+
+        .wa-mobile-back {
+            display: inline-block;
+        }
+
+        .wa-bubble {
+            max-width: 86%;
+        }
+
+        .wa-chat-header {
+            min-height: 66px;
+        }
+
+        .wa-client-link {
+            display: none;
+        }
+
+        .wa-messages {
+            padding: 18px 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wa-page">
+    <div
+        class="wa-shell {% if conversacion_activa %}chat-open{% endif %}"
+        id="waShell"
+    >
+
+        <!-- LISTA DE CONVERSACIONES -->
+        <aside class="wa-sidebar">
+
+            <div class="wa-sidebar-header">
+
+                <div class="wa-brand-line">
+
+                    <div class="wa-brand">
+                        <div class="wa-brand-icon">F</div>
+
+                        <div class="wa-brand-text">
+                            <strong>FORTEX WhatsApp</strong>
+                            <span>Centro de conversaciones</span>
+                        </div>
+                    </div>
+
+                    {% if total_no_leidos %}
+                        <div class="wa-total-badge">
+                            {{ total_no_leidos }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="wa-search">
+                    <span class="wa-search-icon">⌕</span>
+
+                    <input
+                        type="search"
+                        id="waSearch"
+                        placeholder="Buscar conversación..."
+                        autocomplete="off"
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="wa-chat-list" id="waChatList">
+
+                {% for conversacion in conversaciones %}
+
+                    <a
+                        href="{% url 'mensajeria:conversacion_whatsapp' conversacion.id %}"
+                        class="wa-chat-item {% if conversacion_activa and conversacion.id == conversacion_activa.id %}active{% endif %}"
+                        data-search="
+                            {{ conversacion.telefono }}
+                            {{ conversacion.nombre_whatsapp }}
+                            {% if conversacion.cliente %}
+                                {{ conversacion.cliente }}
+                            {% endif %}
+                        "
+                    >
+
+                        <div class="wa-avatar">
+                            {% if conversacion.cliente %}
+                                {{ conversacion.cliente|stringformat:"s"|slice:":1"|upper }}
+                            {% elif conversacion.nombre_whatsapp %}
+                                {{ conversacion.nombre_whatsapp|slice:":1"|upper }}
+                            {% else %}
+                                W
+                            {% endif %}
+                        </div>
+
+
+                        <div class="wa-chat-info">
+
+                            <div class="wa-chat-name">
+                                {% if conversacion.cliente %}
+                                    {{ conversacion.cliente }}
+                                {% elif conversacion.nombre_whatsapp %}
+                                    {{ conversacion.nombre_whatsapp }}
+                                {% else %}
+                                    {{ conversacion.telefono }}
+                                {% endif %}
+                            </div>
+
+                            <div class="wa-chat-preview">
+                                {% if conversacion.nombre_whatsapp and conversacion.cliente %}
+                                    {{ conversacion.nombre_whatsapp }} ·
+                                {% endif %}
+
+                                {{ conversacion.telefono }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="wa-chat-side">
+
+                            <span>
+                                {% if conversacion.ultimo_mensaje_en %}
+                                    {{ conversacion.ultimo_mensaje_en|date:"H:i" }}
+                                {% endif %}
+                            </span>
+
+                            {% if conversacion.no_leidos %}
+                                <span class="wa-unread">
+                                    {{ conversacion.no_leidos }}
+                                </span>
+                            {% endif %}
+
+                        </div>
+
+                    </a>
+
+                {% empty %}
+
+                    <div class="wa-empty-list">
+                        Todavía no hay conversaciones de WhatsApp.
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </aside>
+
+        <!-- CHAT -->
+        <main class="wa-main">
+
+            {% if conversacion_activa %}
+
+                <header class="wa-chat-header">
+
+                    <div class="wa-chat-person">
+
+                        <button
+                            type="button"
+                            class="wa-mobile-back"
+                            id="waBack"
+                            aria-label="Volver"
+                        >
+                            ‹
+                        </button>
+
+                        <div class="wa-avatar">
+                            {% if conversacion_activa.cliente %}
+                                {{ conversacion_activa.cliente|stringformat:"s"|slice:":1"|upper }}
+                            {% elif conversacion_activa.nombre_whatsapp %}
+                                {{ conversacion_activa.nombre_whatsapp|slice:":1"|upper }}
+                            {% else %}
+                                W
+                            {% endif %}
+                        </div>
+
+                        <div class="wa-chat-person-text">
+
+                            <h2>
+                                {% if conversacion_activa.cliente %}
+                                    {{ conversacion_activa.cliente }}
+                                {% elif conversacion_activa.nombre_whatsapp %}
+                                    {{ conversacion_activa.nombre_whatsapp }}
+                                {% else %}
+                                    {{ conversacion_activa.telefono }}
+                                {% endif %}
+                            </h2>
+
+                            <p>
+                                +{{ conversacion_activa.telefono }}
+
+                                {% if conversacion_activa.cliente %}
+                                    · Cliente FORTEX
+                                {% endif %}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if conversacion_activa.cliente %}
+                        <a
+                            class="wa-client-link"
+                            href="/clientes/{{ conversacion_activa.cliente.id }}/"
+                        >
+                            Ver cliente
+                        </a>
+                    {% endif %}
+
+                </header>
+
+
+                <section
+                    class="wa-messages"
+                    id="waMessages"
+                >
+
+                    {% for mensaje in mensajes %}
+
+                        <div
+                            class="wa-message-row {% if mensaje.direccion == 'saliente' %}out{% else %}in{% endif %}"
+                        >
+
+                            <div class="wa-bubble">
+
+                                {% if mensaje.tipo != 'text' %}
+                                    <div class="wa-media-label">
+                                        {{ mensaje.get_tipo_display }}
+                                    </div>
+                                {% endif %}
+
+
+                                <div class="wa-message-text">
+
+                                    {% if mensaje.texto %}
+                                        {{ mensaje.texto }}
+                                    {% elif mensaje.nombre_archivo %}
+                                        {{ mensaje.nombre_archivo }}
+                                    {% else %}
+                                        Mensaje {{ mensaje.get_tipo_display|lower }}
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="wa-message-meta">
+
+                                    <span>
+                                        {{ mensaje.fecha_mensaje|date:"d/m/Y H:i" }}
+                                    </span>
+
+                                    {% if mensaje.direccion == 'saliente' %}
+
+                                        {% if mensaje.estado == 'failed' %}
+                                            <span class="wa-status failed">
+                                                !
+                                            </span>
+
+                                        {% elif mensaje.estado == 'read' %}
+                                            <span
+                                                class="wa-status"
+                                                title="Leído"
+                                            >
+                                                ✓✓
+                                            </span>
+
+                                        {% elif mensaje.estado == 'delivered' %}
+                                            <span
+                                                class="wa-status"
+                                                title="Entregado"
+                                            >
+                                                ✓✓
+                                            </span>
+
+                                        {% else %}
+                                            <span
+                                                class="wa-status"
+                                                title="{{ mensaje.get_estado_display }}"
+                                            >
+                                                ✓
+                                            </span>
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <div class="wa-empty-list">
+                            Esta conversación todavía no tiene mensajes.
+                        </div>
+
+                    {% endfor %}
+
+                </section>
+
+
+                <footer class="wa-composer">
+
+                    <div class="wa-composer-box">
+
+                        <button
+                            type="button"
+                            class="wa-composer-action"
+                            disabled
+                            title="Adjuntos próximamente"
+                        >
+                            ＋
+                        </button>
+
+                        <textarea
+                            placeholder="Escribir un mensaje..."
+                            disabled
+                        ></textarea>
+
+                        <button
+                            type="button"
+                            class="wa-send"
+                            disabled
+                            title="El envío se conectará en el próximo paso"
+                        >
+                            ➤
+                        </button>
+
+                    </div>
+
+                    <div class="wa-composer-note">
+                        La recepción ya está activa. El envío desde FORTEX se habilitará en el próximo paso.
+                    </div>
+
+                </footer>
+
+
+            {% else %}
+
+                <div class="wa-no-chat">
+
+                    <div class="wa-no-chat-inner">
+
+                        <div class="wa-no-chat-logo">
+                            🐺
+                        </div>
+
+                        <h2>FORTEX WhatsApp</h2>
+
+                        <p>
+                            Seleccioná una conversación para consultar
+                            los mensajes del cliente y trabajar desde
+                            FORTEX.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </main>
+
+        <!-- PANEL DE INFORMACIÓN -->
+        <aside class="wa-details">
+
+            <div class="wa-details-inner">
+
+                <div class="wa-details-title">
+                    Información
+                </div>
+
+                {% if conversacion_activa %}
+
+                    <div class="wa-detail-profile">
+
+                        <div class="wa-avatar">
+                            {% if conversacion_activa.cliente %}
+                                {{ conversacion_activa.cliente|stringformat:"s"|slice:":1"|upper }}
+                            {% elif conversacion_activa.nombre_whatsapp %}
+                                {{ conversacion_activa.nombre_whatsapp|slice:":1"|upper }}
+                            {% else %}
+                                W
+                            {% endif %}
+                        </div>
+
+                        <strong>
+                            {% if conversacion_activa.cliente %}
+                                {{ conversacion_activa.cliente }}
+                            {% elif conversacion_activa.nombre_whatsapp %}
+                                {{ conversacion_activa.nombre_whatsapp }}
+                            {% else %}
+                                Contacto WhatsApp
+                            {% endif %}
+                        </strong>
+
+                        {% if conversacion_activa.nombre_whatsapp %}
+                            <span>
+                                {{ conversacion_activa.nombre_whatsapp }}
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="wa-detail-section">
+
+                        <div class="wa-detail-label">
+                            WhatsApp
+                        </div>
+
+                        <div class="wa-detail-value">
+                            +{{ conversacion_activa.telefono }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="wa-detail-section">
+
+                        <div class="wa-detail-label">
+                            Estado
+                        </div>
+
+                        {% if conversacion_activa.activa %}
+                            <div class="wa-detail-active">
+                                Conversación activa
+                            </div>
+                        {% else %}
+                            <div class="wa-detail-value">
+                                Conversación inactiva
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="wa-detail-section">
+
+                        <div class="wa-detail-label">
+                            Vinculación
+                        </div>
+
+                        <div class="wa-detail-value">
+                            {% if conversacion_activa.cliente %}
+                                Cliente reconocido por FORTEX
+                            {% else %}
+                                Contacto todavía no vinculado
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+
+                    {% if conversacion_activa.ultimo_mensaje_en %}
+                        <div class="wa-detail-section">
+
+                            <div class="wa-detail-label">
+                                Última actividad
+                            </div>
+
+                            <div class="wa-detail-value">
+                                {{ conversacion_activa.ultimo_mensaje_en|date:"d/m/Y H:i" }}
+                            </div>
+
+                        </div>
+                    {% endif %}
+
+
+                    {% if conversacion_activa.cliente %}
+                        <div class="wa-detail-section">
+
+                            <a
+                                href="/clientes/{{ conversacion_activa.cliente.id }}/"
+                                class="wa-client-link"
+                            >
+                                Abrir ficha del cliente
+                            </a>
+
+                        </div>
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="wa-empty-list">
+                        Elegí una conversación para ver los datos del contacto.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </aside>
+
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buscador = document.getElementById("waSearch");
+        const chats = document.querySelectorAll(".wa-chat-item");
+        const mensajes = document.getElementById("waMessages");
+        const volver = document.getElementById("waBack");
+        const shell = document.getElementById("waShell");
+
+        if (buscador) {
+            buscador.addEventListener("input", function () {
+                const texto = this.value
+                    .toLowerCase()
+                    .trim();
+
+                chats.forEach(function (chat) {
+                    const contenido = (
+                        chat.dataset.search || ""
+                    ).toLowerCase();
+
+                    chat.style.display = contenido.includes(texto)
+                        ? ""
+                        : "none";
+                });
+            });
+        }
+
+        if (mensajes) {
+            mensajes.scrollTop = mensajes.scrollHeight;
+        }
+
+        if (volver && shell) {
+            volver.addEventListener("click", function () {
+                shell.classList.remove("chat-open");
+
+                const nuevaUrl = "{% url 'mensajeria:bandeja_whatsapp' %}";
+                window.history.replaceState({}, "", nuevaUrl);
+            });
+        }
+    });
+</script>
+{% endblock %}
