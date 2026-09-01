@@ -147,6 +147,48 @@ def enviar_plantilla_whatsapp(
 
     return respuesta
 
+def enviar_mensaje_texto_whatsapp(destinatario, texto):
+    texto = (texto or "").strip()
+
+    if not texto:
+        raise ValueError("El mensaje no puede estar vacío.")
+
+    url = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    datos = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": str(destinatario),
+        "type": "text",
+        "text": {
+            "preview_url": False,
+            "body": texto,
+        },
+    }
+
+    respuesta = requests.post(
+        url,
+        headers=headers,
+        json=datos,
+        timeout=20,
+    )
+
+    if not respuesta.ok:
+        print("META ERROR:", respuesta.text)
+
+    respuesta.raise_for_status()
+
+    return respuesta.json()
+
 def enviar_recordatorio_vencimiento(
     destinatario,
     nombre,

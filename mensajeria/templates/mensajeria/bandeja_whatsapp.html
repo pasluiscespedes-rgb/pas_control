@@ -968,38 +968,42 @@
 
                 <footer class="wa-composer">
 
-                    <div class="wa-composer-box">
-
-                        <button
-                            type="button"
-                            class="wa-composer-action"
-                            disabled
-                            title="Adjuntos próximamente"
+                        <form
+                            method="post"
+                            action="{% url 'mensajeria:enviar_mensaje_whatsapp' conversacion_activa.id %}"
+                            class="wa-composer-box"
                         >
-                            ＋
-                        </button>
+                            {% csrf_token %}
 
-                        <textarea
-                            placeholder="Escribir un mensaje..."
-                            disabled
-                        ></textarea>
+                            <button
+                                type="button"
+                                class="wa-composer-action"
+                                disabled
+                                title="Adjuntos próximamente"
+                            >
+                                ＋
+                            </button>
 
-                        <button
-                            type="button"
-                            class="wa-send"
-                            disabled
-                            title="El envío se conectará en el próximo paso"
-                        >
-                            ➤
-                        </button>
+                            <textarea
+                                name="texto"
+                                placeholder="Escribir un mensaje..."
+                                required
+                            ></textarea>
 
-                    </div>
+                            <button
+                                type="submit"
+                                class="wa-send"
+                                title="Enviar mensaje"
+                            >
+                                ➤
+                            </button>
+                        </form>
 
-                    <div class="wa-composer-note">
-                        La recepción ya está activa. El envío desde FORTEX se habilitará en el próximo paso.
-                    </div>
+                        <div class="wa-composer-note">
+                            Respondé directamente desde FORTEX.
+                        </div>
 
-                </footer>
+                    </footer>
 
 
             {% else %}

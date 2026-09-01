@@ -21,4 +21,9 @@ urlpatterns = [
         views.bandeja_whatsapp,
         name="conversacion_whatsapp",
     ),
+    path(
+        "conversacion/<int:conversacion_id>/enviar/",
+        views.enviar_mensaje_whatsapp,
+        name="enviar_mensaje_whatsapp",
+    ),
 ]

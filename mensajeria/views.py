@@ -443,3 +443,82 @@ def bandeja_whatsapp(request, conversacion_id=None):
             "total_no_leidos": total_no_leidos,
         },
     )
+
+@login_required
+def enviar_mensaje_whatsapp(request, conversacion_id):
+    from datetime import timedelta
+    from django.shortcuts import redirect
+
+    from principal.whatsapp import enviar_mensaje_texto_whatsapp
+
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    conversacion = get_object_or_404(
+        ConversacionWhatsApp.objects.filter(activa=True),
+        pk=conversacion_id,
+    )
+
+    texto = (request.POST.get("texto") or "").strip()
+
+    if not texto:
+        return redirect(
+            "mensajeria:conversacion_whatsapp",
+            conversacion_id=conversacion.id,
+        )
+
+    ahora = timezone.now()
+
+    limite_24_horas = ahora - timedelta(hours=24)
+
+    if (
+        not conversacion.ultimo_mensaje_entrante_en
+        or conversacion.ultimo_mensaje_entrante_en < limite_24_horas
+    ):
+        return HttpResponse(
+            "La ventana de 24 horas está cerrada. "
+            "Para contactar a este cliente debe usarse una plantilla.",
+            status=400,
+        )
+
+    try:
+        respuesta = enviar_mensaje_texto_whatsapp(
+            conversacion.telefono,
+            texto,
+        )
+    except Exception:
+        return HttpResponse(
+            "No se pudo enviar el mensaje por WhatsApp.",
+            status=502,
+        )
+
+    mensajes_meta = respuesta.get("messages") or []
+
+    meta_message_id = None
+
+    if mensajes_meta:
+        meta_message_id = mensajes_meta[0].get("id")
+
+    MensajeWhatsApp.objects.create(
+        conversacion=conversacion,
+        meta_message_id=meta_message_id,
+        direccion=MensajeWhatsApp.DIRECCION_SALIENTE,
+        tipo=MensajeWhatsApp.TIPO_TEXTO,
+        texto=texto,
+        fecha_mensaje=ahora,
+        estado=MensajeWhatsApp.ESTADO_PENDIENTE,
+        payload_original=respuesta,
+    )
+
+    conversacion.ultimo_mensaje_en = ahora
+    conversacion.save(
+        update_fields=[
+            "ultimo_mensaje_en",
+            "actualizada_en",
+        ]
+    )
+
+    return redirect(
+        "mensajeria:conversacion_whatsapp",
+        conversacion_id=conversacion.id,
+    )
