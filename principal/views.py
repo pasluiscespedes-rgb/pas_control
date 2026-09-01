@@ -3652,3 +3652,6 @@ def service_worker(request):
     )
     response["Service-Worker-Allowed"] = "/"
     return response
+
+def politica_privacidad(request):
+    return render(request, "principal/politica_privacidad.html")

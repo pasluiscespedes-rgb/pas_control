@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("service-worker.js", views.service_worker, name="service_worker"),
     path("", views.inicio, name="inicio"),
+    path("politica-de-privacidad/", views.politica_privacidad, name="politica_privacidad"),
     path("clientes/",views.lista_clientes,name="lista_clientes",),
     path("clientes/nuevo/", views.crear_cliente, name="crear_cliente"),
     path("clientes/<int:cliente_id>/", views.detalle_cliente, name="detalle_cliente"),
