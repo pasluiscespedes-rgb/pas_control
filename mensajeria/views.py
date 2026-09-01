@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import requests
 from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
@@ -522,3 +523,80 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         "mensajeria:conversacion_whatsapp",
         conversacion_id=conversacion.id,
     )
+
+@login_required
+def ver_media_whatsapp(request, mensaje_id):
+    mensaje = get_object_or_404(
+        MensajeWhatsApp,
+        pk=mensaje_id,
+    )
+
+    if not mensaje.media_id:
+        return HttpResponse(
+            "Este mensaje no contiene un archivo multimedia.",
+            status=404,
+        )
+
+    headers = {
+        "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
+    }
+
+    url_info = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{mensaje.media_id}"
+    )
+
+    try:
+        respuesta_info = requests.get(
+            url_info,
+            headers=headers,
+            timeout=20,
+        )
+        respuesta_info.raise_for_status()
+
+        url_archivo = respuesta_info.json().get("url")
+
+        if not url_archivo:
+            return HttpResponse(
+                "Meta no devolvió la URL del archivo.",
+                status=502,
+            )
+
+        respuesta_archivo = requests.get(
+            url_archivo,
+            headers=headers,
+            timeout=30,
+        )
+        respuesta_archivo.raise_for_status()
+
+    except requests.RequestException:
+        return HttpResponse(
+            "No se pudo recuperar el archivo desde WhatsApp.",
+            status=502,
+        )
+
+    content_type = (
+        mensaje.mime_type
+        or respuesta_archivo.headers.get("Content-Type")
+        or "application/octet-stream"
+    )
+
+    respuesta = HttpResponse(
+        respuesta_archivo.content,
+        content_type=content_type,
+    )
+
+    if mensaje.nombre_archivo:
+        nombre_seguro = (
+            mensaje.nombre_archivo
+            .replace('"', "")
+            .replace("\r", "")
+            .replace("\n", "")
+        )
+
+        respuesta["Content-Disposition"] = (
+            f'inline; filename="{nombre_seguro}"'
+        )
+
+    return respuesta

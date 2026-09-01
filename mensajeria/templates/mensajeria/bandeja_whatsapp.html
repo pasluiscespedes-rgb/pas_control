@@ -377,12 +377,65 @@
     }
 
     .wa-media-label {
-        margin-bottom: 6px;
-        color: var(--wa-cyan);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .5px;
+    margin-bottom: 7px;
+    color: var(--wa-cyan);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    }
+
+    .wa-media-image,
+    .wa-media-sticker {
+        display: block;
+        max-width: 100%;
+        max-height: 360px;
+        border-radius: 12px;
+        object-fit: contain;
+    }
+
+    .wa-media-sticker {
+        width: 180px;
+        max-height: 180px;
+        background: transparent;
+    }
+
+    .wa-media-video {
+        display: block;
+        width: min(100%, 520px);
+        max-height: 360px;
+        border-radius: 12px;
+    }
+
+    .wa-media-audio {
+        display: block;
+        width: min(100%, 420px);
+    }
+
+    .wa-media-document {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 13px;
+        border: 1px solid rgba(56, 216, 255, .20);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, .045);
+        color: var(--wa-text);
+        text-decoration: none;
+    }
+
+    .wa-media-document:hover {
+        color: white;
+        background: rgba(28, 167, 255, .12);
+    }
+
+    .wa-media-caption {
+        margin-top: 8px;
+        color: #f1f8fd;
+        font-size: 13px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
     }
 
     .wa-message-meta {
@@ -889,24 +942,123 @@
 
                             <div class="wa-bubble">
 
-                                {% if mensaje.tipo != 'text' %}
-                                    <div class="wa-media-label">
-                                        {{ mensaje.get_tipo_display }}
-                                    </div>
-                                {% endif %}
+                                {% if mensaje.tipo == 'image' and mensaje.media_id %}
 
-
-                                <div class="wa-message-text">
+                                    <img
+                                        src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                        alt="Imagen de WhatsApp"
+                                        class="wa-media-image"
+                                        loading="lazy"
+                                    >
 
                                     {% if mensaje.texto %}
-                                        {{ mensaje.texto }}
-                                    {% elif mensaje.nombre_archivo %}
-                                        {{ mensaje.nombre_archivo }}
-                                    {% else %}
-                                        Mensaje {{ mensaje.get_tipo_display|lower }}
+                                        <div class="wa-media-caption">
+                                            {{ mensaje.texto }}
+                                        </div>
                                     {% endif %}
 
-                                </div>
+
+                                {% elif mensaje.tipo == 'sticker' and mensaje.media_id %}
+
+                                    <img
+                                        src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                        alt="Sticker"
+                                        class="wa-media-sticker"
+                                        loading="lazy"
+                                    >
+
+
+                                {% elif mensaje.tipo == 'audio' and mensaje.media_id %}
+
+                                    <div class="wa-media-label">
+                                        Audio
+                                    </div>
+
+                                    <audio
+                                        controls
+                                        preload="none"
+                                        class="wa-media-audio"
+                                    >
+                                        <source
+                                            src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                            {% if mensaje.mime_type %}
+                                                type="{{ mensaje.mime_type }}"
+                                            {% endif %}
+                                        >
+                                        Tu navegador no puede reproducir este audio.
+                                    </audio>
+
+
+                                {% elif mensaje.tipo == 'video' and mensaje.media_id %}
+
+                                    <video
+                                        controls
+                                        preload="metadata"
+                                        class="wa-media-video"
+                                    >
+                                        <source
+                                            src="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                            {% if mensaje.mime_type %}
+                                                type="{{ mensaje.mime_type }}"
+                                            {% endif %}
+                                        >
+                                        Tu navegador no puede reproducir este video.
+                                    </video>
+
+                                    {% if mensaje.texto %}
+                                        <div class="wa-media-caption">
+                                            {{ mensaje.texto }}
+                                        </div>
+                                    {% endif %}
+
+
+                                {% elif mensaje.tipo == 'document' and mensaje.media_id %}
+
+                                    <a
+                                        href="{% url 'mensajeria:ver_media_whatsapp' mensaje.id %}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="wa-media-document"
+                                    >
+                                        <span>📄</span>
+
+                                        <span>
+                                            {% if mensaje.nombre_archivo %}
+                                                {{ mensaje.nombre_archivo }}
+                                            {% else %}
+                                                Abrir documento
+                                            {% endif %}
+                                        </span>
+                                    </a>
+
+                                    {% if mensaje.texto %}
+                                        <div class="wa-media-caption">
+                                            {{ mensaje.texto }}
+                                        </div>
+                                    {% endif %}
+
+
+                                {% else %}
+
+                                    {% if mensaje.tipo != 'text' %}
+                                        <div class="wa-media-label">
+                                            {{ mensaje.get_tipo_display }}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="wa-message-text">
+
+                                        {% if mensaje.texto %}
+                                            {{ mensaje.texto }}
+                                        {% elif mensaje.nombre_archivo %}
+                                            {{ mensaje.nombre_archivo }}
+                                        {% else %}
+                                            Mensaje {{ mensaje.get_tipo_display|lower }}
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
 
 
                                 <div class="wa-message-meta">

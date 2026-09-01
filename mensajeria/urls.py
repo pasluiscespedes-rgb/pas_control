@@ -26,4 +26,9 @@ urlpatterns = [
         views.enviar_mensaje_whatsapp,
         name="enviar_mensaje_whatsapp",
     ),
+    path(
+        "media/<int:mensaje_id>/",
+        views.ver_media_whatsapp,
+        name="ver_media_whatsapp",
+    ),
 ]
