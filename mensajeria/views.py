@@ -448,11 +448,13 @@ def bandeja_whatsapp(request, conversacion_id=None):
 @login_required
 def enviar_mensaje_whatsapp(request, conversacion_id):
     from datetime import timedelta
+
     from django.shortcuts import redirect
 
     from principal.whatsapp import (
         enviar_media_whatsapp,
         enviar_mensaje_texto_whatsapp,
+        enviar_nota_voz_whatsapp,
         subir_media_whatsapp,
     )
 
@@ -460,7 +462,9 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         return HttpResponse(status=405)
 
     conversacion = get_object_or_404(
-        ConversacionWhatsApp.objects.filter(activa=True),
+        ConversacionWhatsApp.objects.filter(
+            activa=True
+        ),
         pk=conversacion_id,
     )
 
@@ -471,7 +475,11 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
 
     archivo = request.FILES.get("archivo")
 
-    if not texto and not archivo:
+    nota_voz = request.FILES.get(
+        "nota_voz"
+    )
+
+    if not texto and not archivo and not nota_voz:
         return redirect(
             "mensajeria:conversacion_whatsapp",
             conversacion_id=conversacion.id,
@@ -490,8 +498,8 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
     ):
         return HttpResponse(
             "La ventana de 24 horas está cerrada. "
-            "Para contactar a este cliente debe usarse "
-            "una plantilla aprobada.",
+            "Para contactar a este cliente debe "
+            "usarse una plantilla aprobada.",
             status=400,
         )
 
@@ -506,21 +514,138 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
 
         return mensajes[0].get("id")
 
+    def guardar_texto_saliente(
+        texto_a_enviar,
+    ):
+        respuesta_texto = (
+            enviar_mensaje_texto_whatsapp(
+                conversacion.telefono,
+                texto_a_enviar,
+            )
+        )
+
+        meta_message_id = (
+            obtener_meta_message_id(
+                respuesta_texto
+            )
+        )
+
+        MensajeWhatsApp.objects.create(
+            conversacion=conversacion,
+            meta_message_id=meta_message_id,
+            direccion=(
+                MensajeWhatsApp
+                .DIRECCION_SALIENTE
+            ),
+            tipo=(
+                MensajeWhatsApp
+                .TIPO_TEXTO
+            ),
+            texto=texto_a_enviar,
+            fecha_mensaje=timezone.now(),
+            estado=(
+                MensajeWhatsApp
+                .ESTADO_PENDIENTE
+            ),
+            payload_original=respuesta_texto,
+        )
+
     try:
         # ==================================================
-        # ENVÍO DE ARCHIVO
+        # NOTA DE VOZ GRABADA EN WHATSFORTEX
         # ==================================================
-        if archivo:
-            datos_media = subir_media_whatsapp(
-                archivo
+        if nota_voz:
+            resultado_voz = (
+                enviar_nota_voz_whatsapp(
+                    destinatario=(
+                        conversacion.telefono
+                    ),
+                    archivo_grabacion=nota_voz,
+                )
             )
 
-            tipo_media = datos_media["tipo"]
-            media_id = datos_media["media_id"]
-            mime_type = datos_media["mime_type"]
-            nombre_archivo = datos_media[
-                "nombre_archivo"
-            ]
+            respuesta_voz = (
+                resultado_voz["respuesta"]
+            )
+
+            meta_message_id_voz = (
+                obtener_meta_message_id(
+                    respuesta_voz
+                )
+            )
+
+            MensajeWhatsApp.objects.create(
+                conversacion=conversacion,
+                meta_message_id=(
+                    meta_message_id_voz
+                ),
+                direccion=(
+                    MensajeWhatsApp
+                    .DIRECCION_SALIENTE
+                ),
+                tipo=(
+                    MensajeWhatsApp
+                    .TIPO_AUDIO
+                ),
+                texto="",
+                media_id=(
+                    resultado_voz["media_id"]
+                ),
+                nombre_archivo=(
+                    resultado_voz[
+                        "nombre_archivo"
+                    ]
+                ),
+                mime_type=(
+                    resultado_voz[
+                        "mime_type"
+                    ]
+                ),
+                fecha_mensaje=ahora,
+                estado=(
+                    MensajeWhatsApp
+                    .ESTADO_PENDIENTE
+                ),
+                payload_original=(
+                    respuesta_voz
+                ),
+            )
+
+            # Una nota de voz no lleva caption.
+            # Si había texto escrito, sale después
+            # como mensaje independiente.
+            if texto:
+                guardar_texto_saliente(
+                    texto
+                )
+
+        # ==================================================
+        # ARCHIVO ADJUNTO
+        # ==================================================
+        elif archivo:
+            datos_media = (
+                subir_media_whatsapp(
+                    archivo
+                )
+            )
+
+            tipo_media = (
+                datos_media["tipo"]
+            )
+
+            media_id = (
+                datos_media["media_id"]
+            )
+
+            mime_type = (
+                datos_media["mime_type"]
+            )
+
+            nombre_archivo = (
+                datos_media[
+                    "nombre_archivo"
+                ]
+            )
 
             caption = ""
 
@@ -531,12 +656,18 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
             }:
                 caption = texto
 
-            respuesta_media = enviar_media_whatsapp(
-                destinatario=conversacion.telefono,
-                media_id=media_id,
-                tipo=tipo_media,
-                caption=caption,
-                nombre_archivo=nombre_archivo,
+            respuesta_media = (
+                enviar_media_whatsapp(
+                    destinatario=(
+                        conversacion.telefono
+                    ),
+                    media_id=media_id,
+                    tipo=tipo_media,
+                    caption=caption,
+                    nombre_archivo=(
+                        nombre_archivo
+                    ),
+                )
             )
 
             meta_message_id_media = (
@@ -557,99 +688,35 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
                 tipo=tipo_media,
                 texto=caption,
                 media_id=media_id,
-                nombre_archivo=nombre_archivo,
+                nombre_archivo=(
+                    nombre_archivo
+                ),
                 mime_type=mime_type,
                 fecha_mensaje=ahora,
                 estado=(
                     MensajeWhatsApp
                     .ESTADO_PENDIENTE
                 ),
-                payload_original=respuesta_media,
+                payload_original=(
+                    respuesta_media
+                ),
             )
 
-            # WhatsApp no admite caption en audio.
-            # Si escribieron texto junto a un audio,
-            # lo enviamos como segundo mensaje.
+            # Audio adjunto tampoco admite caption.
             if (
                 tipo_media == "audio"
                 and texto
             ):
-                respuesta_texto = (
-                    enviar_mensaje_texto_whatsapp(
-                        conversacion.telefono,
-                        texto,
-                    )
-                )
-
-                meta_message_id_texto = (
-                    obtener_meta_message_id(
-                        respuesta_texto
-                    )
-                )
-
-                MensajeWhatsApp.objects.create(
-                    conversacion=conversacion,
-                    meta_message_id=(
-                        meta_message_id_texto
-                    ),
-                    direccion=(
-                        MensajeWhatsApp
-                        .DIRECCION_SALIENTE
-                    ),
-                    tipo=(
-                        MensajeWhatsApp
-                        .TIPO_TEXTO
-                    ),
-                    texto=texto,
-                    fecha_mensaje=timezone.now(),
-                    estado=(
-                        MensajeWhatsApp
-                        .ESTADO_PENDIENTE
-                    ),
-                    payload_original=(
-                        respuesta_texto
-                    ),
+                guardar_texto_saliente(
+                    texto
                 )
 
         # ==================================================
-        # ENVÍO DE TEXTO SIN ARCHIVO
+        # TEXTO SOLO
         # ==================================================
         else:
-            respuesta_texto = (
-                enviar_mensaje_texto_whatsapp(
-                    conversacion.telefono,
-                    texto,
-                )
-            )
-
-            meta_message_id_texto = (
-                obtener_meta_message_id(
-                    respuesta_texto
-                )
-            )
-
-            MensajeWhatsApp.objects.create(
-                conversacion=conversacion,
-                meta_message_id=(
-                    meta_message_id_texto
-                ),
-                direccion=(
-                    MensajeWhatsApp
-                    .DIRECCION_SALIENTE
-                ),
-                tipo=(
-                    MensajeWhatsApp
-                    .TIPO_TEXTO
-                ),
-                texto=texto,
-                fecha_mensaje=ahora,
-                estado=(
-                    MensajeWhatsApp
-                    .ESTADO_PENDIENTE
-                ),
-                payload_original=(
-                    respuesta_texto
-                ),
+            guardar_texto_saliente(
+                texto
             )
 
     except ValueError as error:
@@ -665,7 +732,8 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         )
 
         return HttpResponse(
-            "No se pudo enviar el mensaje por WhatsApp.",
+            "No se pudo enviar el mensaje "
+            "por WhatsApp.",
             status=502,
         )
 

@@ -1,6 +1,13 @@
 import requests
 from pathlib import Path
 from django.conf import settings
+import os
+import subprocess
+import tempfile
+
+import imageio_ffmpeg
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 RUTA_LOGO_FORTEX = (
     Path(settings.BASE_DIR)
@@ -573,6 +580,267 @@ def enviar_media_whatsapp(
     respuesta.raise_for_status()
 
     return respuesta.json()
+
+# ============================================================
+# NOTAS DE VOZ WHATSAPP
+# ============================================================
+
+WHATSAPP_NOTA_VOZ_MAX_BYTES = 16 * 1024 * 1024
+
+
+def convertir_nota_voz_a_ogg(archivo):
+    """
+    Convierte una grabación del navegador a OGG/Opus mono,
+    formato requerido por WhatsApp para notas de voz.
+    """
+
+    if archivo is None:
+        raise ValueError(
+            "No se recibió ninguna grabación de voz."
+        )
+
+    tamano = int(
+        getattr(
+            archivo,
+            "size",
+            0,
+        )
+        or 0
+    )
+
+    if tamano <= 0:
+        raise ValueError(
+            "La grabación de voz está vacía."
+        )
+
+    if tamano > WHATSAPP_NOTA_VOZ_MAX_BYTES:
+        raise ValueError(
+            "La nota de voz supera el límite de 16 MB."
+        )
+
+    nombre_original = str(
+        getattr(
+            archivo,
+            "name",
+            "nota_voz.webm",
+        )
+        or "nota_voz.webm"
+    )
+
+    extension_original = (
+        Path(nombre_original).suffix.lower()
+        or ".webm"
+    )
+
+    ruta_entrada = None
+    ruta_salida = None
+
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=extension_original,
+            delete=False,
+        ) as temporal_entrada:
+
+            ruta_entrada = temporal_entrada.name
+
+            if hasattr(archivo, "seek"):
+                archivo.seek(0)
+
+            for bloque in archivo.chunks():
+                temporal_entrada.write(bloque)
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".ogg",
+            delete=False,
+        ) as temporal_salida:
+
+            ruta_salida = temporal_salida.name
+
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+
+        comando = [
+            ffmpeg,
+            "-y",
+            "-i",
+            ruta_entrada,
+
+            # Solo audio
+            "-vn",
+
+            # Una sola pista/canal, apropiado para voz
+            "-ac",
+            "1",
+
+            # Frecuencia habitual para voz
+            "-ar",
+            "48000",
+
+            # Codec requerido
+            "-c:a",
+            "libopus",
+
+            # Perfil de voz
+            "-application",
+            "voip",
+
+            # Bitrate suficiente para voz clara
+            "-b:a",
+            "32k",
+
+            # Contenedor OGG
+            "-f",
+            "ogg",
+
+            ruta_salida,
+        ]
+
+        resultado = subprocess.run(
+            comando,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=120,
+            check=False,
+        )
+
+        if resultado.returncode != 0:
+            detalle = (
+                resultado.stderr
+                .decode(
+                    "utf-8",
+                    errors="replace",
+                )
+            )
+
+            print(
+                "FFMPEG NOTA VOZ ERROR:",
+                detalle,
+            )
+
+            raise RuntimeError(
+                "No se pudo convertir la nota de voz."
+            )
+
+        with open(
+            ruta_salida,
+            "rb",
+        ) as archivo_convertido:
+
+            contenido = archivo_convertido.read()
+
+        if not contenido:
+            raise RuntimeError(
+                "La conversión de la nota de voz "
+                "generó un archivo vacío."
+            )
+
+        if len(contenido) > WHATSAPP_NOTA_VOZ_MAX_BYTES:
+            raise ValueError(
+                "La nota de voz convertida supera "
+                "el límite de 16 MB."
+            )
+
+        nombre_salida = (
+            "nota_voz_whatsfortex.ogg"
+        )
+
+        return SimpleUploadedFile(
+            nombre_salida,
+            contenido,
+            content_type="audio/ogg",
+        )
+
+    finally:
+        for ruta in (
+            ruta_entrada,
+            ruta_salida,
+        ):
+            if (
+                ruta
+                and os.path.exists(ruta)
+            ):
+                try:
+                    os.remove(ruta)
+                except OSError:
+                    pass
+
+
+def enviar_nota_voz_whatsapp(
+    destinatario,
+    archivo_grabacion,
+):
+    """
+    Convierte, sube y envía una grabación como
+    nota de voz nativa de WhatsApp.
+    """
+
+    archivo_ogg = (
+        convertir_nota_voz_a_ogg(
+            archivo_grabacion
+        )
+    )
+
+    datos_media = subir_media_whatsapp(
+        archivo_ogg
+    )
+
+    media_id = datos_media.get(
+        "media_id"
+    )
+
+    if not media_id:
+        raise RuntimeError(
+            "Meta no devolvió el media_id "
+            "de la nota de voz."
+        )
+
+    url = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+    )
+
+    headers = {
+        "Authorization": (
+            f"Bearer "
+            f"{settings.WHATSAPP_ACCESS_TOKEN}"
+        ),
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": str(destinatario),
+        "type": "audio",
+        "audio": {
+            "id": str(media_id),
+            "voice": True,
+        },
+    }
+
+    respuesta = requests.post(
+        url,
+        headers=headers,
+        json=payload,
+        timeout=30,
+    )
+
+    if not respuesta.ok:
+        print(
+            "META NOTA VOZ ERROR:",
+            respuesta.text,
+        )
+
+    respuesta.raise_for_status()
+
+    return {
+        "respuesta": respuesta.json(),
+        "media_id": media_id,
+        "mime_type": "audio/ogg",
+        "nombre_archivo": (
+            "nota_voz_whatsfortex.ogg"
+        ),
+    }
 
 def enviar_recordatorio_vencimiento(
     destinatario,
