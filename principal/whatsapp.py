@@ -773,18 +773,60 @@ def enviar_nota_voz_whatsapp(
     nota de voz nativa de WhatsApp.
     """
 
-    archivo_ogg = (
-        convertir_nota_voz_a_ogg(
-            archivo_grabacion
+    archivo_ogg = convertir_nota_voz_a_ogg(
+        archivo_grabacion
+    )
+
+    # ==================================================
+    # SUBIDA ESPECÍFICA DE NOTA DE VOZ
+    # WhatsApp exige OGG + Opus.
+    # ==================================================
+    url_media = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/media"
+    )
+
+    headers_media = {
+        "Authorization": (
+            f"Bearer "
+            f"{settings.WHATSAPP_ACCESS_TOKEN}"
+        ),
+    }
+
+    data_media = {
+        "messaging_product": "whatsapp",
+    }
+
+    if hasattr(archivo_ogg, "seek"):
+        archivo_ogg.seek(0)
+
+    files_media = {
+        "file": (
+            "nota_voz_whatsfortex.ogg",
+            archivo_ogg,
+            "audio/ogg; codecs=opus",
         )
+    }
+
+    respuesta_media = requests.post(
+        url_media,
+        headers=headers_media,
+        data=data_media,
+        files=files_media,
+        timeout=120,
     )
 
-    datos_media = subir_media_whatsapp(
-        archivo_ogg
-    )
+    if not respuesta_media.ok:
+        print(
+            "META SUBIDA NOTA VOZ ERROR:",
+            respuesta_media.text,
+        )
 
-    media_id = datos_media.get(
-        "media_id"
+    respuesta_media.raise_for_status()
+
+    media_id = (
+        respuesta_media.json().get("id")
     )
 
     if not media_id:
@@ -793,13 +835,16 @@ def enviar_nota_voz_whatsapp(
             "de la nota de voz."
         )
 
-    url = (
+    # ==================================================
+    # ENVÍO COMO NOTA DE VOZ
+    # ==================================================
+    url_mensaje = (
         f"https://graph.facebook.com/"
         f"{settings.WHATSAPP_API_VERSION}/"
         f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
     )
 
-    headers = {
+    headers_mensaje = {
         "Authorization": (
             f"Bearer "
             f"{settings.WHATSAPP_ACCESS_TOKEN}"
@@ -819,8 +864,8 @@ def enviar_nota_voz_whatsapp(
     }
 
     respuesta = requests.post(
-        url,
-        headers=headers,
+        url_mensaje,
+        headers=headers_mensaje,
         json=payload,
         timeout=30,
     )
@@ -836,7 +881,7 @@ def enviar_nota_voz_whatsapp(
     return {
         "respuesta": respuesta.json(),
         "media_id": media_id,
-        "mime_type": "audio/ogg",
+        "mime_type": "audio/ogg; codecs=opus",
         "nombre_archivo": (
             "nota_voz_whatsfortex.ogg"
         ),
