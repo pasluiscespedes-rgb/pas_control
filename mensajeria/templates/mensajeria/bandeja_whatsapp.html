@@ -741,6 +741,100 @@
             padding: 18px 12px;
         }
     }
+
+    .wa-composer {
+    position: relative;
+    }
+
+    .wa-composer-form {
+        position: relative;
+    }
+
+    .wa-attach-menu {
+        position: absolute;
+        left: 14px;
+        bottom: 72px;
+        z-index: 30;
+        min-width: 220px;
+        padding: 8px;
+        border: 1px solid rgba(56, 216, 255, .18);
+        border-radius: 14px;
+        background: rgba(9, 24, 40, .98);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, .35);
+    }
+
+    .wa-attach-option {
+        width: 100%;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 10px;
+        text-align: left;
+        color: var(--wa-text);
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .wa-attach-option:hover {
+        background: rgba(28, 167, 255, .12);
+    }
+
+    .wa-file-preview {
+        margin-bottom: 8px;
+        padding: 9px 11px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid rgba(56, 216, 255, .16);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .04);
+    }
+
+    .wa-file-preview-info {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .wa-file-name {
+        max-width: 460px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--wa-text);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .wa-file-size {
+        margin-top: 2px;
+        color: var(--wa-muted);
+        font-size: 10px;
+    }
+
+    .wa-file-remove {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 102, 119, .25);
+        border-radius: 50%;
+        color: #ff8a98;
+        background: rgba(255, 102, 119, .07);
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    .wa-file-remove:hover {
+        background: rgba(255, 102, 119, .14);
+    }
+
+    .wa-send:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
 </style>
 {% endblock %}
 
@@ -1141,42 +1235,128 @@
 
                 <footer class="wa-composer">
 
-                        <form
-                            method="post"
-                            action="{% url 'mensajeria:enviar_mensaje_whatsapp' conversacion_activa.id %}"
-                            class="wa-composer-box"
+                    <form
+                        method="post"
+                        enctype="multipart/form-data"
+                        action="{% url 'mensajeria:enviar_mensaje_whatsapp' conversacion_activa.id %}"
+                        class="wa-composer-form"
+                        id="waComposerForm"
+                    >
+                        {% csrf_token %}
+
+                        <input
+                            type="file"
+                            name="archivo"
+                            id="waFileInput"
+                            hidden
                         >
-                            {% csrf_token %}
+
+                        <div
+                            class="wa-attach-menu"
+                            id="waAttachMenu"
+                            hidden
+                        >
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                data-accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                            >
+                                📄 Documento
+                            </button>
+
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                data-accept="image/jpeg,image/png,video/mp4,video/3gpp"
+                            >
+                                🖼 Fotos y videos
+                            </button>
+
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                data-accept="image/jpeg,image/png"
+                                data-capture="environment"
+                            >
+                                📷 Cámara
+                            </button>
+
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                data-accept="audio/aac,audio/mp4,audio/mpeg,audio/amr,audio/ogg"
+                            >
+                                🎙 Audio
+                            </button>
+                        </div>
+
+                        <div
+                            class="wa-file-preview"
+                            id="waFilePreview"
+                            hidden
+                        >
+                            <div class="wa-file-preview-info">
+                                <span id="waFileIcon">📎</span>
+
+                                <div>
+                                    <div
+                                        class="wa-file-name"
+                                        id="waFileName"
+                                    ></div>
+
+                                    <div
+                                        class="wa-file-size"
+                                        id="waFileSize"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="wa-file-remove"
+                                id="waFileRemove"
+                                title="Quitar archivo"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div class="wa-composer-box">
 
                             <button
                                 type="button"
                                 class="wa-composer-action"
-                                disabled
-                                title="Adjuntos próximamente"
+                                id="waAttachButton"
+                                title="Adjuntar"
                             >
                                 ＋
                             </button>
 
                             <textarea
                                 name="texto"
+                                id="waMessageText"
                                 placeholder="Escribir un mensaje..."
-                                required
+                                rows="1"
                             ></textarea>
 
                             <button
                                 type="submit"
                                 class="wa-send"
-                                title="Enviar mensaje"
+                                id="waSendButton"
+                                title="Enviar"
                             >
                                 ➤
                             </button>
-                        </form>
 
-                        <div class="wa-composer-note">
-                            Respondé directamente desde FORTEX.
                         </div>
 
-                    </footer>
+                        <div class="wa-composer-note">
+                            Podés enviar texto, fotos, videos, audios y documentos.
+                        </div>
+
+                    </form>
+
+                </footer>
 
 
             {% else %}
@@ -1381,5 +1561,205 @@
             });
         }
     });
+
+        const waAttachButton = document.getElementById("waAttachButton");
+        const waAttachMenu = document.getElementById("waAttachMenu");
+        const waFileInput = document.getElementById("waFileInput");
+        const waFilePreview = document.getElementById("waFilePreview");
+        const waFileName = document.getElementById("waFileName");
+        const waFileSize = document.getElementById("waFileSize");
+        const waFileIcon = document.getElementById("waFileIcon");
+        const waFileRemove = document.getElementById("waFileRemove");
+        const waComposerForm = document.getElementById("waComposerForm");
+        const waMessageText = document.getElementById("waMessageText");
+        const waSendButton = document.getElementById("waSendButton");
+
+        function waFormatearTamano(bytes) {
+            if (!bytes) {
+                return "0 KB";
+            }
+
+            const kb = bytes / 1024;
+
+            if (kb < 1024) {
+                return `${kb.toFixed(1)} KB`;
+            }
+
+            const mb = kb / 1024;
+            return `${mb.toFixed(1)} MB`;
+        }
+
+        function waIconoArchivo(file) {
+            const type = (file.type || "").toLowerCase();
+
+            if (type.startsWith("image/")) {
+                return "🖼";
+            }
+
+            if (type.startsWith("video/")) {
+                return "🎬";
+            }
+
+            if (type.startsWith("audio/")) {
+                return "🎙";
+            }
+
+            return "📄";
+        }
+
+        function waActualizarBotonEnviar() {
+            if (!waSendButton) {
+                return;
+            }
+
+            const hayTexto = Boolean(
+                waMessageText &&
+                waMessageText.value.trim()
+            );
+
+            const hayArchivo = Boolean(
+                waFileInput &&
+                waFileInput.files &&
+                waFileInput.files.length
+            );
+
+            waSendButton.disabled = !hayTexto && !hayArchivo;
+        }
+
+        function waLimpiarArchivo() {
+            if (!waFileInput) {
+                return;
+            }
+
+            waFileInput.value = "";
+
+            if (waFilePreview) {
+                waFilePreview.hidden = true;
+            }
+
+            if (waFileName) {
+                waFileName.textContent = "";
+            }
+
+            if (waFileSize) {
+                waFileSize.textContent = "";
+            }
+
+            waActualizarBotonEnviar();
+        }
+
+        if (waAttachButton && waAttachMenu) {
+            waAttachButton.addEventListener("click", function () {
+                waAttachMenu.hidden = !waAttachMenu.hidden;
+            });
+        }
+
+        document.querySelectorAll(".wa-attach-option").forEach(function (option) {
+            option.addEventListener("click", function () {
+                if (!waFileInput) {
+                    return;
+                }
+
+                const accept = option.dataset.accept || "";
+                const capture = option.dataset.capture || "";
+
+                waFileInput.setAttribute("accept", accept);
+
+                if (capture) {
+                    waFileInput.setAttribute("capture", capture);
+                } else {
+                    waFileInput.removeAttribute("capture");
+                }
+
+                if (waAttachMenu) {
+                    waAttachMenu.hidden = true;
+                }
+
+                waFileInput.click();
+            });
+        });
+
+        if (waFileInput) {
+            waFileInput.addEventListener("change", function () {
+                const file = this.files && this.files[0];
+
+                if (!file) {
+                    waLimpiarArchivo();
+                    return;
+                }
+
+                if (waFileName) {
+                    waFileName.textContent = file.name;
+                }
+
+                if (waFileSize) {
+                    waFileSize.textContent = waFormatearTamano(file.size);
+                }
+
+                if (waFileIcon) {
+                    waFileIcon.textContent = waIconoArchivo(file);
+                }
+
+                if (waFilePreview) {
+                    waFilePreview.hidden = false;
+                }
+
+                waActualizarBotonEnviar();
+            });
+        }
+
+        if (waFileRemove) {
+            waFileRemove.addEventListener("click", waLimpiarArchivo);
+        }
+
+        if (waMessageText) {
+            waMessageText.addEventListener("input", waActualizarBotonEnviar);
+        }
+
+        document.addEventListener("click", function (event) {
+            if (
+                !waAttachMenu ||
+                !waAttachButton ||
+                waAttachMenu.hidden
+            ) {
+                return;
+            }
+
+            if (
+                waAttachMenu.contains(event.target) ||
+                waAttachButton.contains(event.target)
+            ) {
+                return;
+            }
+
+            waAttachMenu.hidden = true;
+        });
+
+        if (waComposerForm) {
+            waComposerForm.addEventListener("submit", function (event) {
+                const hayTexto = Boolean(
+                    waMessageText &&
+                    waMessageText.value.trim()
+                );
+
+                const hayArchivo = Boolean(
+                    waFileInput &&
+                    waFileInput.files &&
+                    waFileInput.files.length
+                );
+
+                if (!hayTexto && !hayArchivo) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (waSendButton) {
+                    waSendButton.disabled = true;
+                }
+            });
+        }
+
+        waActualizarBotonEnviar();
+        
 </script>
 {% endblock %}
