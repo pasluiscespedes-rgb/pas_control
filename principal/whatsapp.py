@@ -659,40 +659,58 @@ def convertir_nota_voz_a_ogg(archivo):
         ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
 
         comando = [
-            ffmpeg,
-            "-y",
-            "-i",
-            ruta_entrada,
+    ffmpeg,
+    "-y",
+    "-i",
+    ruta_entrada,
 
-            # Solo audio
-            "-vn",
+    # Solo audio
+    "-vn",
 
-            # Una sola pista/canal, apropiado para voz
-            "-ac",
-            "1",
+    # No heredar metadata del archivo grabado
+    "-map_metadata",
+    "-1",
 
-            # Frecuencia habitual para voz
-            "-ar",
-            "48000",
+    # Una sola pista / canal
+    "-ac",
+    "1",
 
-            # Codec requerido
-            "-c:a",
-            "libopus",
+    # WhatsApp trabaja a 48 kHz
+    "-ar",
+    "48000",
 
-            # Perfil de voz
-            "-application",
-            "voip",
+    # Opus dentro de OGG
+    "-c:a",
+    "libopus",
 
-            # Bitrate suficiente para voz clara
-            "-b:a",
-            "32k",
+    # Perfil de voz
+    "-application",
+    "voip",
 
-            # Contenedor OGG
-            "-f",
-            "ogg",
+    # Bitrate cercano al usado por WhatsApp real
+    "-b:a",
+    "16k",
 
-            ruta_salida,
-        ]
+    # Evitar tags generados por FFmpeg
+    "-fflags",
+    "+bitexact",
+    "-flags:a",
+    "+bitexact",
+
+    # Eliminar idioma heredado
+    "-metadata:s:a:0",
+    "language=",
+
+    # Evitar timestamp inicial negativo
+    "-avoid_negative_ts",
+    "make_zero",
+
+    # Contenedor OGG
+    "-f",
+    "ogg",
+
+    ruta_salida,
+]
 
         resultado = subprocess.run(
             comando,
