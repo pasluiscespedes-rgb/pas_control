@@ -538,6 +538,16 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         or ""
     ).strip()
 
+    ubicacion_nombre = (
+    request.POST.get("ubicacion_nombre")
+    or ""
+    ).strip()
+
+    ubicacion_direccion = (
+    request.POST.get("ubicacion_direccion")
+    or ""
+    ).strip()
+
     hay_ubicacion = bool(
         latitud and longitud
     )
@@ -630,6 +640,8 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
                     ),
                     latitud=latitud,
                     longitud=longitud,
+                    nombre=ubicacion_nombre,
+                    direccion=ubicacion_direccion,
                 )
             )
 
@@ -658,8 +670,8 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
                 ),
                 latitud=latitud,
                 longitud=longitud,
-                ubicacion_nombre="",
-                ubicacion_direccion="",
+                ubicacion_nombre=ubicacion_nombre,
+                ubicacion_direccion=ubicacion_direccion,
                 fecha_mensaje=ahora,
                 estado=(
                     MensajeWhatsApp

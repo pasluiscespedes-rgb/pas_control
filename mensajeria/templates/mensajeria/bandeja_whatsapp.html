@@ -1555,6 +1555,18 @@
                             id="waLongitude"
                         >
 
+                        <input
+                            type="hidden"
+                            name="ubicacion_nombre"
+                            id="waLocationName"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="ubicacion_direccion"
+                            id="waLocationAddress"
+                        >
+
                         <!-- MENÚ DE ADJUNTOS -->
                         <div
                             class="wa-attach-menu"
@@ -1599,7 +1611,15 @@
                                 class="wa-attach-option"
                                 id="waLocationButton"
                             >
-                                📍 Ubicación
+                                📍 Mi ubicación actual
+                            </button>
+
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                id="waOfficeLocationButton"
+                            >
+                                🏢 Ubicación de la oficina
                             </button>
                         </div>
 
@@ -1964,6 +1984,9 @@
         const waLocationButton = document.getElementById("waLocationButton");
         const waLatitude = document.getElementById("waLatitude");
         const waLongitude = document.getElementById("waLongitude");
+        const waLocationName = document.getElementById("waLocationName");
+        const waLocationAddress = document.getElementById("waLocationAddress");
+        const waOfficeLocationButton = document.getElementById("waOfficeLocationButton");
 
         const waMicButton = document.getElementById("waMicButton");
         const waVoiceInput = document.getElementById("waVoiceInput");
@@ -2104,7 +2127,7 @@
 
         document
             .querySelectorAll(
-              ".wa-attach-option:not(#waLocationButton)"
+              ".wa-attach-option:not(#waLocationButton):not(#waOfficeLocationButton)"
 )
             .forEach(function (option) {
 
@@ -2154,6 +2177,36 @@
                 );
             });
 
+       if (
+            waOfficeLocationButton &&
+            waLatitude &&
+            waLongitude &&
+            waLocationName &&
+            waLocationAddress &&
+            waComposerForm
+        ) {
+            waOfficeLocationButton.addEventListener(
+                "click",
+                function () {
+                    if (waAttachMenu) {
+                        waAttachMenu.hidden = true;
+                    }
+
+                    waLatitude.value = "-26.833607";
+                    waLongitude.value = "-65.226112";
+
+                    waLocationName.value =
+                        "FORTEX Gestión Integral";
+
+                    waLocationAddress.value =
+                        "Lamadrid 1765, B° Ciudadela, " +
+                        "San Miguel de Tucumán, Tucumán";
+
+                    waComposerForm.requestSubmit();
+                }
+            );
+        }
+
         if (
             waLocationButton &&
             waLatitude &&
@@ -2176,6 +2229,13 @@
 
                     waLatitude.value = "";
                     waLongitude.value = "";
+                    if (waLocationName) {
+                        waLocationName.value = "";
+                    }
+
+                    if (waLocationAddress) {
+                        waLocationAddress.value = "";
+                    }
 
                     waLocationButton.disabled = true;
                     waLocationButton.textContent =
@@ -2193,7 +2253,7 @@
 
                             waLocationButton.disabled = false;
                             waLocationButton.textContent =
-                                "📍 Ubicación";
+                                "📍 Mi ubicación actual";
 
                             alert(
                                 "El dispositivo no pudo determinar " +
@@ -2231,7 +2291,7 @@
 
                             waLocationButton.disabled = false;
                             waLocationButton.textContent =
-                                "📍 Ubicación";
+                                "📍 Mi ubicación actual";
 
                             alert(
                                 "Error de ubicación " +
