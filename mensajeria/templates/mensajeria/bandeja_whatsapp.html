@@ -390,6 +390,92 @@
     letter-spacing: .5px;
     }
 
+    .wa-location-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    min-width: 260px;
+    max-width: 380px;
+    padding: 14px;
+    border: 1px solid rgba(48, 190, 255, 0.28);
+    border-radius: 16px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(12, 35, 62, 0.96),
+            rgba(7, 21, 39, 0.96)
+        );
+    box-shadow:
+        inset 0 0 18px rgba(0, 153, 255, 0.06),
+        0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+    .wa-location-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        font-size: 22px;
+        background: rgba(0, 180, 255, 0.12);
+        border: 1px solid rgba(0, 196, 255, 0.35);
+    }
+
+    .wa-location-info {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .wa-location-name {
+        color: #f1f8fd;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }
+
+    .wa-location-address {
+        color: rgba(225, 240, 250, 0.72);
+        font-size: 12px;
+        line-height: 1.4;
+        margin-bottom: 7px;
+    }
+
+    .wa-location-coordinates {
+        color: rgba(181, 211, 231, 0.68);
+        font-size: 11px;
+        line-height: 1.35;
+        margin-bottom: 10px;
+        overflow-wrap: anywhere;
+    }
+
+    .wa-location-open {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 200, 255, 0.40);
+        background: rgba(0, 174, 255, 0.10);
+        color: var(--wa-cyan);
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition:
+            background .18s ease,
+            border-color .18s ease,
+            transform .18s ease;
+    }
+
+    .wa-location-open:hover {
+        color: #ffffff;
+        background: rgba(0, 174, 255, 0.20);
+        border-color: rgba(0, 215, 255, 0.70);
+        transform: translateY(-1px);
+    }
+
     .wa-media-image,
     .wa-media-sticker {
         display: block;
@@ -515,7 +601,7 @@
 
     .wa-composer-box {
         display: grid;
-        grid-template-columns: 40px minmax(0, 1fr) 43px;
+        grid-template-columns: 40px minmax(0, 1fr) 43px 43px;
         align-items: center;
         gap: 8px;
     }
@@ -1306,7 +1392,48 @@
                                             {{ mensaje.texto }}
                                         </div>
                                     {% endif %}
+                                {% elif mensaje.tipo == "location" and mensaje.latitud != None and mensaje.longitud != None %}
 
+                                    <div class="wa-location-card">
+
+                                        <div class="wa-location-icon">
+                                            📍
+                                        </div>
+
+                                        <div class="wa-location-info">
+
+                                            {% if mensaje.ubicacion_nombre %}
+                                                <div class="wa-location-name">
+                                                    {{ mensaje.ubicacion_nombre }}
+                                                </div>
+                                            {% else %}
+                                                <div class="wa-location-name">
+                                                    Ubicación compartida
+                                                </div>
+                                            {% endif %}
+
+                                            {% if mensaje.ubicacion_direccion %}
+                                                <div class="wa-location-address">
+                                                    {{ mensaje.ubicacion_direccion }}
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="wa-location-coordinates">
+                                                {{ mensaje.latitud }}, {{ mensaje.longitud }}
+                                            </div>
+
+                                            <a
+                                                class="wa-location-open"
+                                                href="https://www.google.com/maps/search/?api=1&query={{ mensaje.latitud }},{{ mensaje.longitud }}"
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                📍 Abrir en mapa
+                                            </a>
+
+                                        </div>
+
+                                    </div>
 
                                 {% else %}
 
@@ -1415,6 +1542,19 @@
                             hidden
                         >
 
+                        <!-- Ubicación actual -->
+                        <input
+                            type="hidden"
+                            name="latitud"
+                            id="waLatitude"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="longitud"
+                            id="waLongitude"
+                        >
+
                         <!-- MENÚ DE ADJUNTOS -->
                         <div
                             class="wa-attach-menu"
@@ -1452,6 +1592,14 @@
                                 data-accept="audio/aac,audio/mp4,audio/mpeg,audio/amr,audio/ogg"
                             >
                                 🎵 Archivo de audio
+                            </button>
+
+                            <button
+                                type="button"
+                                class="wa-attach-option"
+                                id="waLocationButton"
+                            >
+                                📍 Ubicación
                             </button>
                         </div>
 
@@ -1813,6 +1961,9 @@
         const waComposerForm = document.getElementById("waComposerForm");
         const waMessageText = document.getElementById("waMessageText");
         const waSendButton = document.getElementById("waSendButton");
+        const waLocationButton = document.getElementById("waLocationButton");
+        const waLatitude = document.getElementById("waLatitude");
+        const waLongitude = document.getElementById("waLongitude");
 
         const waMicButton = document.getElementById("waMicButton");
         const waVoiceInput = document.getElementById("waVoiceInput");
@@ -1952,7 +2103,9 @@
 
 
         document
-            .querySelectorAll(".wa-attach-option")
+            .querySelectorAll(
+              ".wa-attach-option:not(#waLocationButton)"
+)
             .forEach(function (option) {
 
                 option.addEventListener(
@@ -2000,6 +2153,103 @@
                     }
                 );
             });
+
+        if (
+            waLocationButton &&
+            waLatitude &&
+            waLongitude &&
+            waComposerForm
+        ) {
+            waLocationButton.addEventListener(
+                "click",
+                function () {
+                    if (!navigator.geolocation) {
+                        alert(
+                            "Este dispositivo no permite obtener la ubicación."
+                        );
+                        return;
+                    }
+
+                    if (waAttachMenu) {
+                        waAttachMenu.hidden = true;
+                    }
+
+                    waLatitude.value = "";
+                    waLongitude.value = "";
+
+                    waLocationButton.disabled = true;
+                    waLocationButton.textContent =
+                        "📍 Obteniendo ubicación...";
+
+                    let ubicacionTerminada = false;
+
+                    const temporizadorUbicacion = setTimeout(
+                        function () {
+                            if (ubicacionTerminada) {
+                                return;
+                            }
+
+                            ubicacionTerminada = true;
+
+                            waLocationButton.disabled = false;
+                            waLocationButton.textContent =
+                                "📍 Ubicación";
+
+                            alert(
+                                "El dispositivo no pudo determinar " +
+                                "la ubicación. Intentá nuevamente."
+                            );
+                        },
+                        12000
+                    );
+
+                    navigator.geolocation.getCurrentPosition(
+                        function (position) {
+                            if (ubicacionTerminada) {
+                                return;
+                            }
+
+                            ubicacionTerminada = true;
+                            clearTimeout(temporizadorUbicacion);
+
+                            waLatitude.value =
+                                position.coords.latitude;
+
+                            waLongitude.value =
+                                position.coords.longitude;
+
+                            waComposerForm.requestSubmit();
+                        },
+
+                        function (error) {
+                            if (ubicacionTerminada) {
+                                return;
+                            }
+
+                            ubicacionTerminada = true;
+                            clearTimeout(temporizadorUbicacion);
+
+                            waLocationButton.disabled = false;
+                            waLocationButton.textContent =
+                                "📍 Ubicación";
+
+                            alert(
+                                "Error de ubicación " +
+                                error.code +
+                                ": " +
+                                error.message
+                            );
+                        },
+
+                        {
+                            enableHighAccuracy: false,
+                            timeout: 10000,
+                            maximumAge: 60000,
+                        }
+                    );
+                }
+            );
+        }
 
 
         if (waFileInput) {
@@ -2588,10 +2838,18 @@
                     const hayVoz =
                         waHayVoz();
 
+                    const hayUbicacion = Boolean(
+                        waLatitude &&
+                        waLongitude &&
+                        waLatitude.value &&
+                        waLongitude.value
+                    );
+
                     if (
                         !hayTexto &&
                         !hayArchivo &&
-                        !hayVoz
+                        !hayVoz &&
+                        !hayUbicacion
                     ) {
                         event.preventDefault();
                         return;

@@ -110,11 +110,28 @@ def _extraer_datos_mensaje(mensaje):
     nombre_archivo = ""
     mime_type = ""
 
+    # Datos específicos de ubicación.
+    # Se inicializan siempre para que los demás
+    # tipos de mensaje continúen funcionando.
+    latitud = None
+    longitud = None
+    ubicacion_nombre = ""
+    ubicacion_direccion = ""
+
     if tipo_original == "text":
-        texto = mensaje.get("text", {}).get("body", "")
+        texto = mensaje.get(
+            "text",
+            {},
+        ).get(
+            "body",
+            "",
+        )
 
     elif tipo_original in {"image", "video"}:
-        datos = mensaje.get(tipo_original, {})
+        datos = mensaje.get(
+            tipo_original,
+            {},
+        )
         texto = datos.get("caption", "")
         media_id = datos.get("id", "")
         mime_type = datos.get("mime_type", "")
@@ -127,20 +144,44 @@ def _extraer_datos_mensaje(mensaje):
         mime_type = datos.get("mime_type", "")
 
     elif tipo_original in {"audio", "sticker"}:
-        datos = mensaje.get(tipo_original, {})
+        datos = mensaje.get(
+            tipo_original,
+            {},
+        )
         media_id = datos.get("id", "")
         mime_type = datos.get("mime_type", "")
 
     elif tipo_original == "reaction":
-        texto = mensaje.get("reaction", {}).get("emoji", "")
+        texto = mensaje.get(
+            "reaction",
+            {},
+        ).get(
+            "emoji",
+            "",
+        )
 
     elif tipo_original == "location":
         datos = mensaje.get("location", {})
+
         latitud = datos.get("latitude")
         longitud = datos.get("longitude")
+        ubicacion_nombre = datos.get(
+            "name",
+            "",
+        )
+        ubicacion_direccion = datos.get(
+            "address",
+            "",
+        )
 
-        if latitud is not None and longitud is not None:
-            texto = f"Ubicación: {latitud}, {longitud}"
+        if (
+            latitud is not None
+            and longitud is not None
+        ):
+            texto = (
+                f"Ubicación: "
+                f"{latitud}, {longitud}"
+            )
         else:
             texto = "Ubicación compartida"
 
@@ -148,7 +189,10 @@ def _extraer_datos_mensaje(mensaje):
         texto = "Contacto compartido"
 
     else:
-        texto = f"Mensaje recibido de tipo: {tipo_original}"
+        texto = (
+            f"Mensaje recibido de tipo: "
+            f"{tipo_original}"
+        )
 
     return {
         "tipo": tipo,
@@ -156,8 +200,11 @@ def _extraer_datos_mensaje(mensaje):
         "media_id": media_id,
         "nombre_archivo": nombre_archivo,
         "mime_type": mime_type,
+        "latitud": latitud,
+        "longitud": longitud,
+        "ubicacion_nombre": ubicacion_nombre,
+        "ubicacion_direccion": ubicacion_direccion,
     }
-
 
 def _procesar_mensaje_entrante(mensaje, nombre_whatsapp=""):
     telefono = _solo_digitos(mensaje.get("from", ""))
@@ -204,10 +251,11 @@ def _procesar_mensaje_entrante(mensaje, nombre_whatsapp=""):
             "media_id": datos["media_id"],
             "nombre_archivo": datos["nombre_archivo"],
             "mime_type": datos["mime_type"],
+            "latitud": datos["latitud"],
+            "longitud": datos["longitud"],
+            "ubicacion_nombre": datos["ubicacion_nombre"],
+            "ubicacion_direccion": datos["ubicacion_direccion"],
             "fecha_mensaje": fecha_mensaje,
-            "estado": MensajeWhatsApp.ESTADO_RECIBIDO,
-            "leido_en_fortex": False,
-            "payload_original": mensaje,
         },
     )
 
@@ -455,6 +503,7 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         enviar_media_whatsapp,
         enviar_mensaje_texto_whatsapp,
         enviar_nota_voz_whatsapp,
+        enviar_enviar_nota_voz_whatsapp,
         subir_media_whatsapp,
     )
 
@@ -479,7 +528,26 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
         "nota_voz"
     )
 
-    if not texto and not archivo and not nota_voz:
+    latitud = (
+    request.POST.get("latitud")
+    or ""
+    ).strip()
+
+    longitud = (
+        request.POST.get("longitud")
+        or ""
+    ).strip()
+
+    hay_ubicacion = bool(
+        latitud and longitud
+    )
+
+    if (
+    not texto
+    and not archivo
+    and not nota_voz
+    and not hay_ubicacion
+    ):
         return redirect(
             "mensajeria:conversacion_whatsapp",
             conversacion_id=conversacion.id,
@@ -552,9 +620,60 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
 
     try:
         # ==================================================
+        # UBICACION ENVIADA DESDE WHATSFORTEX
+        # ==================================================
+        if hay_ubicacion:
+            respuesta_ubicacion = (
+                enviar_ubicacion_whatsapp(
+                    destinatario=(
+                        conversacion.telefono
+                    ),
+                    latitud=latitud,
+                    longitud=longitud,
+                )
+            )
+
+            meta_message_id_ubicacion = (
+                obtener_meta_message_id(
+                    respuesta_ubicacion
+                )
+            )
+
+            MensajeWhatsApp.objects.create(
+                conversacion=conversacion,
+                meta_message_id=(
+                    meta_message_id_ubicacion
+                ),
+                direccion=(
+                    MensajeWhatsApp
+                    .DIRECCION_SALIENTE
+                ),
+                tipo=(
+                    MensajeWhatsApp
+                    .TIPO_UBICACION
+                ),
+                texto=(
+                    f"Ubicación: "
+                    f"{latitud}, {longitud}"
+                ),
+                latitud=latitud,
+                longitud=longitud,
+                ubicacion_nombre="",
+                ubicacion_direccion="",
+                fecha_mensaje=ahora,
+                estado=(
+                    MensajeWhatsApp
+                    .ESTADO_PENDIENTE
+                ),
+                payload_original=(
+                    respuesta_ubicacion
+                ),
+            )
+
+        # ==================================================
         # NOTA DE VOZ GRABADA EN WHATSFORTEX
         # ==================================================
-        if nota_voz:
+        elif nota_voz:
             resultado_voz = (
                 enviar_nota_voz_whatsapp(
                     destinatario=(

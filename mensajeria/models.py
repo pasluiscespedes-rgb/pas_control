@@ -159,6 +159,30 @@ class MensajeWhatsApp(models.Model):
         blank=True,
     )
 
+    latitud = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+    )
+
+    longitud = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+    )
+
+    ubicacion_nombre = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    ubicacion_direccion = models.CharField(
+        max_length=500,
+        blank=True,
+    )
+
     fecha_mensaje = models.DateTimeField(
         db_index=True,
     )

@@ -196,6 +196,83 @@ def enviar_mensaje_texto_whatsapp(destinatario, texto):
 
     return respuesta.json()
 
+def enviar_ubicacion_whatsapp(
+    destinatario,
+    latitud,
+    longitud,
+    nombre="",
+    direccion="",
+):
+    try:
+        latitud = float(latitud)
+        longitud = float(longitud)
+    except (TypeError, ValueError):
+        raise ValueError(
+            "La latitud y la longitud deben ser valores numéricos."
+        )
+
+    if not -90 <= latitud <= 90:
+        raise ValueError(
+            "La latitud debe estar entre -90 y 90."
+        )
+
+    if not -180 <= longitud <= 180:
+        raise ValueError(
+            "La longitud debe estar entre -180 y 180."
+        )
+
+    nombre = (nombre or "").strip()
+    direccion = (direccion or "").strip()
+
+    url = (
+        f"https://graph.facebook.com/"
+        f"{settings.WHATSAPP_API_VERSION}/"
+        f"{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+    )
+
+    headers = {
+        "Authorization": (
+            f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}"
+        ),
+        "Content-Type": "application/json",
+    }
+
+    ubicacion = {
+        "latitude": latitud,
+        "longitude": longitud,
+    }
+
+    if nombre:
+        ubicacion["name"] = nombre
+
+    if direccion:
+        ubicacion["address"] = direccion
+
+    datos = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": str(destinatario),
+        "type": "location",
+        "location": ubicacion,
+    }
+
+    respuesta = requests.post(
+        url,
+        headers=headers,
+        json=datos,
+        timeout=20,
+    )
+
+    if not respuesta.ok:
+        print(
+            "META UBICACION ERROR:",
+            respuesta.text,
+        )
+
+    respuesta.raise_for_status()
+
+    return respuesta.json()
+
 # ============================================================
 # MULTIMEDIA WHATSAPP
 # ============================================================
