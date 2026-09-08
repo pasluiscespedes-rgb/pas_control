@@ -130,6 +130,7 @@
     <a
     id="wa-alerta-flotante"
     href="{% url 'mensajeria:bandeja_whatsapp' %}"
+    onclick="sessionStorage.setItem('fortex_wa_volver_a', window.location.href);"
     title="Mensajes pendientes de WhatsApp"
     style="
         display:none;

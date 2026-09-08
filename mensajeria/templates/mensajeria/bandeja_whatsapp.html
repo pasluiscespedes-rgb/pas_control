@@ -1102,6 +1102,19 @@
                         </div>
                     </div>
 
+                    <a
+                        href="{% url 'inicio' %}"
+                        class="wa-client-link"
+                        onclick="
+                            event.preventDefault();
+                            const destino = sessionStorage.getItem('fortex_wa_volver_a');
+                            sessionStorage.removeItem('fortex_wa_volver_a');
+                            window.location.href = destino || this.href;
+                        "
+                    >
+                        ← VOLVER
+                    </a>
+
                     {% if total_no_leidos %}
                         <div class="wa-total-badge">
                             {{ total_no_leidos }}
