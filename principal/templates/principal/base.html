@@ -127,6 +127,104 @@
         setInterval(actualizarFechaHora, 1000);
     </script>
 
+    <a
+    id="wa-alerta-flotante"
+    href="{% url 'mensajeria:bandeja_whatsapp' %}"
+    title="Mensajes pendientes de WhatsApp"
+    style="
+        display:none;
+        position:fixed;
+        right:22px;
+        bottom:22px;
+        width:64px;
+        height:64px;
+        border-radius:50%;
+        background:#0b8fd8;
+        color:white;
+        text-decoration:none;
+        align-items:center;
+        justify-content:center;
+        font-size:30px;
+        box-shadow:0 0 22px rgba(0,170,255,.65);
+        z-index:9999;
+    "
+>
+    💬
+
+    <span
+        id="wa-contador-no-leidos"
+        style="
+            position:absolute;
+            top:-4px;
+            right:-4px;
+            min-width:24px;
+            height:24px;
+            padding:0 6px;
+            border-radius:12px;
+            background:#ff2d2d;
+            color:white;
+            font-size:14px;
+            font-weight:700;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:2px solid #07111f;
+        "
+    >
+        0
+    </span>
+</a>
+
+<script>
+    async function actualizarAlertaWhatsApp() {
+        const burbuja = document.getElementById("wa-alerta-flotante");
+        const contador = document.getElementById("wa-contador-no-leidos");
+
+        if (!burbuja || !contador) {
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(
+                "{% url 'mensajeria:estado_no_leidos_whatsapp' %}",
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    cache: "no-store"
+                }
+            );
+
+            if (!respuesta.ok) {
+                return;
+            }
+
+            const datos = await respuesta.json();
+            const total = Number(datos.total_no_leidos || 0);
+
+            if (total > 0) {
+                contador.textContent = total > 99 ? "99+" : total;
+                burbuja.style.display = "flex";
+            } else {
+                contador.textContent = "0";
+                burbuja.style.display = "none";
+            }
+
+        } catch (error) {
+            console.error(
+                "No se pudo consultar WhatsApp:",
+                error
+            );
+        }
+    }
+
+    actualizarAlertaWhatsApp();
+
+    setInterval(
+        actualizarAlertaWhatsApp,
+        10000
+    );
+</script>
+
     {% block extra_js %}{% endblock %}
 
 <script>

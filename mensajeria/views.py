@@ -439,6 +439,43 @@ def webhook_whatsapp(request):
     return JsonResponse({"ok": True})
 
 @login_required
+@require_http_methods(["GET"])
+def estado_no_leidos_whatsapp(request):
+    pendientes = list(
+        ConversacionWhatsApp.objects
+        .filter(
+            activa=True,
+            no_leidos__gt=0,
+        )
+        .order_by(
+            "-ultimo_mensaje_en",
+            "-actualizada_en",
+        )
+        .values(
+            "id",
+            "no_leidos",
+        )
+    )
+
+    total_no_leidos = sum(
+        item["no_leidos"]
+        for item in pendientes
+    )
+
+    primera_conversacion_id = (
+        pendientes[0]["id"]
+        if pendientes
+        else None
+    )
+
+    return JsonResponse(
+        {
+            "total_no_leidos": total_no_leidos,
+            "conversacion_id": primera_conversacion_id,
+        }
+    )
+
+@login_required
 def bandeja_whatsapp(request, conversacion_id=None):
     conversaciones = (
         ConversacionWhatsApp.objects
