@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import json
 import requests
+from pywebpush import webpush, WebPushException
 from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
@@ -12,7 +13,7 @@ from django.utils import timezone
 
 from clientes.models import Cliente
 
-from .models import ConversacionWhatsApp, MensajeWhatsApp
+from .models import ConversacionWhatsApp, MensajeWhatsApp, SuscripcionPush
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 
@@ -206,6 +207,63 @@ def _extraer_datos_mensaje(mensaje):
         "ubicacion_direccion": ubicacion_direccion,
     }
 
+def _enviar_push_whatsapp(titulo, cuerpo):
+    suscripciones = SuscripcionPush.objects.filter(
+        activa=True,
+    )
+
+    datos_push = json.dumps({
+        "title": titulo,
+        "body": cuerpo,
+        "url": "/whatsapp/",
+    })
+
+    for suscripcion in suscripciones:
+        subscription_info = {
+            "endpoint": suscripcion.endpoint,
+            "keys": {
+                "p256dh": suscripcion.p256dh,
+                "auth": suscripcion.auth,
+            },
+        }
+
+        kwargs = {
+            "subscription_info": subscription_info,
+            "data": datos_push,
+            "vapid_private_key": "private_key.pem",
+            "vapid_claims": {
+                "sub": "mailto:fortex@example.com",
+            },
+        }
+
+        if "notify.windows.com" in suscripcion.endpoint:
+            kwargs["headers"] = {
+                "X-WNS-Type": "wns/raw",
+                "Content-Type": "application/octet-stream",
+            }
+
+        try:
+            webpush(**kwargs)
+
+        except WebPushException as error:
+            respuesta = getattr(error, "response", None)
+            estado = getattr(respuesta, "status_code", None)
+
+            if estado in (404, 410):
+                suscripcion.activa = False
+                suscripcion.save(
+                    update_fields=[
+                        "activa",
+                        "actualizada_en",
+                    ]
+                )
+
+            print(
+                "Error enviando Push:",
+                estado,
+                error,
+            )
+
 def _procesar_mensaje_entrante(mensaje, nombre_whatsapp=""):
     telefono = _solo_digitos(mensaje.get("from", ""))
 
@@ -282,6 +340,35 @@ def _procesar_mensaje_entrante(mensaje, nombre_whatsapp=""):
     conversacion.save(
         update_fields=list(dict.fromkeys(cambios_conversacion))
     )
+    nombre_remitente = (
+        str(cliente)
+        if cliente is not None
+        else nombre_whatsapp or telefono
+    )
+
+    texto_push = datos["texto"]
+
+    if not texto_push:
+        textos_por_tipo = {
+            "image": "📷 Imagen recibida",
+            "audio": "🎵 Audio recibido",
+            "video": "🎬 Video recibido",
+            "document": "📄 Documento recibido",
+            "sticker": "💬 Sticker recibido",
+            "location": "📍 Ubicación recibida",
+            "contacts": "👤 Contacto recibido",
+            "reaction": "❤️ Reacción recibida",
+        }
+
+        texto_push = textos_por_tipo.get(
+            datos["tipo"],
+            "Nuevo mensaje de WhatsApp",
+        )
+
+    _enviar_push_whatsapp(
+        f"WhatsApp de {nombre_remitente}",
+        texto_push[:180],
+    )   
 
 
 def _procesar_estado(estado):
@@ -1028,3 +1115,45 @@ def ver_media_whatsapp(request, mensaje_id):
     )
 
     return respuesta
+
+
+@login_required
+@require_http_methods(["POST"])
+def suscribir_push(request):
+    try:
+        datos = json.loads(request.body.decode("utf-8"))
+
+        endpoint = datos.get("endpoint")
+        claves = datos.get("keys", {})
+        p256dh = claves.get("p256dh")
+        auth = claves.get("auth")
+
+        if not endpoint or not p256dh or not auth:
+            return JsonResponse(
+                {"ok": False, "error": "Suscripción incompleta"},
+                status=400,
+            )
+
+        SuscripcionPush.objects.update_or_create(
+            endpoint=endpoint,
+            defaults={
+                "usuario": request.user,
+                "p256dh": p256dh,
+                "auth": auth,
+                "activa": True,
+            },
+        )
+
+        return JsonResponse({"ok": True})
+
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse(
+            {"ok": False, "error": "JSON inválido"},
+            status=400,
+        )
+
+    except Exception as error:
+        return JsonResponse(
+            {"ok": False, "error": str(error)},
+            status=500,
+        )

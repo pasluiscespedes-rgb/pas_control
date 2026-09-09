@@ -229,9 +229,73 @@
     {% block extra_js %}{% endblock %}
 
 <script>
-    if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-            navigator.serviceWorker.register("/service-worker.js");
+    function urlBase64ToUint8Array(base64String) {
+        const padding = "=".repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+        const rawData = window.atob(base64);
+
+        return Uint8Array.from(
+            [...rawData].map((char) => char.charCodeAt(0))
+        );
+    }
+
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+        window.addEventListener("load", async function () {
+            try {
+                const registro = await navigator.serviceWorker.register(
+                    "/service-worker.js"
+                );
+
+                console.log("Service Worker registrado:", registro);
+
+                const permiso = await Notification.requestPermission();
+
+                if (permiso !== "granted") {
+                    console.log("Permiso de notificaciones no concedido.");
+                    return;
+                }
+
+                let suscripcion =
+                    await registro.pushManager.getSubscription();
+
+                if (!suscripcion) {
+                    const CLAVE_PUBLICA_VAPID = "BD89x6aPId1gHRDPLDO2uCYxY2TJWdwDnHl-bDcIgVE6jwka5lj5-GEjDjNOpHpnQDjDY_xPNvOuhQoaSf4s5AA";
+
+                    suscripcion = await registro.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey:
+                            urlBase64ToUint8Array(CLAVE_PUBLICA_VAPID),
+                    });
+                }
+
+                const respuesta = await fetch(
+                    "/whatsapp/push/suscribir/",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        body: JSON.stringify(suscripcion),
+                    }
+                );
+
+                const resultado = await respuesta.json();
+
+                console.log(
+                    "Suscripción Push guardada:",
+                    resultado
+                );
+
+            } catch (error) {
+                console.error(
+                    "Error configurando notificaciones Push:",
+                    error
+                );
+            }
         });
     }
 </script>

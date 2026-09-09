@@ -1,6 +1,5 @@
 from django.db import models
-from django.db import models
-
+from django.conf import settings
 from clientes.models import Cliente
 
 
@@ -246,4 +245,38 @@ class MensajeWhatsApp(models.Model):
             f"{self.conversacion.telefono} - "
             f"{self.fecha_mensaje:%d/%m/%Y %H:%M}"
         )
+
+class SuscripcionPush(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="suscripciones_push",
+    )
+
+    endpoint = models.TextField(
+        unique=True,
+    )
+
+    p256dh = models.TextField()
+
+    auth = models.TextField()
+
+    activa = models.BooleanField(
+        default=True,
+    )
+
+    creada_en = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    actualizada_en = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        verbose_name = "Suscripción Push"
+        verbose_name_plural = "Suscripciones Push"
+
+    def __str__(self):
+        return f"{self.usuario} - {self.endpoint[:40]}"  
 # Create your models here.

@@ -32,4 +32,9 @@ urlpatterns = [
         views.ver_media_whatsapp,
         name="ver_media_whatsapp",
     ),
+        path(
+        "push/suscribir/",
+        views.suscribir_push,
+        name="suscribir_push",
+    ),
 ]
