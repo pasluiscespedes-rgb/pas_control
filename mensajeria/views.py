@@ -3,6 +3,7 @@ import hmac
 import json
 import requests
 from pywebpush import webpush, WebPushException
+from py_vapid import Vapid
 from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
@@ -233,11 +234,14 @@ def _enviar_push_whatsapp(titulo, cuerpo):
             "VAPID_PRIVATE_KEY",
             "",
            )
+        vapid = Vapid.from_pem(
+          clave_vapid_privada.encode("utf-8")
+           )
 
         kwargs = {
             "subscription_info": subscription_info,
             "data": datos_push,
-            "vapid_private_key": clave_vapid_privada,
+            "vapid_private_key": vapid,
             "vapid_claims": {
                 "sub": "mailto:fortex@example.com",
             },
