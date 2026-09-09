@@ -227,10 +227,17 @@ def _enviar_push_whatsapp(titulo, cuerpo):
             },
         }
 
+       
+        clave_vapid_privada = getattr(
+            settings,
+            "VAPID_PRIVATE_KEY",
+            "",
+           )
+
         kwargs = {
             "subscription_info": subscription_info,
             "data": datos_push,
-            "vapid_private_key": "private_key.pem",
+            "vapid_private_key": clave_vapid_privada,
             "vapid_claims": {
                 "sub": "mailto:fortex@example.com",
             },
