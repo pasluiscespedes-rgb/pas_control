@@ -1022,6 +1022,69 @@ def enviar_cuota_vencida(
         media_url_header=URL_LOGO_FORTEX,
     )
 
+def enviar_renovacion_proxima(
+    destinatario,
+    nombre,
+    numero_poliza,
+):
+    return enviar_plantilla_whatsapp(
+        destinatario=destinatario,
+        nombre_plantilla="renovacion_proxima",
+        idioma="es_AR",
+        parametros=[
+            nombre,
+            numero_poliza,
+        ],
+        media_url_header=URL_LOGO_FORTEX,
+    )
+
+def enviar_poliza_disponible(
+    destinatario,
+    nombre,
+    numero_poliza,
+):
+    return enviar_plantilla_whatsapp(
+        destinatario=destinatario,
+        nombre_plantilla="poliza_disponible",
+        idioma="es_AR",
+        parametros=[
+            nombre,
+            numero_poliza,
+        ],
+        media_url_header=URL_LOGO_FORTEX,
+    )
+
+def enviar_confirmacion_pago(
+    destinatario,
+    nombre,
+    numero_poliza,
+):
+    return enviar_plantilla_whatsapp(
+        destinatario=destinatario,
+        nombre_plantilla="confirmacion_pago",
+        idioma="es_AR",
+        parametros=[
+            nombre,
+            numero_poliza,
+        ],
+        media_url_header=URL_LOGO_FORTEX,
+    )
+
+
+def enviar_documentacion_pendiente(
+    destinatario,
+    nombre,
+):
+    return enviar_plantilla_whatsapp(
+        destinatario=destinatario,
+        nombre_plantilla="documentacion_pendiente",
+        idioma="es_AR",
+        parametros=[
+            nombre,
+        ],
+        media_url_header=URL_LOGO_FORTEX,
+    )
+
 def obtener_importe_referencia(poliza):
     from cobros.models import Cobro
 

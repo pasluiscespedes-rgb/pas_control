@@ -4,13 +4,14 @@ import json
 import requests
 from pywebpush import webpush, WebPushException
 from py_vapid import Vapid
-from datetime import datetime, timezone as dt_timezone
-
+from datetime import datetime, timezone as dt_timezone, timedelta
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.db.models import Q
+from polizas.models import Poliza
 
 from clientes.models import Cliente
 
@@ -574,6 +575,86 @@ def estado_no_leidos_whatsapp(request):
     )
 
 @login_required
+@require_http_methods(["GET"])
+def buscar_clientes_whatsapp(request):
+    termino = (request.GET.get("q") or "").strip()
+
+    if len(termino) < 2:
+        return JsonResponse(
+            {
+                "resultados": [],
+            }
+        )
+
+    clientes = (
+        Cliente.objects
+        .filter(
+            Q(nombre__icontains=termino)
+            | Q(apellido__icontains=termino)
+            | Q(dni__icontains=termino)
+            | Q(whatsapp__icontains=termino)
+        )
+        .order_by("apellido", "nombre")[:20]
+    )
+
+    resultados = [
+        {
+            "id": cliente.id,
+            "nombre": cliente.nombre,
+            "apellido": cliente.apellido,
+            "dni": cliente.dni,
+            "whatsapp": cliente.whatsapp,
+            "nombre_completo": str(cliente),
+        }
+        for cliente in clientes
+    ]
+
+    return JsonResponse(
+        {
+            "resultados": resultados,
+        }
+    )
+
+@login_required
+@require_http_methods(["POST"])
+def abrir_conversacion_cliente_whatsapp(request, cliente_id):
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+
+    telefono = _solo_digitos(cliente.whatsapp)
+
+    if not telefono:
+        return JsonResponse(
+            {"ok": False, "error": "El cliente no tiene WhatsApp cargado."},
+            status=400,
+        )
+
+    clave = _clave_telefono(telefono)
+
+    conversacion = None
+
+    for candidata in ConversacionWhatsApp.objects.filter(activa=True):
+        if _clave_telefono(candidata.telefono) == clave:
+            conversacion = candidata
+            break
+
+    if conversacion is None:
+        conversacion = ConversacionWhatsApp.objects.create(
+            telefono=telefono,
+            cliente=cliente,
+            nombre_whatsapp=str(cliente),
+        )
+    elif conversacion.cliente_id is None:
+        conversacion.cliente = cliente
+        conversacion.save(update_fields=["cliente", "actualizada_en"])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "conversacion_id": conversacion.id,
+        }
+    )
+
+@login_required
 def bandeja_whatsapp(request, conversacion_id=None):
     conversaciones = (
         ConversacionWhatsApp.objects
@@ -617,6 +698,15 @@ def bandeja_whatsapp(request, conversacion_id=None):
         for conversacion in conversaciones
     )
 
+    ventana_24h_abierta = False
+
+    if conversacion_activa and conversacion_activa.ultimo_mensaje_entrante_en:
+        limite_24_horas = timezone.now() - timedelta(hours=24)
+
+        ventana_24h_abierta = (
+          conversacion_activa.ultimo_mensaje_entrante_en >= limite_24_horas
+    )
+
     return render(
         request,
         "mensajeria/bandeja_whatsapp.html",
@@ -625,7 +715,125 @@ def bandeja_whatsapp(request, conversacion_id=None):
             "conversacion_activa": conversacion_activa,
             "mensajes": mensajes,
             "total_no_leidos": total_no_leidos,
+            "ventana_24h_abierta": ventana_24h_abierta,
         },
+    )
+
+@login_required
+@require_http_methods(["POST"])
+def enviar_plantilla_conversacion_whatsapp(request, conversacion_id):
+    from principal.whatsapp import (
+        enviar_renovacion_proxima,
+        enviar_poliza_disponible,
+        enviar_confirmacion_pago,
+        enviar_documentacion_pendiente,
+    )
+
+    conversacion = get_object_or_404(
+        ConversacionWhatsApp.objects.filter(activa=True),
+        pk=conversacion_id,
+    )
+
+    if not conversacion.cliente:
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": "La conversación no está vinculada a un cliente.",
+            },
+            status=400,
+        )
+
+    nombre_plantilla = (
+        request.POST.get("nombre_plantilla")
+        or ""
+    ).strip()
+
+    plantillas_validas = {
+        "renovacion_proxima",
+        "poliza_disponible",
+        "confirmacion_pago",
+        "documentacion_pendiente",
+    }
+
+    if nombre_plantilla not in plantillas_validas:
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": "Plantilla no soportada.",
+            },
+            status=400,
+        )
+
+    nombre_cliente = str(conversacion.cliente)
+
+    # Documentación pendiente no necesita una póliza.
+    if nombre_plantilla == "documentacion_pendiente":
+        respuesta = enviar_documentacion_pendiente(
+            destinatario=conversacion.telefono,
+            nombre=nombre_cliente,
+        )
+
+        numero_poliza = ""
+
+    else:
+        poliza = (
+            Poliza.objects
+            .filter(
+                cliente=conversacion.cliente,
+                estado__in=["Al día", "Pendiente", "Morosa"],
+            )
+            .exclude(numero_poliza="")
+            .order_by("-fecha_alta")
+            .first()
+        )
+
+        if not poliza:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error": "No se encontró una póliza disponible para este cliente.",
+                },
+                status=400,
+            )
+
+        numero_poliza = poliza.numero_poliza
+
+        if nombre_plantilla == "renovacion_proxima":
+            respuesta = enviar_renovacion_proxima(
+                destinatario=conversacion.telefono,
+                nombre=nombre_cliente,
+                numero_poliza=numero_poliza,
+            )
+
+        elif nombre_plantilla == "poliza_disponible":
+            respuesta = enviar_poliza_disponible(
+                destinatario=conversacion.telefono,
+                nombre=nombre_cliente,
+                numero_poliza=numero_poliza,
+            )
+
+        elif nombre_plantilla == "confirmacion_pago":
+            respuesta = enviar_confirmacion_pago(
+                destinatario=conversacion.telefono,
+                nombre=nombre_cliente,
+                numero_poliza=numero_poliza,
+            )
+
+    if not respuesta.ok:
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": respuesta.text,
+            },
+            status=respuesta.status_code,
+        )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "plantilla": nombre_plantilla,
+            "numero_poliza": numero_poliza,
+        }
     )
 
 @login_required
@@ -633,6 +841,7 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
     from datetime import timedelta
 
     from django.shortcuts import redirect
+    
 
     from principal.whatsapp import (
     enviar_media_whatsapp,
@@ -640,6 +849,7 @@ def enviar_mensaje_whatsapp(request, conversacion_id):
     enviar_nota_voz_whatsapp,
     enviar_ubicacion_whatsapp,
     subir_media_whatsapp,
+    enviar_renovacion_proxima,
     )
 
     if request.method != "POST":

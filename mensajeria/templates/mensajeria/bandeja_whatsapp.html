@@ -1136,6 +1136,8 @@
 
             </div>
 
+            <!-- RESULTADOS DE CLIENTES FORTEX -->
+            <div id="waClientResults" class="wa-client-results" style="display: none;"></div>
 
             <div class="wa-chat-list" id="waChatList">
 
@@ -1529,7 +1531,7 @@
 
 
                 <footer class="wa-composer">
-
+                {% if ventana_24h_abierta %}
                     <form
                         method="post"
                         enctype="multipart/form-data"
@@ -1771,6 +1773,27 @@
                         </div>
 
                     </form>
+                {% else %}
+
+                <div class="wa-template-required">
+                    <div class="wa-template-required-title">
+                        Ventana de 24 horas cerrada
+                    </div>
+
+                    <div class="wa-template-required-text">
+                        Para iniciar o retomar esta conversación debe enviarse una plantilla aprobada por WhatsApp.
+                    </div>
+
+                    <button
+                        type="button"
+                        id="waTemplateButton"
+                        class="wa-template-button"
+                    >
+                        Enviar plantilla
+                    </button>
+                </div>
+
+                {% endif %}    
 
                 </footer>
 
@@ -1945,24 +1968,120 @@
         const mensajes = document.getElementById("waMessages");
         const volver = document.getElementById("waBack");
         const shell = document.getElementById("waShell");
+        const waClientResults = document.getElementById("waClientResults");
 
-        if (buscador) {
-            buscador.addEventListener("input", function () {
-                const texto = this.value
-                    .toLowerCase()
-                    .trim();
+    if (buscador) {
+        buscador.addEventListener("input", async function () {
+          const texto = this.value.trim();
+          const textoMinuscula = texto.toLowerCase();
 
-                chats.forEach(function (chat) {
-                    const contenido = (
-                        chat.dataset.search || ""
-                    ).toLowerCase();
+          chats.forEach(function (chat) {
+            const contenido = (
+                chat.dataset.search || ""
+            ).toLowerCase();
 
-                    chat.style.display = contenido.includes(texto)
-                        ? ""
-                        : "none";
-                });
-            });
+            chat.style.display = contenido.includes(textoMinuscula)
+                ? ""
+                : "none";
+        });
+
+        if (!waClientResults) {
+            return;
         }
+
+        if (texto.length < 2) {
+            waClientResults.innerHTML = "";
+            waClientResults.style.display = "none";
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(
+                "{% url 'mensajeria:buscar_clientes_whatsapp' %}?q="
+                + encodeURIComponent(texto)
+            );
+
+            const datos = await respuesta.json();
+            const resultados = datos.resultados || [];
+
+            if (!resultados.length) {
+                waClientResults.innerHTML =
+                    '<div class="wa-empty-list">No se encontraron asegurados.</div>';
+                waClientResults.style.display = "block";
+                return;
+            }
+
+            waClientResults.innerHTML = resultados.map(function (cliente) {
+                const nombre = cliente.nombre_completo || "";
+                const dni = cliente.dni || "";
+                const whatsapp = cliente.whatsapp || "";
+
+                return `
+                    <div class="wa-chat-item wa-client-result"
+                         data-cliente-id="${cliente.id}">
+                        <div class="wa-avatar">
+                            ${nombre.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div class="wa-chat-info">
+                            <div class="wa-chat-name">
+                                ${nombre}
+                            </div>
+
+                            <div class="wa-chat-preview">
+                                DNI ${dni}
+                                ${whatsapp ? " · " + whatsapp : ""}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            waClientResults.style.display = "block";
+
+            waClientResults.querySelectorAll(".wa-client-result").forEach(function (item) {
+    item.addEventListener("click", async function () {
+        const clienteId = item.dataset.clienteId;
+
+        try {
+            const url = "{% url 'mensajeria:abrir_conversacion_cliente_whatsapp' 0 %}"
+                .replace("/0/", "/" + clienteId + "/");
+
+            const respuesta = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok || !datos.ok) {
+                alert(datos.error || "No se pudo abrir la conversación.");
+                return;
+            }
+
+            window.location.href =
+                "{% url 'mensajeria:conversacion_whatsapp' 0 %}"
+                .replace("/0/", "/" + datos.conversacion_id + "/");
+
+        } catch (error) {
+            console.error("Error abriendo conversación:", error);
+            alert("No se pudo abrir la conversación.");
+        }
+    });
+});
+
+        } catch (error) {
+            console.error("Error buscando clientes:", error);
+
+            waClientResults.innerHTML =
+                '<div class="wa-empty-list">No se pudo buscar asegurados.</div>';
+            waClientResults.style.display = "block";
+        }
+    });
+}
 
         if (mensajes) {
             mensajes.scrollTop = mensajes.scrollHeight;
@@ -2970,6 +3089,76 @@
 
         waActualizarTimer();
         waActualizarBotonEnviar();
+
+const waTemplateButton = document.getElementById("waTemplateButton");
+
+if (waTemplateButton) {
+    waTemplateButton.addEventListener("click", async function () {
+        const plantilla = prompt(
+            "Elegí una plantilla:\n\n" +
+            "1 - Renovación próxima\n" +
+            "2 - Póliza disponible\n" +
+            "3 - Confirmación de pago\n" +
+            "4 - Documentación pendiente"
+        );
+
+        if (!plantilla) {
+            return;
+        }
+
+        const nombres = {
+            "1": "renovacion_proxima",
+            "2": "poliza_disponible",
+            "3": "confirmacion_pago",
+            "4": "documentacion_pendiente"
+        };
+
+        const nombrePlantilla = nombres[plantilla];
+
+        if (!nombrePlantilla) {
+            alert("Opción no válida.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("nombre_plantilla", nombrePlantilla);
+
+        const conversacionId = "{{ conversacion_activa.id|default:'' }}";
+        const urlBase = "/whatsapp/conversacion/";
+        const url = urlBase + conversacionId + "/plantilla/";
+
+        try {
+            const respuesta = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: formData
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok || !datos.ok) {
+                alert(datos.error || "No se pudo enviar la plantilla.");
+                return;
+            }
+
+            alert(
+                "Plantilla enviada correctamente.\n\n" +
+                "Plantilla: " + datos.plantilla +
+                "\nPóliza: " + datos.numero_poliza
+            );
+
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Error enviando plantilla:", error);
+            alert("No se pudo enviar la plantilla.");
+}           
+});
+
+}
 
 </script>
 {% endblock %}

@@ -37,4 +37,19 @@ urlpatterns = [
         views.suscribir_push,
         name="suscribir_push",
     ),
+        path(
+        "buscar-clientes/",
+        views.buscar_clientes_whatsapp,
+        name="buscar_clientes_whatsapp",
+    ),
+        path(
+        "cliente/<int:cliente_id>/abrir/",
+        views.abrir_conversacion_cliente_whatsapp,
+        name="abrir_conversacion_cliente_whatsapp",
+    ),
+        path(
+        "conversacion/<int:conversacion_id>/plantilla/",
+        views.enviar_plantilla_conversacion_whatsapp,
+        name="enviar_plantilla_conversacion_whatsapp",
+    ),
 ]
