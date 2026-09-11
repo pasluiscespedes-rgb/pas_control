@@ -121,7 +121,11 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     p.setFont("Helvetica", 8)
     p.drawRightString(x + ancho - 0.25 * cm, y - 1.20 * cm, f"N° {recibo.id:07d}")
-    p.drawRightString(x + ancho - 0.25 * cm, y - 1.65 * cm, f"Fecha: {recibo.fecha}")
+    p.drawRightString(
+    x + ancho - 0.25 * cm,
+    y - 1.65 * cm,
+    f"Fecha: {recibo.fecha.strftime('%d/%m/%Y')}"
+)
 
     # Caja cliente
     y1 = y - 2.25 * cm
@@ -217,7 +221,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "FECHA DE ALTA:",
-    poliza.fecha_alta,
+    poliza.fecha_alta.strftime("%d/%m/%Y"),
     x + 0.40 * cm,
     y3 - 0.38 * cm,
     3.50 * cm
@@ -229,7 +233,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "FECHA DE VENCIMIENTO:",
-    vencimiento_recibo,
+    vencimiento_recibo.strftime("%d/%m/%Y"),
     x + 5.40 * cm,
     y3 - 0.38 * cm,
     4.20 * cm

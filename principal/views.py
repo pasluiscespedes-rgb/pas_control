@@ -1458,7 +1458,7 @@ def crear_cobro(request, cliente_id=None):
 
            poliza.fecha_vencimiento = calcular_proximo_vencimiento(
                  poliza.fecha_alta,
-                 poliza.numero_cuota + 1,
+                 poliza.numero_cuota,
         )
 
         actualizar_estado_poliza(poliza)
