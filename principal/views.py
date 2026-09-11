@@ -1341,7 +1341,28 @@ def crear_cobro(request, cliente_id=None):
            base_comision * porcentaje / Decimal("100")
         )
 
-        cuota_pagada = poliza.numero_cuota + 1
+        # Determinar la última cuota realmente cobrada.
+        # Los cobros no anulados son la fuente de verdad.
+        ultima_cuota_cobrada = 0
+
+        for cobro_anterior in Cobro.objects.filter(
+            poliza=poliza,
+            anulado=False,
+        ):
+            fin_cobro = (
+                cobro_anterior.cuota
+                + cobro_anterior.cantidad_cuotas
+                - 1
+            )
+
+            if fin_cobro > ultima_cuota_cobrada:
+                ultima_cuota_cobrada = fin_cobro
+
+        # Sincronizar la póliza por si arrastra un número viejo incorrecto.
+        poliza.numero_cuota = ultima_cuota_cobrada
+
+        # La próxima cuota es la siguiente a la última realmente pagada.
+        cuota_pagada = ultima_cuota_cobrada + 1
 
         cantidad = int(
            request.POST.get("cantidad_cuotas_pagadas", 1) or 1
@@ -1444,21 +1465,18 @@ def crear_cobro(request, cliente_id=None):
         print("Fecha usada para calcular:", fecha)
 
         # Actualizar cuota y vencimiento según las cuotas realmente pagadas
-        if cuota_final >= poliza.cantidad_cuotas:
-            # Se pagó la última cuota de la póliza
-            poliza.numero_cuota = poliza.cantidad_cuotas
+        poliza.numero_cuota = cuota_final
 
-            poliza.fecha_vencimiento = calcular_proximo_vencimiento(
-                poliza.fecha_alta,
-                poliza.cantidad_cuotas,
-            )
-        else:
-           # Quedan cuotas pendientes
-           poliza.numero_cuota = cuota_final
+        # Regla FORTEX:
+        # cuota 1 = fecha de alta
+        # cuota 2 = alta + 1 mes
+        # cuota 3 = alta + 2 meses
+        # cuota 4 = alta + 3 meses
+        meses_desde_alta = max(cuota_final - 1, 0)
 
-           poliza.fecha_vencimiento = calcular_proximo_vencimiento(
-                 poliza.fecha_alta,
-                 poliza.numero_cuota,
+        poliza.fecha_vencimiento = calcular_proximo_vencimiento(
+            poliza.fecha_alta,
+            meses_desde_alta,
         )
 
         actualizar_estado_poliza(poliza)

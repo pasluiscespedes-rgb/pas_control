@@ -228,7 +228,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 )
 
     vencimiento_recibo = poliza.fecha_alta + relativedelta(
-        months=recibo.numero_cuota + recibo.cantidad_cuotas - 1
+        months=recibo.numero_cuota + recibo.cantidad_cuotas - 2
 )
 
     campo(
