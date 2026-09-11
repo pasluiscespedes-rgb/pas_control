@@ -1472,7 +1472,7 @@ def crear_cobro(request, cliente_id=None):
         # cuota 2 = alta + 1 mes
         # cuota 3 = alta + 2 meses
         # cuota 4 = alta + 3 meses
-        meses_desde_alta = max(cuota_final - 1, 0)
+        meses_desde_alta = cuota_final
 
         poliza.fecha_vencimiento = calcular_proximo_vencimiento(
             poliza.fecha_alta,
