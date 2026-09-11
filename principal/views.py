@@ -1579,24 +1579,10 @@ def recibo_pdf(request, recibo_id):
     dibujar_recibo_fortex(
     p,
     recibo,
-    0.15 * cm,
+    1.50 * cm,
     29.1 * cm,
-    "ORIGINAL - OFICINA"
+    "COMPROBANTE DEL ASEGURADO"
 )
-
-    dibujar_recibo_fortex(
-    p,
-    recibo,
-    10.10 * cm,
-    29.1 * cm,
-    "COPIA - ASEGURADO"
-)
-
-    p.setFont("Helvetica", 18)
-    p.drawCentredString(5.5 * cm, 18 * cm, "I N U T I L I Z A D O")
-    p.drawCentredString(15.5 * cm, 18 * cm, "I N U T I L I Z A D O")
-    p.drawCentredString(5.5 * cm, 9 * cm, "I N U T I L I Z A D O")
-    p.drawCentredString(15.5 * cm, 9 * cm, "I N U T I L I Z A D O")
 
     p.showPage()
     p.save()
@@ -1680,177 +1666,337 @@ def imprimir_poliza(request, poliza_id):
 
     # Encabezado
     p.setStrokeColor(azul)
-    p.roundRect(1 * cm, alto - 5 * cm, 19 * cm, 3.8 * cm, 8)
+    p.roundRect(
+        1.5 * cm,
+        alto - 4.85 * cm,
+        18 * cm,
+        4.10 * cm,
+        8
+)
 
+    # Logo FORTEX
     p.drawImage(
-      ImageReader(logo_path),
-      1.10 * cm,
-      alto - 4.10 * cm,
-      width=2.80 * cm,
-      height=2.80 * cm,
-      preserveAspectRatio=True,
-      mask="auto"
-    )
+        ImageReader(logo_path),
+        1.65 * cm,
+        alto - 4.30 * cm,
+        width=3.20 * cm,
+        height=3.20 * cm,
+        preserveAspectRatio=True,
+        mask="auto"
+)
 
+    # Marca
     p.setFillColor(azul)
     p.setFont("Helvetica-Bold", 24)
-    p.drawString(3.8 * cm, alto - 2.2 * cm, "FORTEX")
+    p.drawString(
+        4.95 * cm,
+        alto - 2.00 * cm,
+        "FORTEX"
+)
 
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(3.8 * cm, alto - 2.7 * cm, "GESTIÓN INTEGRAL")
+    p.drawString(
+        4.95 * cm,
+        alto - 2.48 * cm,
+        "GESTIÓN INTEGRAL"
+)
 
     p.setFillColor(gris)
     p.setFont("Helvetica", 9)
-    p.drawString(3.8 * cm, alto - 3.15 * cm, "Administradores de Riesgos")
-    p.drawString(3.8 * cm, alto - 3.60 * cm, "WhatsApp: 381-0000000")
+    p.drawString(
+        4.95 * cm,
+        alto - 2.92 * cm,
+        "Administradores de Riesgos"
+)
 
+    p.setFillColor(azul)
+    p.setFont("Helvetica-Bold", 8)
+    p.drawString(
+        4.95 * cm,
+        alto - 3.38 * cm,
+        "WhatsFORTEX: +54 9 381 634-6504"
+)
+
+    # Título del documento
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 16)
     p.drawRightString(
-        19.5 * cm,
-        alto - 2.2 * cm,
+        19.0 * cm,
+        alto - 2.00 * cm,
         "PÓLIZA PROVISORIA"
-    )
+)
 
     p.setFont("Helvetica", 10)
     p.drawRightString(
-        19.5 * cm,
-        alto - 2.85 * cm,
+        19.0 * cm,
+        alto - 2.55 * cm,
         f"N° {poliza.id:07d}"
-    )
+)
 
-    # Datos del asegurado
+    # Identificación profesional
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica-Bold", 7.5)
+    p.drawRightString(
+        19.0 * cm,
+        alto - 3.35 * cm,
+        "PAS RESPONSABLE: LUIS ERNESTO CÉSPEDES OCHOA"
+)
+
+    p.setFillColor(azul)
+    p.setFont("Helvetica-Bold", 7.5)
+    p.drawRightString(
+        19.0 * cm,
+        alto - 3.72 * cm,
+        "MATRÍCULA SSN N° 104752"
+)
+    
+   # Datos del asegurado
     y = alto - 6 * cm
 
     p.setStrokeColor(azul)
-    p.roundRect(1 * cm, y - 4.2 * cm, 19 * cm, 4 * cm, 6)
+    p.roundRect(
+        1.5 * cm,
+        y - 3.0 * cm,
+        18 * cm,
+        2.8 * cm,
+        6
+    )
 
+    # Título
     p.setFillColor(azul)
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(1.4 * cm, y - 0.7 * cm, "DATOS DEL ASEGURADO")
+    p.drawString(
+        1.9 * cm,
+        y - 0.65 * cm,
+        "DATOS DEL ASEGURADO"
+    )
 
+    # Datos
     p.setFillColor(colors.black)
     p.setFont("Helvetica", 9)
+
+    # Fila 1
     p.drawString(
-        1.4 * cm,
-        y - 1.4 * cm,
+        1.9 * cm,
+        y - 1.35 * cm,
         f"Apellido y nombre: {cliente.apellido}, {cliente.nombre}"
     )
+
     p.drawString(
-        1.4 * cm,
-        y - 2.1 * cm,
+        13.0 * cm,
+        y - 1.35 * cm,
         f"DNI: {cliente.dni}"
     )
+
+    # Fila 2
     p.drawString(
-        1.4 * cm,
-        y - 2.8 * cm,
+        1.9 * cm,
+        y - 2.10 * cm,
         f"WhatsApp: {cliente.whatsapp}"
     )
+
     p.drawString(
-        1.4 * cm,
-        y - 3.5 * cm,
+        8.0 * cm,
+        y - 2.10 * cm,
         f"Domicilio: {cliente.calle or ''} {cliente.numero or ''}"
     )
 
     # Datos de póliza
-    y2 = y - 5 * cm
+    y2 = y - 3.55 * cm
 
     p.setStrokeColor(azul)
-    p.roundRect(1 * cm, y2 - 4.6 * cm, 19 * cm, 4.4 * cm, 6)
+    p.roundRect(
+        1.5 * cm,
+        y2 - 3.25 * cm,
+        18 * cm,
+        3.05 * cm,
+        6
+    )
 
+    # Título
     p.setFillColor(azul)
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(1.4 * cm, y2 - 0.7 * cm, "DATOS DE LA COBERTURA")
+    p.drawString(
+        1.9 * cm,
+        y2 - 0.65 * cm,
+        "DATOS DE LA COBERTURA"
+    )
 
+    # Datos
     p.setFillColor(colors.black)
     p.setFont("Helvetica", 9)
+
+    # Fila 1: aseguradora
     p.drawString(
-        1.4 * cm,
-        y2 - 1.4 * cm,
+        1.9 * cm,
+        y2 - 1.30 * cm,
         f"Aseguradora: {poliza.compania}"
     )
+
+    # Fila 2
     p.drawString(
-        1.4 * cm,
-        y2 - 2.1 * cm,
+        1.9 * cm,
+        y2 - 1.95 * cm,
         f"Número de póliza: {poliza.numero_poliza or 'PROVISORIA'}"
     )
-    p.drawString(
-        1.4 * cm,
-        y2 - 2.8 * cm,
-        f"Fecha de alta: {poliza.fecha_alta.strftime('%d/%m/%Y')}"
 
-    )
     p.drawString(
-        10.5 * cm,
-        y2 - 2.8 * cm,
-        f"Vencimiento: {poliza.fecha_vencimiento.strftime('%d/%m/%Y')}"
-    )
-    p.drawString(
-        1.4 * cm,
-        y2 - 3.5 * cm,
-        f"Estado: {poliza.estado}"
-    )
-    p.drawString(
-        10.5 * cm,
-        y2 - 3.5 * cm,
+        9.0 * cm,
+        y2 - 1.95 * cm,
         f"Tipo de seguro: {poliza.tipo_seguro}"
     )
 
+    # Fila 3
+    p.drawString(
+        1.9 * cm,
+        y2 - 2.60 * cm,
+        f"Fecha de alta: {poliza.fecha_alta.strftime('%d/%m/%Y')}"
+    )
+
+    p.drawString(
+        7.3 * cm,
+        y2 - 2.60 * cm,
+        f"Vencimiento: {poliza.fecha_vencimiento.strftime('%d/%m/%Y')}"
+    )
+
+    p.drawString(
+        13.6 * cm,
+        y2 - 2.60 * cm,
+        f"Estado: {poliza.estado}"
+    )
+
     # Datos del vehículo
-    y3 = y2 - 5.4 * cm
+    y3 = y2 - 3.80 * cm
 
     p.setStrokeColor(azul)
-    p.roundRect(1 * cm, y3 - 4.6 * cm, 19 * cm, 4.4 * cm, 6)
+    p.roundRect(
+        1.5 * cm,
+        y3 - 3.05 * cm,
+        18 * cm,
+        2.85 * cm,
+        6
+    )
 
+    # Título
     p.setFillColor(azul)
     p.setFont("Helvetica-Bold", 10)
-    p.drawString(1.4 * cm, y3 - 0.7 * cm, "DATOS DEL VEHÍCULO")
+    p.drawString(
+        1.9 * cm,
+        y3 - 0.65 * cm,
+        "DATOS DEL VEHÍCULO"
+    )
 
+    # Datos
     p.setFillColor(colors.black)
     p.setFont("Helvetica", 9)
+
+    # Fila 1
     p.drawString(
-        1.4 * cm,
-        y3 - 1.4 * cm,
+        1.9 * cm,
+        y3 - 1.30 * cm,
         f"Marca y modelo: {vehiculo.marca} {vehiculo.modelo}"
     )
+
     p.drawString(
-        1.4 * cm,
-        y3 - 2.1 * cm,
+        13.0 * cm,
+        y3 - 1.30 * cm,
         f"Patente: {vehiculo.patente}"
     )
+
+    # Fila 2
     p.drawString(
-        7.5 * cm,
-        y3 - 2.1 * cm,
-        f"Uso: {vehiculo.uso}"
-    )
-    p.drawString(
-        1.4 * cm,
-        y3 - 2.8 * cm,
+        1.9 * cm,
+        y3 - 2.00 * cm,
         f"Motor: {vehiculo.motor}"
     )
+
     p.drawString(
-        1.4 * cm,
-        y3 - 3.5 * cm,
+        8.0 * cm,
+        y3 - 2.00 * cm,
         f"Chasis: {vehiculo.chasis}"
     )
 
-    # Leyenda
+    p.drawString(
+        15.5 * cm,
+        y3 - 2.00 * cm,
+        f"Uso: {vehiculo.uso}"
+    )
+
+    # Observaciones
+    y4 = y3 - 3.55 * cm
+
+    p.setStrokeColor(azul)
+    p.roundRect(
+        1.5 * cm,
+        y4 - 3.40 * cm,
+        18 * cm,
+        3.20 * cm,
+        6
+    )
+
+    p.setFillColor(azul)
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(
+        1.9 * cm,
+        y4 - 0.65 * cm,
+        "OBSERVACIONES"
+    )
+
+    # Líneas suaves para escritura / anotaciones
+    p.setStrokeColor(gris)
+    p.setLineWidth(0.3)
+
+    p.line(
+        1.9 * cm,
+        y4 - 1.55 * cm,
+        19.0 * cm,
+        y4 - 1.55 * cm
+    )
+
+    p.line(
+        1.9 * cm,
+        y4 - 2.30 * cm,
+        19.0 * cm,
+        y4 - 2.30 * cm
+    )
+
+    # Documento provisorio
+    y5 = y4 - 4.05 * cm
+
+    p.setStrokeColor(azul)
+    p.setLineWidth(1)
+    p.roundRect(
+        1.5 * cm,
+        y5 - 2.15 * cm,
+        18 * cm,
+        1.95 * cm,
+        6
+    )
+
+    p.setFillColor(azul)
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(
+        1.9 * cm,
+        y5 - 0.65 * cm,
+        "DOCUMENTO PROVISORIO"
+    )
+
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 9)
-    p.drawCentredString(
-        ancho / 2,
-        3.2 * cm,
-        "DOCUMENTO PROVISORIO SUJETO A EMISIÓN DEFINITIVA"
+    p.drawString(
+        1.9 * cm,
+        y5 - 1.20 * cm,
+        "SUJETO A EMISIÓN DEFINITIVA POR LA ASEGURADORA"
     )
 
-    p.setFont("Helvetica", 8)
-    p.drawCentredString(
-        ancho / 2,
-        2.6 * cm,
-        "Este documento acredita la solicitud de cobertura y debe conservarse."
+    p.setFillColor(gris)
+    p.setFont("Helvetica", 8.5)
+    p.drawString(
+        1.9 * cm,
+        y5 - 1.65 * cm,
+        "Esta constancia acredita la solicitud de cobertura y debe conservarse hasta la emisión definitiva."
     )
-
     p.showPage()
     p.save()
 
