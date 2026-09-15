@@ -902,8 +902,8 @@ def crear_poliza(request, cliente_id=None):
            tipo="poliza",
            titulo="Póliza registrada",
            descripcion=(f"Se registró la póliza N° {poliza.numero_poliza}."
-            if poliza.numero_poliza
-            else "Se registró una póliza provisoria."
+        if poliza.numero_poliza
+        else "Se registró una póliza provisoria."
 ),
            usuario=request.user,
         )
@@ -2087,21 +2087,21 @@ def imprimir_poliza(request, poliza_id):
             "emitida por la aseguradora."
         )
 
-        p.setFillColor(colors.black)
-        p.setFont("Helvetica-Bold", 9)
-        p.drawString(
-            1.9 * cm,
-            y5 - 1.20 * cm,
-            texto_aviso
-        )
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica-Bold", 9)
+    p.drawString(
+        1.9 * cm,
+         y5 - 1.20 * cm,
+        texto_aviso
+    )
 
-        p.setFillColor(gris)
-        p.setFont("Helvetica", 8.5)
-        p.drawString(
-            1.9 * cm,
-            y5 - 1.65 * cm,
-            texto_detalle
-        )
+    p.setFillColor(gris)
+    p.setFont("Helvetica", 8.5)
+    p.drawString(
+        1.9 * cm,
+         y5 - 1.65 * cm,
+        texto_detalle
+    )
 
     p.showPage()
     p.save()
