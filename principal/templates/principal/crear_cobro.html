@@ -59,6 +59,7 @@
     data-cuota="{{ poliza.numero_cuota }}"
     data-total="{{ poliza.cantidad_cuotas }}"
     data-vencimiento="{{ poliza.fecha_vencimiento|date:'d/m/Y' }}"
+    data-importe="{{ poliza.importe_cuota|default_if_none:'' }}"
 >
         {% if poliza.vehiculo %}
             {{ poliza.vehiculo.patente }} -
@@ -128,6 +129,7 @@ name="fecha_pago">
     class="form-control mb-3"
     type="number"
     name="cantidad_cuotas_pagadas"
+    id="cantidad_cuotas_pagadas"
     value="1"
     min="1">
 
@@ -174,19 +176,38 @@ function actualizarPoliza(selector) {
     const opcion = selector.options[selector.selectedIndex];
     const infoPoliza = document.getElementById("info-poliza");
     const campoCuota = document.getElementById("cuota");
+    const campoImporte = document.getElementById("importe");
 
     if (!opcion || !opcion.value) {
         campoCuota.value = "";
+        campoImporte.value = "";
+
         infoPoliza.innerHTML =
             "<strong>Vehículo:</strong> Seleccione una póliza.";
+
         return;
     }
 
     const cuota = opcion.dataset.cuota || "";
     const total = opcion.dataset.total || "";
     const vencimiento = opcion.dataset.vencimiento || "Sin fecha";
+    const importe = opcion.dataset.importe || "";
 
     campoCuota.value = cuota;
+
+    if (importe) {
+        const numeroImporte = Number(importe);
+
+        campoImporte.value = numeroImporte.toLocaleString(
+            "es-AR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+    } else {
+        campoImporte.value = "";
+    }
 
     infoPoliza.innerHTML =
         "<strong>Vehículo seleccionado:</strong><br>" +
@@ -197,11 +218,63 @@ function actualizarPoliza(selector) {
         vencimiento;
 }
 
+function recalcularImportePorCantidad() {
+    const selector = document.getElementById("poliza");
+    const campoCantidad = document.getElementById(
+        "cantidad_cuotas_pagadas"
+    );
+    const campoImporte = document.getElementById("importe");
+
+    if (!selector || !campoCantidad || !campoImporte) {
+        return;
+    }
+
+    const opcion = selector.options[selector.selectedIndex];
+    const importeUnitario = Number(
+        opcion.dataset.importe || 0
+    );
+
+    const cantidad = Math.max(
+        parseInt(campoCantidad.value || "1", 10),
+        1
+    );
+
+    if (!importeUnitario) {
+        campoImporte.value = "";
+        return;
+    }
+
+    const total = importeUnitario * cantidad;
+
+    campoImporte.value = total.toLocaleString(
+        "es-AR",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const selector = document.getElementById("poliza");
+    const campoCantidad = document.getElementById(
+        "cantidad_cuotas_pagadas"
+    );
 
     if (selector) {
         actualizarPoliza(selector);
+    }
+
+    if (campoCantidad) {
+        campoCantidad.addEventListener(
+            "input",
+            recalcularImportePorCantidad
+        );
+
+        campoCantidad.addEventListener(
+            "change",
+            recalcularImportePorCantidad
+        );
     }
 });
 </script>

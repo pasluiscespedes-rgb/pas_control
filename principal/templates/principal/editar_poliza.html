@@ -121,7 +121,18 @@
                     max="100"
                     value="{{ poliza.porcentaje_comision }}"
                     placeholder="Ej: 15.00"
-                >      
+                > 
+                
+                <label>Importe de cuota</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="text"
+                    name="importe_cuota"
+                    inputmode="decimal"
+                    value="{{ poliza.importe_cuota|default_if_none:'' }}"
+                    placeholder="Ej: 100.000,00"
+                >
 
                 <input class="form-control mb-3"
                       type="text"

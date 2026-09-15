@@ -140,6 +140,14 @@ class Poliza(models.Model):
     blank=True
     )
 
+    importe_cuota = models.DecimalField(
+    "Importe de cuota",
+    max_digits=12,
+    decimal_places=2,
+    null=True,
+    blank=True,
+    )
+
     def save(self, *args, **kwargs):
       import calendar
 

@@ -13,3 +13,5 @@ backups_postgresql/
 staticfiles/
 
 datos_fortex_railway.json
+private_key.pem
+public_key.pem

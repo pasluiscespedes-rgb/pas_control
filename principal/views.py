@@ -29,7 +29,7 @@ from principal.models import MovimientoCliente
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from .models import GastoCaja, Aseguradora, CierreCaja, TurnoCaja, PerfilUsuario, Sucursal
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from backup_db import crear_backup
 import subprocess
@@ -793,6 +793,19 @@ def crear_poliza(request, cliente_id=None):
         fecha_alta = request.POST.get("fecha_alta")
         periodicidad = request.POST.get("periodicidad", "").strip()
         estado = request.POST.get("estado")
+        importe_cuota_texto = request.POST.get(
+            "importe_cuota",
+            ""
+        ).strip()
+
+        importe_cuota = None
+
+        if importe_cuota_texto:
+            importe_cuota = Decimal(
+                importe_cuota_texto
+                .replace(".", "")
+                .replace(",", ".")
+    )
 
         errores = []
 
@@ -873,6 +886,7 @@ def crear_poliza(request, cliente_id=None):
           tipo_seguro=tipo_seguro,
           compania=compania,
           porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
+          importe_cuota=importe_cuota,
           numero_poliza=numero_poliza,
           fecha_alta=fecha_alta,
           fecha_vencimiento=fecha_vencimiento,
@@ -906,14 +920,14 @@ def editar_poliza(request, poliza_id):
     poliza = get_object_or_404(Poliza, id=poliza_id)
 
     if poliza.estado == "Anulada":
-        messages.warning(
+       messages.warning(
         request,
         "Esta póliza está anulada y no puede ser modificada."
-    )
-    return redirect(
-        "detalle_cliente",
-        cliente_id=poliza.cliente.id,
-    )
+        )
+       return redirect(
+          "detalle_cliente",
+          cliente_id=poliza.cliente.id,
+        )
 
     if request.method == "POST":
         vehiculo_id = request.POST.get("vehiculo")
@@ -923,10 +937,36 @@ def editar_poliza(request, poliza_id):
         fecha_alta_texto = request.POST.get("fecha_alta", "").strip()
         periodicidad = request.POST.get("periodicidad", "").strip()
         numero_cuota_texto = request.POST.get("numero_cuota", "").strip()
+        importe_cuota_texto = request.POST.get("importe_cuota", "").strip()
         estado = request.POST.get("estado", "").strip()
         observaciones = request.POST.get("observaciones", "").strip()
 
         errores = []
+
+        importe_cuota = None
+
+        if importe_cuota_texto:
+            try:
+                importe_normalizado = importe_cuota_texto.replace(" ", "")
+
+                if "," in importe_normalizado:
+                    importe_normalizado = (
+                        importe_normalizado
+                        .replace(".", "")
+                        .replace(",", ".")
+                    )
+
+                importe_cuota = Decimal(importe_normalizado)
+
+                if importe_cuota < 0:
+                    errores.append(
+                        "El importe de cuota no puede ser negativo."
+                    )
+
+            except InvalidOperation:
+                errores.append(
+                    "El importe de cuota no es válido."
+        )
 
         if not tipo_seguro:
             errores.append("Debe seleccionar un tipo de seguro.")
@@ -1064,6 +1104,11 @@ def editar_poliza(request, poliza_id):
                 compania,
             ),
             (
+                "Importe de cuota",
+                poliza.importe_cuota,
+                importe_cuota,
+            ),
+            (
                 "Número de póliza",
                 poliza.numero_poliza,
                 numero_poliza,
@@ -1115,6 +1160,7 @@ def editar_poliza(request, poliza_id):
         poliza.tipo_seguro = tipo_seguro
         poliza.compania = compania
         poliza.porcentaje_comision = request.POST.get("porcentaje_comision") or 0
+        poliza.importe_cuota = importe_cuota
         poliza.numero_poliza = numero_poliza
         poliza.fecha_alta = fecha_alta
         poliza.fecha_vencimiento = fecha_vencimiento

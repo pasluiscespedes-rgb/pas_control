@@ -140,6 +140,18 @@
                    placeholder="Ej: 15.00"
                 >
 
+                <label>Importe de cuota</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="text"
+                    name="importe_cuota"
+                    id="importe_cuota"
+                    inputmode="decimal"
+                    placeholder="Ej: 100.000,00"
+                    value="{{ datos.importe_cuota|default:'' }}"
+                >
+
                 <input class="form-control mb-3"
                       type="text"
                       name="numero_poliza"
