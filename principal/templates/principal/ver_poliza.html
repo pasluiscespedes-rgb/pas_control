@@ -231,27 +231,23 @@ Uso
 </a>
 {% endif %}   
 
+{% if not poliza.numero_poliza %}
+
+<a href="{% url 'imprimir_poliza' poliza.id %}"
+   class="btn btn-warning"
+   target="_blank">
+    🖨️ Imprimir Póliza Provisoria
+</a>
+
+{% else %}
+
 <a href="{% url 'imprimir_poliza' poliza.id %}"
    class="btn btn-primary"
    target="_blank">
-
-    🖨️ PDF
-
+    🖨️ Imprimir Póliza Definitiva
 </a>
 
-<a href="{% url 'imprimir_poliza' poliza.id %}"
-   class="btn btn-success"
-   target="_blank">
-
-📲 Generar PDF
-
-</a>
-
-<a href="/polizas/{{ poliza.id }}/pdf/"
-   target="_blank"
-   class="btn btn-primary">
-    🖨️ Imprimir póliza provisoria
-</a>
+{% endif %}
 
 {% if poliza.estado != "Anulada" %}
     <a href="{% url 'anular_poliza' poliza.id %}"

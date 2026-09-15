@@ -38,7 +38,15 @@
                 <tbody>
                     {% for poliza in polizas %}
                     <tr>
-                        <td>{{ poliza.numero_poliza }}</td>
+                        <td>
+                            {% if poliza.numero_poliza %}
+                                {{ poliza.numero_poliza }}
+                            {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    🟨 PROVISORIA
+                                </span>
+                            {% endif %}
+                        </td>
                         <td>{{ poliza.cliente }}</td>
                         <td>{{ poliza.compania|default:"SIN COMPAÑÍA" }}</td>
                         <td>{{ poliza.numero_cuota }} / {{ poliza.cantidad_cuotas }}</td>

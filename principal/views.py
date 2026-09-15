@@ -901,7 +901,10 @@ def crear_poliza(request, cliente_id=None):
            cliente=cliente,
            tipo="poliza",
            titulo="Póliza registrada",
-           descripcion=f"Se registró la póliza N° {poliza.numero_poliza}.",
+           descripcion=(f"Se registró la póliza N° {poliza.numero_poliza}."
+            if poliza.numero_poliza
+            else "Se registró una póliza provisoria."
+),
            usuario=request.user,
         )
 
@@ -1686,9 +1689,22 @@ def completar_poliza(request, poliza_id):
     poliza = Poliza.objects.get(id=poliza_id)
 
     if request.method == "POST":
-        poliza.numero_poliza = request.POST.get("numero_poliza")
+        numero_poliza = request.POST.get("numero_poliza", "").strip().upper()
+
+        poliza.numero_poliza = numero_poliza
         poliza.estado = "Vigente"
         poliza.save()
+
+        MovimientoCliente.objects.create(
+            cliente=poliza.cliente,
+            tipo="poliza",
+            titulo="Póliza completada",
+            descripcion=(
+                f"Póliza provisoria convertida en definitiva. "
+                f"Número asignado: {numero_poliza}."
+            ),
+            usuario=request.user if request.user.is_authenticated else None,
+        )
 
         return redirect("ver_poliza", poliza_id=poliza.id)
 
@@ -1783,12 +1799,18 @@ def imprimir_poliza(request, poliza_id):
 )
 
     # Título del documento
+    titulo_poliza = (
+    "PÓLIZA PROVISORIA"
+    if not poliza.numero_poliza
+    else "PÓLIZA DEFINITIVA"
+)
+
     p.setFillColor(colors.black)
     p.setFont("Helvetica-Bold", 16)
     p.drawRightString(
         19.0 * cm,
         alto - 2.00 * cm,
-        "PÓLIZA PROVISORIA"
+        titulo_poliza
 )
 
     p.setFont("Helvetica", 10)
@@ -2038,29 +2060,49 @@ def imprimir_poliza(request, poliza_id):
         6
     )
 
+    texto_documento = (
+    "DOCUMENTO PROVISORIO"
+    if not poliza.numero_poliza
+    else "DOCUMENTO DEFINITIVO"
+    )
+
     p.setFillColor(azul)
     p.setFont("Helvetica-Bold", 10)
     p.drawString(
         1.9 * cm,
         y5 - 0.65 * cm,
-        "DOCUMENTO PROVISORIO"
-    )
+        texto_documento
+)
 
-    p.setFillColor(colors.black)
-    p.setFont("Helvetica-Bold", 9)
-    p.drawString(
-        1.9 * cm,
-        y5 - 1.20 * cm,
-        "SUJETO A EMISIÓN DEFINITIVA POR LA ASEGURADORA"
-    )
+    if not poliza.numero_poliza:
+        texto_aviso = "SUJETO A EMISIÓN DEFINITIVA POR LA ASEGURADORA"
+        texto_detalle = (
+            "Esta constancia acredita la solicitud de cobertura "
+            "y debe conservarse hasta la emisión definitiva."
+        )
+    else:
+        texto_aviso = "NÚMERO DE PÓLIZA ASIGNADO POR LA ASEGURADORA"
+        texto_detalle = (
+            "Conservar este documento junto con la documentación "
+            "emitida por la aseguradora."
+        )
 
-    p.setFillColor(gris)
-    p.setFont("Helvetica", 8.5)
-    p.drawString(
-        1.9 * cm,
-        y5 - 1.65 * cm,
-        "Esta constancia acredita la solicitud de cobertura y debe conservarse hasta la emisión definitiva."
-    )
+        p.setFillColor(colors.black)
+        p.setFont("Helvetica-Bold", 9)
+        p.drawString(
+            1.9 * cm,
+            y5 - 1.20 * cm,
+            texto_aviso
+        )
+
+        p.setFillColor(gris)
+        p.setFont("Helvetica", 8.5)
+        p.drawString(
+            1.9 * cm,
+            y5 - 1.65 * cm,
+            texto_detalle
+        )
+
     p.showPage()
     p.save()
 
