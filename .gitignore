@@ -15,3 +15,13 @@ staticfiles/
 datos_fortex_railway.json
 private_key.pem
 public_key.pem
+
+*.partial
+# Track only the backup service source files.
+!/ops/backups/
+/ops/backups/*
+!/ops/backups/Dockerfile
+!/ops/backups/backup.py
+!/ops/backups/requirements.txt
+!/ops/backups/.dockerignore
+!/ops/backups/README.md

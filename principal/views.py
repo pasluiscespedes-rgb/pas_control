@@ -31,8 +31,6 @@ from django.shortcuts import render, redirect
 from .models import GastoCaja, Aseguradora, CierreCaja, TurnoCaja, PerfilUsuario, Sucursal
 from decimal import Decimal, InvalidOperation
 from django.contrib import messages
-from backup_db import crear_backup
-import subprocess
 from pathlib import Path
 from django.utils import timezone
 from principal.whatsapp import (enviar_recordatorio_vencimiento,enviar_cuota_vencida,obtener_importe_referencia,)
@@ -2714,19 +2712,6 @@ def cerrar_caja(request):
         "fecha_cierre",
     ]
 )
-
-    script_backup = Path(settings.BASE_DIR) / "pas_control" / "backup_postgres.ps1"
-
-    subprocess.run(
-    [
-        "powershell.exe",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        str(script_backup),
-    ],
-    check=True,
-    )
 
     messages.success(
         request,
