@@ -194,8 +194,18 @@ class Backblaze:
             self.api = B2Api(InMemoryAccountInfo(), max_upload_workers=1, max_copy_workers=1,
                              max_download_workers=1, max_download_streams_per_file=1,
                              api_config=B2HttpApiConfig(http_session_factory=session_factory))
-            self.api.authorize_account(self.config.key_id, self.config.key)
-            self.bucket = self.api.get_bucket_by_name(self.config.bucket)
+            try:
+                self.api.authorize_account(self.config.key_id, self.config.key)
+            except BackupError:
+                raise
+            except Exception:
+                raise BackupError("backblaze_authorize_failed") from None
+            try:
+                self.bucket = self.api.get_bucket_by_name(self.config.bucket)
+            except BackupError:
+                raise
+            except Exception:
+                raise BackupError("backblaze_bucket_lookup_failed") from None
             if self.bucket.name != self.config.bucket:
                 raise BackupError("unexpected_bucket")
             return self
