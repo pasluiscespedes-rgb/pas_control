@@ -29,6 +29,8 @@ MAX_ATTEMPTS = 3
 class BackupError(Exception):
     """Arguments must be controlled error codes, never external error messages."""
 
+    exception_type: str | None = None
+
 
 def event(name: str, run_id: str, **values: object) -> None:
     print(json.dumps({"timestamp": datetime.now(timezone.utc).isoformat(),
@@ -58,8 +60,8 @@ class Config:
         prefix = env.get("B2_PREFIX", "backups/")
         if not re.fullmatch(r"[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*/", prefix):
             raise BackupError("invalid_object_prefix")
-        return cls({k: env[k] for k in PG_KEYS}, env["B2_APPLICATION_KEY_ID"],
-                   env["B2_APPLICATION_KEY"], env["B2_BUCKET_NAME"], prefix)
+        return cls({k: env[k] for k in PG_KEYS}, env["B2_APPLICATION_KEY_ID"].strip(),
+                   env["B2_APPLICATION_KEY"].strip(), env["B2_BUCKET_NAME"], prefix)
 
     def child_env(self) -> dict[str, str]:
         # No inherited PGSERVICE, public URL, B2 keys, proxies or libpq overrides.
@@ -198,8 +200,10 @@ class Backblaze:
                 self.api.authorize_account(self.config.key_id, self.config.key)
             except BackupError:
                 raise
-            except Exception:
-                raise BackupError("backblaze_authorize_failed") from None
+            except Exception as error:
+                failure = BackupError("backblaze_authorize_failed")
+                failure.exception_type = type(error).__name__
+                raise failure from None
             try:
                 self.bucket = self.api.get_bucket_by_name(self.config.bucket)
             except BackupError:
@@ -325,7 +329,10 @@ def main() -> int:
         return 0
     except BaseException as error:
         code = str(error) if isinstance(error, BackupError) else "operation_failed"
-        event("ERROR", run_id, stage=stage, code=code,
+        details = {}
+        if isinstance(error, BackupError) and error.exception_type is not None:
+            details["exception_type"] = error.exception_type
+        event("ERROR", run_id, stage=stage, code=code, **details,
               duration_seconds=round(time.monotonic() - started, 2))
         return 1
 
