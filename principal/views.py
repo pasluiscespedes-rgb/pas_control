@@ -788,6 +788,11 @@ def crear_poliza(request, cliente_id=None):
             ""
         ).strip().upper()
 
+        cobertura = request.POST.get(
+            "cobertura",
+            ""
+        ).strip().upper()
+
         fecha_alta = request.POST.get("fecha_alta")
         periodicidad = request.POST.get("periodicidad", "").strip()
         estado = request.POST.get("estado")
@@ -886,6 +891,7 @@ def crear_poliza(request, cliente_id=None):
           porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
           importe_cuota=importe_cuota,
           numero_poliza=numero_poliza,
+          cobertura=cobertura,
           fecha_alta=fecha_alta,
           fecha_vencimiento=fecha_vencimiento,
           periodicidad=periodicidad,
@@ -935,6 +941,7 @@ def editar_poliza(request, poliza_id):
         tipo_seguro = request.POST.get("tipo_seguro", "").strip()
         compania = request.POST.get("compania", "").strip()
         numero_poliza = request.POST.get("numero_poliza", "").strip()
+        cobertura = request.POST.get("cobertura", "").strip().upper()
         fecha_alta_texto = request.POST.get("fecha_alta", "").strip()
         periodicidad = request.POST.get("periodicidad", "").strip()
         numero_cuota_texto = request.POST.get("numero_cuota", "").strip()
@@ -1115,6 +1122,11 @@ def editar_poliza(request, poliza_id):
                 numero_poliza,
             ),
             (
+                "Cobertura",
+                poliza.cobertura,
+                cobertura,
+            ),
+            (
                 "Fecha de alta",
                 poliza.fecha_alta,
                 fecha_alta,
@@ -1163,6 +1175,7 @@ def editar_poliza(request, poliza_id):
         poliza.porcentaje_comision = request.POST.get("porcentaje_comision") or 0
         poliza.importe_cuota = importe_cuota
         poliza.numero_poliza = numero_poliza
+        poliza.cobertura = cobertura
         poliza.fecha_alta = fecha_alta
         poliza.fecha_vencimiento = fecha_vencimiento
         poliza.fecha_vencimiento = calcular_proximo_vencimiento(

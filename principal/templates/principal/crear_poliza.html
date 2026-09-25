@@ -158,6 +158,16 @@
                       placeholder="Número de póliza / dejar vacío si es provisoria"
                       value="{{ datos.numero_poliza|default:'' }}">
 
+                <label>Cobertura</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="text"
+                    name="cobertura"
+                    placeholder="Ej: RESPONSABILIDAD CIVIL / TERCEROS COMPLETO"
+                    value="{{ datos.cobertura|default:'' }}"
+                >      
+
                 <label>Fecha de alta</label>
 
                 <input class="form-control mb-3"

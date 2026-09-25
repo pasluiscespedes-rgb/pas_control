@@ -380,7 +380,23 @@ def _procesar_mensaje_entrante(mensaje, nombre_whatsapp=""):
     _enviar_push_whatsapp(
         f"WhatsApp de {nombre_remitente}",
         texto_push[:180],
-    )   
+    )
+
+    try:
+        from nexa.whatsapp import (
+            procesar_mensaje_whatsapp_nexa,
+        )
+
+        procesar_mensaje_whatsapp_nexa(
+            conversacion,
+            objeto_mensaje,
+        )
+
+    except Exception as error:
+        print(
+            "NEXA PROCESAMIENTO ERROR:",
+            repr(error),
+        )  
 
 
 def _procesar_estado(estado):

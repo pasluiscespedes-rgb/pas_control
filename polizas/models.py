@@ -89,6 +89,13 @@ class Poliza(models.Model):
         blank=True
     )
 
+    cobertura = models.CharField(
+    "Cobertura",
+    max_length=150,
+    blank=True,
+    default="",
+    )
+
     fecha_alta = models.DateField(
         "Fecha de alta"
     )

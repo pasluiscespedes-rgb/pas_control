@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'recibos',
     'cobros',
     'mensajeria',
+    'nexa',
 ]
 
 MIDDLEWARE = [
@@ -113,6 +114,14 @@ WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
 META_APP_SECRET = os.getenv("META_APP_SECRET")
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+NEXA_AUTO_REPLY = (
+    os.getenv("NEXA_AUTO_REPLY", "False").lower() == "true"
+)
+
+NEXA_TEST_PHONE = os.getenv(
+    "NEXA_TEST_PHONE",
+    "",
+).strip()
 
 # DATABASES = {
 #     'default': {

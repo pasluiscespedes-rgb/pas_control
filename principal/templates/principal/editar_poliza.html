@@ -138,7 +138,17 @@
                       type="text"
                       name="numero_poliza"
                       placeholder="Número de póliza / dejar vacío si es provisoria"
-                      value="{{ poliza.numero_poliza }}"
+                      value="{{ poliza.numero_poliza }}">
+
+                <label>Cobertura</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="text"
+                    name="cobertura"
+                    placeholder="Ej: RESPONSABILIDAD CIVIL / TERCEROS COMPLETO"
+                    value="{{ poliza.cobertura|default:'' }}"
+                >      
 
                 <label>Fecha de alta</label>
 
