@@ -795,7 +795,7 @@ def responder_consulta_cliente(
             "pago",
             "vence",
             "vencimiento",
-            "debo",
+            
         ]
     ):
         cuota = poliza["proxima_cuota"]
@@ -1133,8 +1133,8 @@ def responder_consulta_cliente(
             "También es importante realizar la denuncia policial "
             "a la brevedad. "
             "No realice acuerdos ni transacciones con terceros. "
-            "Luego comuníquese con FORTEX para continuar "
-            "con la gestión del siniestro."
+            "Luego comuníquese con la oficina de FORTEX, dentro del horario de atención, "
+            "para que un asesor le indique los pasos a seguir y la documentación que debe presentar."
         )
 
         _guardar_interaccion(
