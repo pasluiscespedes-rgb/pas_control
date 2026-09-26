@@ -71,7 +71,7 @@ def obtener_contexto_cliente(cliente):
                 if poliza.fecha_alta:
                     proximo_vencimiento = _sumar_meses(
                         poliza.fecha_alta,
-                        numero,
+                        numero - 1,
                     )
 
                 break
