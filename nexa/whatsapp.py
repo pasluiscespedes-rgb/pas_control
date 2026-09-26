@@ -31,35 +31,7 @@ def procesar_mensaje_whatsapp_nexa(
         False,
     ):
         return False
-
-    telefono_prueba = "".join(
-    caracter
-    for caracter in getattr(
-        settings,
-        "NEXA_TEST_PHONE",
-        "",
-    )
-    if caracter.isdigit()
-    )
-
-    telefono_conversacion = "".join(
-        caracter
-        for caracter in str(
-            getattr(
-                conversacion,
-                "telefono",
-                "",
-            )
-        )
-        if caracter.isdigit()
-    )
-
-    if (
-        not telefono_prueba
-        or telefono_conversacion != telefono_prueba
-    ):
-        return False
-    
+            
     if (
         mensaje_entrante.tipo
         != MensajeWhatsApp.TIPO_TEXTO
