@@ -193,6 +193,21 @@ def _obtener_verificacion_identidad_pendiente(
         .first()
     )
 
+def _demasiados_intentos_verificacion(conversacion):
+    if conversacion is None:
+        return False
+
+    limite = timezone.now() - timedelta(minutes=15)
+
+    intentos = InteraccionNexa.objects.filter(
+        conversacion_whatsapp=conversacion,
+        consulta="Intento de verificación de identidad.",
+        identidad_verificada=False,
+        creada_en__gte=limite,
+    ).count()
+
+    return intentos >= 3
+
 def _obtener_cliente_verificado_temporal(
     conversacion,
 ):
@@ -357,6 +372,32 @@ def responder_consulta_no_vinculada(
         dni, patente = _extraer_datos_verificacion(
             consulta
         )
+
+        if _demasiados_intentos_verificacion(conversacion):
+            respuesta = (
+                "Por seguridad, la verificación de identidad "
+                "quedó bloqueada temporalmente debido a varios "
+                "intentos fallidos. Intentá nuevamente más tarde "
+                "o comunicate con un operador de FORTEX."
+            )
+
+            _guardar_interaccion(
+                cliente=None,
+                consulta="Verificación bloqueada temporalmente.",
+                respuesta=respuesta,
+                estado="derivada",
+                requiere_revision=True,
+                motivo="Demasiados intentos de verificación.",
+                conversacion=conversacion,
+                tipo_interlocutor="cliente_no_verificado",
+                identidad_verificada=False,
+                respuesta_bloqueada_privacidad=True,
+                motivo_bloqueo_privacidad=(
+                    "Límite de intentos de verificación alcanzado."
+                ),
+            )
+
+            return respuesta
 
         if not dni or not patente:
             respuesta = (
