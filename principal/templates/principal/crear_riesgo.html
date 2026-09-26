@@ -30,8 +30,9 @@
             <h3>🛡️ Nuevo Riesgo</h3>
 
             <form method="POST"
-              id="form-riesgo"
-              onsubmit="return confirmarGuardadoRiesgo(event)"
+            id="form-riesgo"
+            enctype="multipart/form-data"
+            onsubmit="return confirmarGuardadoRiesgo(event)"
             >
                 {% csrf_token %}
 
@@ -100,6 +101,142 @@
                     <option>Comercio</option>
                 </select>
 
+         <div class="card border-primary mb-4">
+            <div class="card-body">
+
+                <h5>📄 Lectura automática de Cédula / Tarjeta Verde</h5>
+
+                <p class="text-muted">
+                    Fotografíe el documento o cargue una imagen.
+                    Los datos detectados podrán revisarse antes de guardar.
+                </p>
+
+                <div class="d-flex gap-2 flex-wrap mb-3">
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="btn-abrir-camara"
+                    >
+                        📸 Abrir cámara
+                    </button>
+
+                    <label class="btn btn-outline-primary mb-0">
+                        🖼️ Cargar imagen
+                        <input
+                            type="file"
+                            id="cedula-imagen"
+                            name="cedula_imagen"
+                            accept="image/*"
+                            hidden
+                        >
+                    </label>
+
+                </div>
+
+                <div
+                    id="zona-camara"
+                    class="mb-3"
+                    style="display:none;"
+                >
+                    <div
+                        class="position-relative mx-auto"
+                        style="max-width:640px;"
+                    >
+                        <video
+                            id="video-cedula"
+                            autoplay
+                            playsinline
+                            style="
+                                width:100%;
+                                border-radius:12px;
+                                background:#111;
+                            "
+                        ></video>
+
+                        <div
+                            style="
+                                position:absolute;
+                                left:8%;
+                                right:8%;
+                                top:15%;
+                                bottom:15%;
+                                border:3px solid #00aaff;
+                                border-radius:18px;
+                                pointer-events:none;
+                                box-shadow:0 0 18px #00aaff;
+                            "
+                        ></div>
+                    </div>
+
+                    <div class="text-center mt-2">
+                        <small>
+                            Ubique la cédula dentro del marco azul.
+                        </small>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            id="btn-capturar-cedula"
+                        >
+                            📷 Capturar documento
+                        </button>
+                    </div>
+                </div>
+
+                <canvas
+                    id="canvas-cedula"
+                    style="display:none;"
+                ></canvas>
+
+                <div
+                    id="zona-preview"
+                    class="text-center mb-3"
+                    style="display:none;"
+                >
+                    <img
+                        id="preview-cedula"
+                        alt="Vista previa de la cédula"
+                        style="
+                            max-width:100%;
+                            max-height:350px;
+                            border-radius:12px;
+                            border:2px solid #0d6efd;
+                        "
+                    >
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-warning"
+                    id="btn-leer-cedula"
+                    disabled
+                >
+                    ✨ Leer datos automáticamente
+                </button>
+
+                <div
+                    id="resultado-ocr"
+                    class="mt-3 p-3 border rounded"
+                    style="display:none; white-space:pre-wrap;"
+                ></div>
+
+                <div
+                    id="estado-verificacion-cedula"
+                    class="mt-3"
+                    style="display:none;"
+                ></div>
+
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Si algún dato no puede leerse, podrá completarlo manualmente.
+                    </small>
+                </div>
+
+            </div>
+        </div>       
                 <h5>🚗 Datos del vehículo</h5>
 
                 <input
@@ -353,5 +490,509 @@ actualizarMarcasPorTipo();
 actualizarModelos();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://unpkg.com/@zxing/browser@0.2.1"></script>
+
+<script>
+let streamCedula = null;
+
+const btnAbrirCamara = document.getElementById("btn-abrir-camara");
+const btnCapturarCedula = document.getElementById("btn-capturar-cedula");
+const btnLeerCedula = document.getElementById("btn-leer-cedula");
+
+const zonaCamara = document.getElementById("zona-camara");
+const zonaPreview = document.getElementById("zona-preview");
+
+const videoCedula = document.getElementById("video-cedula");
+const canvasCedula = document.getElementById("canvas-cedula");
+const previewCedula = document.getElementById("preview-cedula");
+const inputCedula = document.getElementById("cedula-imagen");
+
+
+btnAbrirCamara.addEventListener("click", async function() {
+
+    try {
+
+        if (streamCedula) {
+            streamCedula.getTracks().forEach(
+                track => track.stop()
+            );
+        }
+
+        streamCedula = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: {
+                    ideal: "environment"
+                }
+            },
+            audio: false
+        });
+
+        videoCedula.srcObject = streamCedula;
+
+        zonaCamara.style.display = "block";
+
+    } catch (error) {
+
+        alert(
+            "No se pudo acceder a la cámara. " +
+            "Puede cargar una imagen manualmente."
+        );
+
+        console.error(error);
+    }
+});
+
+
+btnCapturarCedula.addEventListener("click", function() {
+
+    if (!videoCedula.videoWidth) {
+        return;
+    }
+
+    canvasCedula.width = videoCedula.videoWidth;
+    canvasCedula.height = videoCedula.videoHeight;
+
+    const contexto = canvasCedula.getContext("2d");
+
+    contexto.drawImage(
+        videoCedula,
+        0,
+        0,
+        canvasCedula.width,
+        canvasCedula.height
+    );
+
+    canvasCedula.toBlob(function(blob) {
+
+        const archivo = new File(
+            [blob],
+            "cedula_capturada.jpg",
+            {
+                type: "image/jpeg"
+            }
+        );
+
+        const transferencia = new DataTransfer();
+
+        transferencia.items.add(archivo);
+
+        inputCedula.files = transferencia.files;
+
+        previewCedula.src = URL.createObjectURL(blob);
+
+        zonaPreview.style.display = "block";
+
+        btnLeerCedula.disabled = false;
+
+    }, "image/jpeg", 0.92);
+
+    if (streamCedula) {
+        streamCedula.getTracks().forEach(
+            track => track.stop()
+        );
+
+        streamCedula = null;
+    }
+
+    zonaCamara.style.display = "none";
+});
+
+
+inputCedula.addEventListener("change", function() {
+
+    const archivo = this.files[0];
+
+    if (!archivo) {
+        return;
+    }
+
+    previewCedula.src = URL.createObjectURL(archivo);
+
+    zonaPreview.style.display = "block";
+
+    btnLeerCedula.disabled = false;
+});
+
+btnLeerCedula.addEventListener("click", async function() {
+
+    const archivo = inputCedula.files[0];
+
+    if (!archivo) {
+        alert("Primero capture o cargue una imagen.");
+        return;
+    }
+
+    const resultadoOCR =
+        document.getElementById("resultado-ocr");
+
+    btnLeerCedula.disabled = true;
+    btnLeerCedula.textContent = "⏳ Leyendo documento...";
+
+    resultadoOCR.style.display = "block";
+    resultadoOCR.textContent =
+        "Analizando la imagen. Aguarde unos segundos...";
+
+    let contenidoQR = "";
+
+    try {
+
+        const worker =
+            await Tesseract.createWorker("spa");
+
+        const resultado =
+            await worker.recognize(archivo);
+
+        const texto =
+            resultado.data.text || "";
+
+        try {
+
+            const lectorQR =
+                new ZXingBrowser.BrowserQRCodeReader();
+
+            const urlImagenQR =
+                URL.createObjectURL(archivo);
+
+            const resultadoQR =
+                await lectorQR.decodeFromImageUrl(
+                    urlImagenQR
+                );
+
+            contenidoQR =
+                resultadoQR.getText();
+
+            URL.revokeObjectURL(
+                urlImagenQR
+            );
+
+        } catch (errorQR) {
+
+            console.warn(
+                "ZXing no pudo leer el QR:",
+                errorQR
+            );
+
+        }
+
+        const textoMayuscula = texto.toUpperCase();
+
+        function extraerDato(etiqueta) {
+
+            const expresion = new RegExp(
+                etiqueta + "\\s*:\\s*([^\\n\\r]+)",
+                "i"
+            );
+
+            const coincidencia = textoMayuscula.match(expresion);
+
+            return coincidencia
+                ? coincidencia[1].trim()
+                : "";
+        }
+
+
+        // PATENTE / DOMINIO
+        let patente = extraerDato("DOMINIO");
+
+        if (patente) {
+            patente = patente
+                .split(/\s+/)[0]
+                .replace(/[^A-Z0-9]/g, "");
+        }
+
+
+        // MARCA
+        let marca = extraerDato("MARCA");
+
+        if (marca) {
+            marca = marca
+                .replace(/[^A-ZÁÉÍÓÚÑ0-9 .-]/g, "")
+                .trim();
+        }
+
+
+        // MODELO
+        let modelo = extraerDato("MODELO");
+
+        if (modelo) {
+            modelo = modelo.trim();
+        }
+
+
+        // CHASIS
+        let chasis = extraerDato("CHASIS") || extraerDato("CUADRO");
+
+        if (chasis) {
+            chasis = chasis
+                .split(/\s+/)[0]
+                .replace(/[^A-Z0-9]/g, "");
+        }
+
+
+        // MOTOR
+        let motor = extraerDato("MOTOR");
+
+        if (motor) {
+            motor = motor
+                .split(/\s+/)[0]
+                .replace(/[^A-Z0-9]/g, "");
+        }
+        const tipoVehiculo = extraerDato("TIPO");
+        let uso = extraerDato("USO");
+
+        if (uso) {
+            uso = uso.trim().toUpperCase();
+        }
+
+        // ===========================
+        // VERIFICAR OCR CONTRA QR
+        // ===========================
+
+        const estadoVerificacion =
+            document.getElementById("estado-verificacion-cedula");
+
+        estadoVerificacion.style.display = "block";
+
+        if (!contenidoQR) {
+
+            estadoVerificacion.className =
+                "mt-3 alert alert-warning";
+
+            estadoVerificacion.innerHTML =
+                "⚠️ No se pudo leer el QR. " +
+                "Los datos OCR deben revisarse manualmente.";
+
+        } else {
+
+            const qrNormalizado =
+                contenidoQR
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "");
+
+            let patenteNormalizada =
+                patente
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "");
+
+            const formatosPatente = [
+                { plantilla: "LLLNNN", patron: /^[A-Z]{3}[0-9]{3}$/ },
+                { plantilla: "LLNNNLL", patron: /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/ },
+                { plantilla: "LNNNLLL", patron: /^[A-Z][0-9]{3}[A-Z]{3}$/ }
+            ];
+
+            const patentesNormalizadas = formatosPatente
+                .filter(formato => formato.plantilla.length === patenteNormalizada.length)
+                .map(formato => {
+                    const candidata = patenteNormalizada
+                        .split("")
+                        .map((caracter, indice) =>
+                            formato.plantilla[indice] === "L"
+                                ? caracter.replace(/0/g, "O").replace(/1/g, "I")
+                                : caracter.replace(/O/g, "0").replace(/I/g, "1")
+                        )
+                        .join("");
+                    return formato.patron.test(candidata) ? candidata : "";
+                })
+                .filter(Boolean);
+
+            const finalChasis =
+                chasis
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "")
+                    .slice(-7);
+
+            const candidatosPatenteQR =
+                (contenidoQR.toUpperCase().match(/[A-Z0-9]+/g) || [])
+                    .filter(candidato =>
+                        /^(?:[A-Z]{3}[0-9]{3}|[A-Z]{2}[0-9]{3}[A-Z]{2}|[A-Z][0-9]{3}[A-Z]{3})$/.test(candidato)
+                    );
+
+            const patenteVerificada = patentesNormalizadas.find(candidata =>
+                candidatosPatenteQR.includes(candidata)
+            );
+
+            patenteNormalizada =
+                patenteVerificada || patentesNormalizadas[0] || patenteNormalizada;
+
+            console.log("PATENTE OCR:", JSON.stringify(patenteNormalizada));
+            console.log("QR:", JSON.stringify(contenidoQR));
+
+            const coincidePatente = Boolean(patenteVerificada);
+
+            const coincideChasis =
+                finalChasis &&
+                qrNormalizado.includes(
+                    finalChasis
+                );
+
+            if (
+                coincidePatente &&
+                coincideChasis
+            ) {
+
+                estadoVerificacion.className =
+                    "mt-3 alert alert-success";
+
+                estadoVerificacion.innerHTML =
+                    "✅ Documento verificado.<br>" +
+                    "Patente coincide ✅<br>" +
+                    "Chasis coincide ✅";
+
+            } else {
+
+                estadoVerificacion.className =
+                    "mt-3 alert alert-danger";
+
+                estadoVerificacion.innerHTML =
+                    "⚠️ Revisión requerida.<br>" +
+                    "Patente: " +
+                    (coincidePatente ? "✅" : "❌") +
+                    "<br>" +
+                    "Chasis: " +
+                    (coincideChasis ? "✅" : "❌");
+            }
+        }
+
+        // ===========================
+        // COMPLETAR FORMULARIO
+        // ===========================
+
+        const campoPatente =
+            document.querySelector('[name="patente"]');
+
+        const campoMotor =
+            document.querySelector('[name="motor"]');
+
+        const campoChasis =
+            document.querySelector('[name="chasis"]');
+
+
+        if (patente) {
+            campoPatente.value = patente;
+        }
+
+        if (motor) {
+            campoMotor.value = motor;
+        }
+
+        if (chasis) {
+            campoChasis.value = chasis;
+        }
+
+        const campoUso =
+            document.querySelector('[name="uso"]');
+
+        if (uso === "PRIVADO" || uso === "PARTICULAR") {
+            campoUso.value = "Particular";
+        }
+
+
+        // ===========================
+        // SELECCIONAR MARCA
+        // ===========================
+
+        if (tipoVehiculo === "MOTOCICLETA") {
+            tipoRiesgoSelect.value = "Motocicleta";
+            actualizarMarcasPorTipo();
+            actualizarMarcaManual();
+            actualizarModelos();
+        }
+
+        if (marca) {
+
+            const opcionMarca =
+                Array.from(marcaSelect.options).find(function(opcion) {
+
+                    return opcion.value
+                        .trim()
+                        .toUpperCase() === marca;
+                });
+
+            if (opcionMarca) {
+
+                marcaSelect.value = opcionMarca.value;
+
+                actualizarMarcaManual();
+                actualizarModelos();
+
+            } else {
+
+                marcaSelect.value = "OTRA";
+
+                actualizarMarcaManual();
+
+                marcaManual.value = marca;
+            }
+        }
+
+
+        // ===========================
+        // SELECCIONAR MODELO
+        // ===========================
+
+        if (modelo && marcaSelect.value !== "OTRA") {
+
+            const opcionModelo =
+                Array.from(modeloSelect.options).find(function(opcion) {
+
+                    return opcion.value
+                        .trim()
+                        .toUpperCase() === modelo;
+                });
+
+            if (opcionModelo) {
+
+                modeloSelect.value = opcionModelo.value;
+
+                actualizarModeloManual();
+
+            } else {
+
+                modeloSelect.value = "OTRO";
+
+                actualizarModeloManual();
+
+                modeloManual.value = modelo;
+            }
+
+        } else if (modelo) {
+
+            modeloSelect.value = "OTRO";
+
+            actualizarModeloManual();
+
+            modeloManual.value = modelo;
+        }
+        resultadoOCR.textContent =
+            "QR DETECTADO:\n\n" +
+            (contenidoQR || "No se pudo leer el QR.") +
+            "\n\n-------------------------\n\n" +
+            "TEXTO DETECTADO:\n\n" +
+            texto;
+
+        await worker.terminate();
+
+    } catch (error) {
+
+        console.error(
+            "Error OCR:",
+            error
+        );
+
+        resultadoOCR.textContent =
+            "⚠️ No se pudo leer el documento.";
+
+    } finally {
+
+        btnLeerCedula.disabled = false;
+
+        btnLeerCedula.textContent =
+            "✨ Leer datos automáticamente";
+    }
+});
+
+</script>
 </body>
 </html>
