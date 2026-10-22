@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
 
@@ -46,7 +47,7 @@ class AvisosAutomaticosTests(TestCase):
             fecha_alta=self.hoy,
             fecha_vencimiento=(
                 self.hoy
-                + timezone.timedelta(days=1)
+                + timedelta(days=1)
             ),
             periodicidad=periodicidad,
             numero_cuota=numero_cuota,
