@@ -1088,12 +1088,18 @@ def enviar_documentacion_pendiente(
 def obtener_importe_referencia(poliza):
     from cobros.models import Cobro
 
-    # Si la póliza es anual, el importe puede variar mes a mes.
-    if poliza.periodicidad == "Anual":
-        return None
-
     # Si ya se pagaron todas las cuotas, estamos ante una renovación.
     if poliza.numero_cuota >= poliza.cantidad_cuotas:
+        return None
+
+    # El importe cargado en la póliza es la referencia principal
+    # para recordatorios, incluso antes del primer cobro.
+    if poliza.importe_cuota is not None:
+        return poliza.importe_cuota
+
+    # En pólizas anuales sin importe cargado, pedir confirmación
+    # porque el valor puede variar.
+    if poliza.periodicidad == "Anual":
         return None
 
     ultimo_cobro = (
