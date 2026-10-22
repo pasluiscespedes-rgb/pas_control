@@ -211,9 +211,6 @@ def crear_cliente(request):
         if Cliente.objects.filter(dni=dni).exists():
          errores.append("Ya existe un cliente con ese DNI.")
 
-        if Cliente.objects.filter(whatsapp=whatsapp).exists():
-         errores.append("Ya existe un cliente con ese WhatsApp.") 
-
         if errores:
             return render(
               request,
@@ -327,15 +324,6 @@ def editar_cliente(request, cliente_id):
         ).exists():
             errores.append(
                 "Ya existe otro cliente con ese DNI."
-            )
-
-        if Cliente.objects.filter(
-            whatsapp=whatsapp,
-        ).exclude(
-            id=cliente.id,
-        ).exists():
-            errores.append(
-                "Ya existe otro cliente con ese WhatsApp."
             )
 
         if errores:
