@@ -119,9 +119,14 @@ class Poliza(models.Model):
     )
 
     fecha_vencimiento = models.DateField(
-        "Fecha de vencimiento",
+        "Próximo vencimiento de pago",
         null=True,
         blank=True
+    )
+
+    avisos_whatsapp = models.BooleanField(
+        "Recordatorios automáticos por WhatsApp",
+        default=True,
     )
 
     numero_cuota = models.PositiveIntegerField(
@@ -191,12 +196,10 @@ class Poliza(models.Model):
             duracion
          )
 
-         # Primer vencimiento de pago: un mes después del alta.
+         # Si todavía no se informó un vencimiento de pago,
+         # usar la fecha de alta como respaldo.
          if not self.fecha_vencimiento:
-           self.fecha_vencimiento = sumar_meses(
-              self.fecha_alta,
-              1
-            )
+           self.fecha_vencimiento = self.fecha_alta
         
 
       super().save(*args, **kwargs)
