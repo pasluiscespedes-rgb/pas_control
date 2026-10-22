@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
+from django.db.models import F
 from django.utils import timezone
 
 from polizas.models import Poliza
@@ -40,7 +41,9 @@ class Command(BaseCommand):
             Poliza.objects
             .select_related("cliente", "vehiculo")
             .filter(
-                fecha_vencimiento__in=[ayer, manana]
+                fecha_vencimiento__in=[ayer, manana],
+                avisos_whatsapp=True,
+                numero_cuota__lt=F("cantidad_cuotas"),
             )
             .exclude(estado="Anulada")
         )
