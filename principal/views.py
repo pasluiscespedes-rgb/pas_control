@@ -749,10 +749,14 @@ def crear_poliza(request, cliente_id=None):
     clientes = Cliente.objects.all()
     cliente_seleccionado = None
     vehiculos = Vehiculo.objects.all()
-    aseguradoras = Aseguradora.objects.filter(activa=True).order_by("nombre")
+    aseguradoras = Aseguradora.objects.filter(
+        activa=True
+    ).order_by("nombre")
 
     if cliente_id:
-        cliente_seleccionado = Cliente.objects.get(id=cliente_id)
+        cliente_seleccionado = Cliente.objects.get(
+            id=cliente_id
+        )
         vehiculos = Vehiculo.objects.filter(
             cliente=cliente_seleccionado
         )
@@ -763,187 +767,321 @@ def crear_poliza(request, cliente_id=None):
 
         tipo_seguro = request.POST.get(
             "tipo_seguro",
-            ""
+            "",
         ).strip().upper()
 
         compania = request.POST.get(
             "compania",
-            ""
+            "",
         ).strip().upper()
 
         numero_poliza = request.POST.get(
             "numero_poliza",
-            ""
+            "",
         ).strip().upper()
 
         cobertura = request.POST.get(
             "cobertura",
-            ""
+            "",
         ).strip().upper()
 
-        fecha_alta = request.POST.get("fecha_alta")
-        periodicidad = request.POST.get("periodicidad", "").strip()
-        estado = request.POST.get("estado")
-        importe_cuota_texto = request.POST.get(
-            "importe_cuota",
-            ""
+        fecha_alta_texto = request.POST.get(
+            "fecha_alta",
+            "",
         ).strip()
 
-        importe_cuota = None
+        fecha_vencimiento_texto = request.POST.get(
+            "fecha_vencimiento",
+            "",
+        ).strip()
 
-        if importe_cuota_texto:
-            importe_cuota = Decimal(
-                importe_cuota_texto
-                .replace(".", "")
-                .replace(",", ".")
-    )
+        periodicidad = request.POST.get(
+            "periodicidad",
+            "",
+        ).strip()
+
+        estado = request.POST.get(
+            "estado",
+            "",
+        ).strip()
+
+        avisos_whatsapp = (
+            request.POST.get("avisos_whatsapp") == "on"
+        )
+
+        importe_cuota_texto = request.POST.get(
+            "importe_cuota",
+            "",
+        ).strip()
 
         errores = []
-
-        if not cliente_id:
-          errores.append("Debe seleccionar un cliente.")
-
-        if not tipo_seguro:
-          errores.append("Debe seleccionar un tipo de seguro.")
-
-        if not compania:
-          errores.append("Debe ingresar la compañía.")
-
-        if not fecha_alta:
-          errores.append("Debe ingresar la fecha de alta.")
-
-        if not periodicidad:
-          errores.append("Debe seleccionar la periodicidad.")
-
-        if not estado:
-          errores.append("Debe seleccionar el estado.")
-
-        if numero_poliza:
-         if Poliza.objects.filter(numero_poliza__iexact=numero_poliza).exists():
-          errores.append("Ya existe una póliza con ese número.")
-
-         if errores:
-            return render(
-             request,
-            "principal/crear_poliza.html",
-            {
-            "clientes": clientes,
-            "vehiculos": vehiculos,
-            "cliente_seleccionado": cliente_seleccionado,
-            "errores": errores,
-            "datos": request.POST,
-            "aseguradoras":aseguradoras,
-            },  
-        ) 
-
-    
-        cliente = Cliente.objects.get(id=cliente_id)
-
-        vehiculo = (
-          Vehiculo.objects.get(id=vehiculo_id)
-          if vehiculo_id else None
-        )
-
-        fecha_alta = request.POST.get("fecha_alta")
-        fecha_alta = datetime.strptime(fecha_alta, "%Y-%m-%d").date()
-
-        # El primer vencimiento de cuota siempre es un mes después del alta
-        fecha_vencimiento = fecha_alta + relativedelta(months=1)
-
-        if periodicidad == "Mensual":
-          cantidad_cuotas = 1
-
-        elif periodicidad == "Bimestral":
-          cantidad_cuotas = 2
-
-        elif periodicidad == "Trimestral":
-          cantidad_cuotas = 3
-
-        elif periodicidad == "Cuatrimestral":
-          cantidad_cuotas = 4
-
-        elif periodicidad == "Semestral":
-          cantidad_cuotas = 6
-
-        elif periodicidad == "Anual":
-          cantidad_cuotas = 12
-
-        else:
-          cantidad_cuotas = 1 
-
-        poliza = Poliza.objects.create(
-          cliente=cliente,
-          vehiculo=vehiculo,
-          tipo_seguro=tipo_seguro,
-          compania=compania,
-          porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
-          importe_cuota=importe_cuota,
-          numero_poliza=numero_poliza,
-          cobertura=cobertura,
-          fecha_alta=fecha_alta,
-          fecha_vencimiento=fecha_vencimiento,
-          periodicidad=periodicidad,
-          cantidad_cuotas=cantidad_cuotas,
-          numero_cuota=0,
-          estado=request.POST.get("estado") or "Pendiente",
-          observaciones=request.POST.get("observaciones"),
-        )
-
-        MovimientoCliente.objects.create(
-           cliente=cliente,
-           tipo="poliza",
-           titulo="Póliza registrada",
-           descripcion=(f"Se registró la póliza N° {poliza.numero_poliza}."
-        if poliza.numero_poliza
-        else "Se registró una póliza provisoria."
-),
-           usuario=request.user,
-        )
-
-        return redirect("detalle_cliente", cliente_id=cliente.id)
-        
-
-    return render(request, "principal/crear_poliza.html", {
-        "clientes": clientes,
-        "vehiculos": vehiculos,
-        "cliente_seleccionado": cliente_seleccionado,
-        "aseguradoras": aseguradoras,
-    })
-
-@login_required
-def editar_poliza(request, poliza_id):
-    poliza = get_object_or_404(Poliza, id=poliza_id)
-
-    if poliza.estado == "Anulada":
-       messages.warning(
-        request,
-        "Esta póliza está anulada y no puede ser modificada."
-        )
-       return redirect(
-          "detalle_cliente",
-          cliente_id=poliza.cliente.id,
-        )
-
-    if request.method == "POST":
-        vehiculo_id = request.POST.get("vehiculo")
-        tipo_seguro = request.POST.get("tipo_seguro", "").strip()
-        compania = request.POST.get("compania", "").strip()
-        numero_poliza = request.POST.get("numero_poliza", "").strip()
-        cobertura = request.POST.get("cobertura", "").strip().upper()
-        fecha_alta_texto = request.POST.get("fecha_alta", "").strip()
-        periodicidad = request.POST.get("periodicidad", "").strip()
-        numero_cuota_texto = request.POST.get("numero_cuota", "").strip()
-        importe_cuota_texto = request.POST.get("importe_cuota", "").strip()
-        estado = request.POST.get("estado", "").strip()
-        observaciones = request.POST.get("observaciones", "").strip()
-
-        errores = []
-
         importe_cuota = None
 
         if importe_cuota_texto:
             try:
-                importe_normalizado = importe_cuota_texto.replace(" ", "")
+                importe_cuota = Decimal(
+                    importe_cuota_texto
+                    .replace(".", "")
+                    .replace(",", ".")
+                )
+            except InvalidOperation:
+                errores.append(
+                    "El importe de cuota no es válido."
+                )
+
+        if not cliente_id:
+            errores.append(
+                "Debe seleccionar un cliente."
+            )
+
+        if not tipo_seguro:
+            errores.append(
+                "Debe seleccionar un tipo de seguro."
+            )
+
+        if not compania:
+            errores.append(
+                "Debe ingresar la compañía."
+            )
+
+        if not fecha_alta_texto:
+            errores.append(
+                "Debe ingresar la fecha de alta."
+            )
+
+        if not fecha_vencimiento_texto:
+            errores.append(
+                "Debe ingresar el próximo vencimiento de pago."
+            )
+
+        if not periodicidad:
+            errores.append(
+                "Debe seleccionar la periodicidad."
+            )
+
+        if not estado:
+            errores.append(
+                "Debe seleccionar el estado."
+            )
+
+        if (
+            numero_poliza
+            and Poliza.objects.filter(
+                numero_poliza__iexact=numero_poliza
+            ).exists()
+        ):
+            errores.append(
+                "Ya existe una póliza con ese número."
+            )
+
+        cliente = None
+
+        if cliente_id:
+            cliente = Cliente.objects.filter(
+                id=cliente_id
+            ).first()
+
+            if not cliente:
+                errores.append(
+                    "El cliente seleccionado no existe."
+                )
+
+        vehiculo = None
+
+        if vehiculo_id and cliente:
+            vehiculo = Vehiculo.objects.filter(
+                id=vehiculo_id,
+                cliente=cliente,
+            ).first()
+
+            if not vehiculo:
+                errores.append(
+                    "El vehículo seleccionado no pertenece al cliente."
+                )
+
+        fecha_alta = None
+        fecha_vencimiento = None
+
+        if fecha_alta_texto:
+            try:
+                fecha_alta = datetime.strptime(
+                    fecha_alta_texto,
+                    "%Y-%m-%d",
+                ).date()
+            except ValueError:
+                errores.append(
+                    "La fecha de alta no es válida."
+                )
+
+        if fecha_vencimiento_texto:
+            try:
+                fecha_vencimiento = datetime.strptime(
+                    fecha_vencimiento_texto,
+                    "%Y-%m-%d",
+                ).date()
+            except ValueError:
+                errores.append(
+                    "El próximo vencimiento de pago no es válido."
+                )
+
+        if errores:
+            return render(
+                request,
+                "principal/crear_poliza.html",
+                {
+                    "clientes": clientes,
+                    "vehiculos": vehiculos,
+                    "cliente_seleccionado": cliente_seleccionado,
+                    "errores": errores,
+                    "datos": request.POST,
+                    "aseguradoras": aseguradoras,
+                },
+            )
+
+        cuotas_por_periodicidad = {
+            "Mensual": 1,
+            "Bimestral": 2,
+            "Trimestral": 3,
+            "Cuatrimestral": 4,
+            "Semestral": 6,
+            "Anual": 12,
+        }
+
+        cantidad_cuotas = cuotas_por_periodicidad.get(
+            periodicidad,
+            1,
+        )
+
+        poliza = Poliza.objects.create(
+            cliente=cliente,
+            vehiculo=vehiculo,
+            tipo_seguro=tipo_seguro,
+            compania=compania,
+            porcentaje_comision=(
+                request.POST.get("porcentaje_comision")
+                or 0
+            ),
+            importe_cuota=importe_cuota,
+            numero_poliza=numero_poliza,
+            cobertura=cobertura,
+            fecha_alta=fecha_alta,
+            fecha_vencimiento=fecha_vencimiento,
+            periodicidad=periodicidad,
+            cantidad_cuotas=cantidad_cuotas,
+            numero_cuota=0,
+            estado=estado or "Pendiente",
+            avisos_whatsapp=avisos_whatsapp,
+            observaciones=request.POST.get(
+                "observaciones",
+                "",
+            ),
+        )
+
+        MovimientoCliente.objects.create(
+            cliente=cliente,
+            tipo="poliza",
+            titulo="Póliza registrada",
+            descripcion=(
+                f"Se registró la póliza N° "
+                f"{poliza.numero_poliza}."
+                if poliza.numero_poliza
+                else "Se registró una póliza provisoria."
+            ),
+            usuario=request.user,
+        )
+
+        return redirect(
+            "detalle_cliente",
+            cliente_id=cliente.id,
+        )
+
+    return render(
+        request,
+        "principal/crear_poliza.html",
+        {
+            "clientes": clientes,
+            "vehiculos": vehiculos,
+            "cliente_seleccionado": cliente_seleccionado,
+            "aseguradoras": aseguradoras,
+        },
+    )
+
+
+@login_required
+def editar_poliza(request, poliza_id):
+    poliza = get_object_or_404(
+        Poliza,
+        id=poliza_id,
+    )
+
+    if poliza.estado == "Anulada":
+        messages.warning(
+            request,
+            "Esta póliza está anulada y no puede ser modificada.",
+        )
+        return redirect(
+            "detalle_cliente",
+            cliente_id=poliza.cliente.id,
+        )
+
+    if request.method == "POST":
+        vehiculo_id = request.POST.get("vehiculo")
+        tipo_seguro = request.POST.get(
+            "tipo_seguro",
+            "",
+        ).strip()
+        compania = request.POST.get(
+            "compania",
+            "",
+        ).strip()
+        numero_poliza = request.POST.get(
+            "numero_poliza",
+            "",
+        ).strip()
+        cobertura = request.POST.get(
+            "cobertura",
+            "",
+        ).strip().upper()
+        fecha_alta_texto = request.POST.get(
+            "fecha_alta",
+            "",
+        ).strip()
+        fecha_vencimiento_texto = request.POST.get(
+            "fecha_vencimiento",
+            "",
+        ).strip()
+        periodicidad = request.POST.get(
+            "periodicidad",
+            "",
+        ).strip()
+        numero_cuota_texto = request.POST.get(
+            "numero_cuota",
+            "",
+        ).strip()
+        importe_cuota_texto = request.POST.get(
+            "importe_cuota",
+            "",
+        ).strip()
+        estado = request.POST.get(
+            "estado",
+            "",
+        ).strip()
+        observaciones = request.POST.get(
+            "observaciones",
+            "",
+        ).strip()
+        avisos_whatsapp = (
+            request.POST.get("avisos_whatsapp") == "on"
+        )
+
+        errores = []
+        importe_cuota = None
+
+        if importe_cuota_texto:
+            try:
+                importe_normalizado = (
+                    importe_cuota_texto.replace(" ", "")
+                )
 
                 if "," in importe_normalizado:
                     importe_normalizado = (
@@ -952,7 +1090,9 @@ def editar_poliza(request, poliza_id):
                         .replace(",", ".")
                     )
 
-                importe_cuota = Decimal(importe_normalizado)
+                importe_cuota = Decimal(
+                    importe_normalizado
+                )
 
                 if importe_cuota < 0:
                     errores.append(
@@ -962,32 +1102,53 @@ def editar_poliza(request, poliza_id):
             except InvalidOperation:
                 errores.append(
                     "El importe de cuota no es válido."
-        )
+                )
 
         if not tipo_seguro:
-            errores.append("Debe seleccionar un tipo de seguro.")
+            errores.append(
+                "Debe seleccionar un tipo de seguro."
+            )
 
         if not compania:
-            errores.append("Debe ingresar la compañía.")
+            errores.append(
+                "Debe ingresar la compañía."
+            )
 
         if not fecha_alta_texto:
-            errores.append("Debe ingresar la fecha de alta.")
+            errores.append(
+                "Debe ingresar la fecha de alta."
+            )
+
+        if not fecha_vencimiento_texto:
+            errores.append(
+                "Debe ingresar el próximo vencimiento de pago."
+            )
 
         if not periodicidad:
-            errores.append("Debe seleccionar la periodicidad.")
+            errores.append(
+                "Debe seleccionar la periodicidad."
+            )
 
         if not numero_cuota_texto:
-            errores.append("Debe ingresar el número de cuota.")
+            errores.append(
+                "Debe ingresar el número de cuota."
+            )
         elif not numero_cuota_texto.isdigit():
-            errores.append("El número de cuota debe contener solo números.")
+            errores.append(
+                "El número de cuota debe contener solo números."
+            )
 
         if not estado:
-            errores.append("Debe seleccionar el estado.")
+            errores.append(
+                "Debe seleccionar el estado."
+            )
 
         if numero_poliza:
             existe_numero = (
                 Poliza.objects
-                .filter(numero_poliza__iexact=numero_poliza)
+                .filter(
+                    numero_poliza__iexact=numero_poliza
+                )
                 .exclude(id=poliza.id)
                 .exists()
             )
@@ -1011,6 +1172,7 @@ def editar_poliza(request, poliza_id):
                 )
 
         fecha_alta = None
+        fecha_vencimiento = None
 
         if fecha_alta_texto:
             try:
@@ -1023,51 +1185,30 @@ def editar_poliza(request, poliza_id):
                     "La fecha de alta no es válida."
                 )
 
-        if periodicidad == "Mensual":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 1
+        if fecha_vencimiento_texto:
+            try:
+                fecha_vencimiento = datetime.strptime(
+                    fecha_vencimiento_texto,
+                    "%Y-%m-%d",
+                ).date()
+            except ValueError:
+                errores.append(
+                    "El próximo vencimiento de pago no es válido."
+                )
 
-        elif periodicidad == "Bimestral":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 2
+        cuotas_por_periodicidad = {
+            "Mensual": 1,
+            "Bimestral": 2,
+            "Trimestral": 3,
+            "Cuatrimestral": 4,
+            "Semestral": 6,
+            "Anual": 12,
+        }
 
-        elif periodicidad == "Trimestral":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 3
-
-        elif periodicidad == "Cuatrimestral":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 4
-
-        elif periodicidad == "Semestral":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 6
-
-        elif periodicidad == "Anual":
-            fecha_vencimiento = (
-                fecha_alta + relativedelta(months=1)
-                if fecha_alta else None
-            )
-            cantidad_cuotas = 12
-
-        else:
-            fecha_vencimiento = fecha_alta
-            cantidad_cuotas = 1
+        cantidad_cuotas = cuotas_por_periodicidad.get(
+            periodicidad,
+            1,
+        )
 
         if errores:
             return render(
@@ -1120,6 +1261,11 @@ def editar_poliza(request, poliza_id):
                 fecha_alta,
             ),
             (
+                "Próximo vencimiento de pago",
+                poliza.fecha_vencimiento,
+                fecha_vencimiento,
+            ),
+            (
                 "Periodicidad",
                 poliza.periodicidad,
                 periodicidad,
@@ -1133,6 +1279,11 @@ def editar_poliza(request, poliza_id):
                 "Número de cuota",
                 poliza.numero_cuota,
                 numero_cuota,
+            ),
+            (
+                "Avisos WhatsApp",
+                poliza.avisos_whatsapp,
+                avisos_whatsapp,
             ),
             (
                 "Estado",
@@ -1160,29 +1311,25 @@ def editar_poliza(request, poliza_id):
         poliza.vehiculo = vehiculo
         poliza.tipo_seguro = tipo_seguro
         poliza.compania = compania
-        poliza.porcentaje_comision = request.POST.get("porcentaje_comision") or 0
+        poliza.porcentaje_comision = (
+            request.POST.get("porcentaje_comision")
+            or 0
+        )
         poliza.importe_cuota = importe_cuota
         poliza.numero_poliza = numero_poliza
         poliza.cobertura = cobertura
         poliza.fecha_alta = fecha_alta
         poliza.fecha_vencimiento = fecha_vencimiento
-        poliza.fecha_vencimiento = calcular_proximo_vencimiento(
-            fecha_alta,
-            numero_cuota,
-        )
         poliza.cantidad_cuotas = cantidad_cuotas
         poliza.numero_cuota = numero_cuota
+        poliza.avisos_whatsapp = avisos_whatsapp
         poliza.estado = estado
         poliza.observaciones = observaciones
 
-        # Primero guarda para recalcular fecha_fin_vigencia
         poliza.save()
 
-        # Luego calcula el estado real según vencimiento y vigencia
         actualizar_estado_poliza(poliza)
-
-        # Guarda el estado calculado
-        poliza.save() 
+        poliza.save()
 
         if cambios:
             MovimientoCliente.objects.create(
@@ -1205,6 +1352,7 @@ def editar_poliza(request, poliza_id):
             "poliza": poliza,
         },
     )
+
 
 @login_required
 def anular_poliza(request, poliza_id):
