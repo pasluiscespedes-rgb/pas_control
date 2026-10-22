@@ -158,6 +158,32 @@
                       value="{{ poliza.fecha_alta|date:'Y-m-d' }}"
                       required>
 
+                <label>Próximo vencimiento de pago</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="date"
+                    name="fecha_vencimiento"
+                    value="{{ poliza.fecha_vencimiento|date:'Y-m-d' }}"
+                    required
+                >
+
+                <div class="form-check mb-3">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="avisos_whatsapp"
+                        id="avisos_whatsapp"
+                        {% if poliza.avisos_whatsapp %}checked{% endif %}
+                    >
+                    <label class="form-check-label" for="avisos_whatsapp">
+                        Enviar recordatorios automáticos por WhatsApp
+                    </label>
+                    <div class="form-text">
+                        Desmarcar para pruebas, dummies o pólizas sin avisos automáticos.
+                    </div>
+                </div>
+
                 <label>Periodicidad</label>
                 <select class="form-select mb-3" name="periodicidad">
 
