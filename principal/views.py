@@ -1645,41 +1645,48 @@ def crear_cobro(request, cliente_id=None):
           turno=turno_abierto,
         )
 
-        fecha = poliza.fecha_vencimiento or poliza.fecha_alta
-
-        # Corrige datos antiguos dañados:
-        # el vencimiento de pago no puede superar el fin de vigencia.
-        if (
-            poliza.fecha_fin_vigencia
-            and fecha > poliza.fecha_fin_vigencia
-        ):
-            fecha = poliza.fecha_alta
-            poliza.numero_cuota = 0
-
-        print("Fecha alta:", poliza.fecha_alta)
-        print("Fecha vencimiento antes del cobro:", poliza.fecha_vencimiento)
-        print("Fecha usada para calcular:", fecha)
-
-        # Actualizar cuota y vencimiento según las cuotas realmente pagadas
-        poliza.numero_cuota = cuota_final
-
-        # Regla FORTEX:
-        # cuota 1 = fecha de alta
-        # cuota 2 = alta + 1 mes
-        # cuota 3 = alta + 2 meses
-        # cuota 4 = alta + 3 meses
-        meses_desde_alta = cuota_final
-
-        poliza.fecha_vencimiento = calcular_proximo_vencimiento(
-            poliza.fecha_alta,
-            meses_desde_alta,
+        fecha_base_vencimiento = (
+            poliza.fecha_vencimiento
+            or poliza.fecha_alta
         )
 
+        # Corrige únicamente datos antiguos evidentemente dañados.
+        # Las pólizas existentes deberán revisar su próximo vencimiento
+        # antes de activar avisos automáticos.
+        if (
+            poliza.fecha_fin_vigencia
+            and fecha_base_vencimiento
+            and fecha_base_vencimiento > poliza.fecha_fin_vigencia
+            and ultima_cuota_cobrada < poliza.cantidad_cuotas
+        ):
+            fecha_base_vencimiento = (
+                calcular_proximo_vencimiento(
+                    poliza.fecha_alta,
+                    ultima_cuota_cobrada,
+                )
+            )
+
+        # La fuente de verdad de cuotas pagadas son los cobros no anulados.
+        poliza.numero_cuota = cuota_final
+
+        if cuota_final >= poliza.cantidad_cuotas:
+            # No queda otra cuota dentro de esta vigencia.
+            # Conservamos el fin de vigencia como referencia operativa.
+            poliza.fecha_vencimiento = (
+                poliza.fecha_fin_vigencia
+                or fecha_base_vencimiento
+            )
+        else:
+            # Avanzar desde el vencimiento real que estaba pendiente,
+            # no desde la fecha de alta.
+            poliza.fecha_vencimiento = (
+                calcular_proximo_vencimiento(
+                    fecha_base_vencimiento,
+                    cantidad,
+                )
+            )
+
         actualizar_estado_poliza(poliza)
-
-        print("Nueva cuota:", poliza.numero_cuota)
-        print("Nuevo vencimiento:", poliza.fecha_vencimiento)
-
         poliza.save()
 
         numero_recibo = generar_numero_recibo()
