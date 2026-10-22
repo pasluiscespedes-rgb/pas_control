@@ -178,6 +178,33 @@
                       style="width: 320px !important; max-width: 320px !important;"
                 >
 
+                <label>Próximo vencimiento de pago</label>
+
+                <input
+                    class="form-control mb-3"
+                    type="date"
+                    name="fecha_vencimiento"
+                    value="{{ datos.fecha_vencimiento|default:'' }}"
+                    required
+                    style="width: 320px !important; max-width: 320px !important;"
+                >
+
+                <div class="form-check mb-3">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        name="avisos_whatsapp"
+                        id="avisos_whatsapp"
+                        {% if not datos or datos.avisos_whatsapp %}checked{% endif %}
+                    >
+                    <label class="form-check-label" for="avisos_whatsapp">
+                        Enviar recordatorios automáticos por WhatsApp
+                    </label>
+                    <div class="form-text">
+                        Desmarcar para pruebas, dummies o pólizas sin avisos automáticos.
+                    </div>
+                </div>
+
                 <label>Periodicidad</label>
                 <select class="form-select mb-3" name="periodicidad">
                     <option>Mensual</option>
