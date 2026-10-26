@@ -87,7 +87,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
     vehiculo = poliza.vehiculo
 
     ancho = 18.00 * cm
-    alto = 8.65 * cm
+    alto = (9.65 if poliza.es_ap else 8.65) * cm
 
     # Marca de agua PAGADO para pagos electrónicos
     if recibo.forma_pago in ("Transferencia", "Tarjeta", "CBU"):
@@ -170,52 +170,55 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     # Caja vehículo
     y2 = y - 4.45 * cm
-    p.roundRect(x + 0.18 * cm, y2 - 1.75 * cm, ancho - 0.36 * cm, 1.65 * cm, 5)
+    p.roundRect(x + 0.18 * cm, y2 - (2.75 if poliza.es_ap else 1.75) * cm, ancho - 0.36 * cm, (2.65 if poliza.es_ap else 1.65) * cm, 5)
 
-    p.setFillColor(AZUL)
-    p.setFont("Helvetica-Bold", 7)
-    p.drawString(x + 0.40 * cm, y2 - 0.45 * cm, "VEHÍCULO:")
+    if poliza.es_ap:
+        dibujar_datos_ap(p, poliza, x + 0.40 * cm, y2 - 0.20 * cm, 17.0 * cm)
+    else:
+        p.setFillColor(AZUL)
+        p.setFont("Helvetica-Bold", 7)
+        p.drawString(x + 0.40 * cm, y2 - 0.45 * cm, "VEHÍCULO:")
 
-    p.setFillColor(NEGRO)
-    texto_ajustado(
-        p,
-        f"{vehiculo.marca} {vehiculo.modelo}",
-        x + 1.85 * cm,
-        y2 - 0.45 * cm,
-        15.6 * cm,
-        "Helvetica-Bold",
-        7.5
+        p.setFillColor(NEGRO)
+        texto_ajustado(
+            p,
+            f"{vehiculo.marca} {vehiculo.modelo}",
+            x + 1.85 * cm,
+            y2 - 0.45 * cm,
+            15.6 * cm,
+            "Helvetica-Bold",
+            7.5
+        )
+
+        p.setStrokeColor(colors.lightgrey)
+        p.line(x + 0.40 * cm, y2 - 0.75 * cm, x + ancho - 0.40 * cm, y2 - 0.75 * cm)
+
+        campo(
+        p, "PATENTE",
+        vehiculo.patente,
+        x + 0.40 * cm,
+        y2 - 1.10 * cm,
+        3.00 * cm
     )
 
-    p.setStrokeColor(colors.lightgrey)
-    p.line(x + 0.40 * cm, y2 - 0.75 * cm, x + ancho - 0.40 * cm, y2 - 0.75 * cm)
+        campo(
+        p, "MOTOR",
+        vehiculo.motor,
+        x + 4.50 * cm,
+        y2 - 1.10 * cm,
+        4.50 * cm
+    )
 
-    campo(
-    p, "PATENTE",
-    vehiculo.patente,
-    x + 0.40 * cm,
-    y2 - 1.10 * cm,
-    3.00 * cm
-)
-
-    campo(
-    p, "MOTOR",
-    vehiculo.motor,
-    x + 4.50 * cm,
-    y2 - 1.10 * cm,
-    4.50 * cm
-)
-
-    campo(
-    p, "CHASIS",
-    vehiculo.chasis,
-    x + 10.20 * cm,
-    y2 - 1.10 * cm,
-    7.00 * cm
-)
+        campo(
+        p, "CHASIS",
+        vehiculo.chasis,
+        x + 10.20 * cm,
+        y2 - 1.10 * cm,
+        7.00 * cm
+    )
 
     # Caja fechas
-    y3 = y - 6.45 * cm
+    y3 = y - (7.45 if poliza.es_ap else 6.45) * cm
     p.setStrokeColor(AZUL)
     p.roundRect(x + 0.18 * cm, y3 - 0.95 * cm, ancho - 0.36 * cm, 0.85 * cm, 5)
 
@@ -240,14 +243,14 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 )
 
     campo(
-    p, "USO:",
-    getattr(vehiculo, "uso", "Particular"),
+    p, "RAMO:" if poliza.es_ap else "USO:",
+    "Accidentes Personales" if poliza.es_ap else getattr(vehiculo, "uso", "Particular"),
     x + 11.50 * cm,
     y3 - 0.38 * cm,
     5.50 * cm
 )
     # Caja pago e identificación profesional
-    y4 = y - 7.50 * cm
+    y4 = y - (8.50 if poliza.es_ap else 7.50) * cm
 
     p.setStrokeColor(AZUL)
     p.roundRect(
@@ -306,7 +309,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
     p.setFillColor(AZUL)
     p.roundRect(
     x + 0.35 * cm,
-    y - 8.60 * cm,
+    y - (9.60 if poliza.es_ap else 8.60) * cm,
     ancho - 0.70 * cm,
     0.42 * cm,
     4,
@@ -317,8 +320,32 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
     p.setFont("Helvetica-Bold", 8)
     p.drawCentredString(
     x + ancho / 2,
-    y - 8.45 * cm,
+    y - (9.45 if poliza.es_ap else 8.45) * cm,
     copia
 )
 
     p.setFillColor(NEGRO)
+
+def dibujar_datos_ap(p, poliza, x, y, ancho):
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+    from xml.sax.saxutils import escape
+
+    filas = (
+        ("ACCIDENTES PERSONALES - ASEGURADO", poliza.asegurado_nombre),
+        ("DOCUMENTO", poliza.asegurado_documento),
+        ("ACTIVIDAD DECLARADA", poliza.actividad_declarada),
+        ("COBERTURA", poliza.cobertura),
+    )
+    # Limitar el alto también con campos completos (hasta 200 caracteres).
+    tam = 7
+    while True:
+        style = ParagraphStyle("AP", fontName="Helvetica", fontSize=tam, leading=tam + 1)
+        parrafos = [Paragraph(f"<b>{titulo}:</b> {escape(valor or 'Sin dato')}", style) for titulo, valor in filas]
+        alturas = [paragraph.wrap(ancho, 100)[1] for paragraph in parrafos]
+        if sum(alturas) + 2 * len(parrafos) <= 65 or tam <= 5:
+            break
+        tam -= 0.25
+    for paragraph, height in zip(parrafos, alturas):
+        paragraph.drawOn(p, x, y - height)
+        y -= height + 2
