@@ -56,3 +56,31 @@ Fase 6. Retirar campos legacy solo tras verificación completa de datos y restau
 
 ## Política de despliegue
 Ninguna de estas fases se fusiona o publica automáticamente. Primero revisar estado real de producción, backups recuperables, compatibilidad de versiones, ventana de mantenimiento y plan de rollback.
+
+
+## Adenda V2: tomador, asegurados y nóminas colectivas (26/10/2026)
+Regla aprobada por el titular: UNA póliza puede cubrir UNA o MUCHAS personas aseguradas, que pueden o no coincidir con el tomador. Ejemplos: tomador cubre esposa; tomador cubre a sí mismo y esposa; empresa tomadora cubre 15 empleados.
+
+Modelo objetivo, NO implementado todavía:
+- Tomador: persona física (Cliente) o persona jurídica (EntidadTomadora con CUIT/razón social y contactos). No forzar que una empresa sea un Cliente con DNI ficticio.
+- Poliza: FK al tomador, aseguradora, número, ramo, vigencia y condiciones. Mantener cliente FK legacy durante transición.
+- AseguradoAP: registro individual asociado a Poliza por FK (NO OneToOne), con identidad vinculable a Cliente cuando exista, o datos mínimos independientes para no obligar a registrar a todos los empleados como clientes comerciales. Validar DNI, fechas y duplicados activos por póliza según condiciones de aseguradora.
+- MovimientoNominaAP: asegurado, tipo ALTA/BAJA/MODIFICACION, fecha de solicitud, fecha de efecto solicitada, fecha de efecto confirmada, estado PENDIENTE/ENVIADO/CONFIRMADO/RECHAZADO, motivo, identificador de endoso, usuario y auditoría. Nunca eliminar historial de asegurados o movimientos.
+- VigenciaCoberturaAP: historial de períodos por asegurado; una baja administrativa no equivale automáticamente a cese de cobertura. Confirmación de aseguradora gobierna fecha efectiva registrada, sin presumir cobertura por falta de respuesta.
+- NominaAP: agrupador opcional de póliza colectiva con versión de nómina, fecha de corte y constancia de envío/confirmación.
+- Beneficiarios: relación independiente cuando corresponda a Vida/AP, no confundida con tomador ni asegurado.
+- Cobros y recibos permanecen vinculados a Poliza. Diferencias de prima por movimientos/endosos deben reconciliarse contra la compañía, no recalcularse silenciosamente.
+
+Corrección del diseño V1: NO es válido asumir que RiesgoAP es OneToOne con Poliza si esa entidad representa al asegurado. Puede existir un encabezado de configuración AP OneToOne, pero las personas aseguradas son una relación OneToMany.
+
+Criterios de aceptación nuevos:
+1. Tomador Pepito y asegurada esposa; ambos con o sin ficha comercial según necesidad.
+2. Pepito tomador y dos asegurados: él y esposa, sin duplicar personas ni póliza.
+3. Empresa tomadora con 15 asegurados y una póliza; baja de uno deja 14 activos una vez confirmada y preserva trazabilidad de los 15.
+4. Baja pendiente de compañía NO desaparece de la nómina ni altera silenciosamente vigencia o prima.
+5. Reingreso de una persona permite nueva vigencia sin borrar baja anterior.
+6. Una misma persona puede figurar en varias pólizas o nóminas sin interferencias.
+7. Rechazo de endoso deja el movimiento auditable y permite corregirlo.
+8. Exportación de nómina y conciliación con endosos/aseguradora, con control de permisos y protección de datos personales.
+
+Orden: actualizar pruebas y esquema de datos en entorno aislado, sin migrar producción; decidir formato de tomador jurídico y si las nóminas se cargan manualmente o importan desde Excel antes de construir UI.
