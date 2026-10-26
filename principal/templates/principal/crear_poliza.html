@@ -54,7 +54,7 @@
                  </div>
                 {% endif %}
 
-                <label>Cliente</label>
+                <label>Cliente / Tomador</label>
                 <select class="form-select mb-3" name="cliente" required>
                     {% if cliente_seleccionado %}
                         <option value="{{ cliente_seleccionado.id }}" selected>
@@ -70,8 +70,9 @@
                     {% endif %}
                 </select>
 
-                <label>Riesgo / Vehículo</label>
+                <div id="riesgo-vehiculo"><label>Riesgo / Vehículo</label>
                 <select class="form-select mb-3" name="vehiculo">
+                    <option value="">Sin vehículo</option>
                     {% for vehiculo in vehiculos %}
                       <option value="{{ vehiculo.id }}">
                         {{ vehiculo.patente }} - {{ vehiculo.marca }} {{ vehiculo.modelo }}
@@ -81,7 +82,8 @@
                     {% endfor %}
                 </select>
 
-                <label>Tipo de seguro</label>
+                </div>
+<label>Tipo de seguro</label>
                 <select class="form-select mb-3" name="tipo_seguro" required>
 
                  <option value="">Seleccione...</option>
@@ -104,7 +106,12 @@
 
                  <option {% if datos.tipo_seguro == "Otro" %}selected{% endif %}>Otro</option>
 
-                 </select>
+                 </select><fieldset id="datos-ap" hidden><legend>Accidentes Personales</legend>
+<label for="asegurado_nombre">Nombre completo del asegurado</label><input class="form-control mb-3" id="asegurado_nombre" name="asegurado_nombre" maxlength="200" value="{{ datos.asegurado_nombre|default:'' }}">
+<label for="asegurado_documento">Documento del asegurado</label><input class="form-control mb-3" id="asegurado_documento" name="asegurado_documento" maxlength="20" value="{{ datos.asegurado_documento|default:'' }}">
+<label for="actividad_declarada">Actividad declarada</label><input class="form-control mb-3" id="actividad_declarada" name="actividad_declarada" maxlength="200" value="{{ datos.actividad_declarada|default:'' }}">
+</fieldset>
+
 
                 <label>Compañía aseguradora</label>
 
@@ -272,5 +279,6 @@ periodicidad.addEventListener(
 actualizarCantidadCuotas();
 
 </script>
+<script src="{% static 'principal/js/poliza_ap.js' %}"></script>
 </body>
 </html>

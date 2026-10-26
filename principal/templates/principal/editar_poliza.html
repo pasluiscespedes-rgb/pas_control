@@ -54,7 +54,7 @@
                  </div>
                 {% endif %}
 
-                <label>Cliente</label>
+                <label>Cliente / Tomador</label>
 
                 <input
                    class="form-control mb-3"
@@ -63,7 +63,7 @@
                    readonly
                 >
 
-                <label>Riesgo / Vehículo</label>
+                <div id="riesgo-vehiculo"><label>Riesgo / Vehículo</label>
 
                 <select class="form-select mb-3" name="vehiculo">
                     <option value="">Sin vehículo</option>
@@ -78,7 +78,8 @@
                    {% endfor %}
                 </select>
 
-                <label>Tipo de seguro</label>
+                </div>
+<label>Tipo de seguro</label>
 
                  <select class="form-select mb-3" name="tipo_seguro" required>
 
@@ -88,7 +89,7 @@
 
                     <option value="Hogar" {% if poliza.tipo_seguro == "Hogar" %}selected{% endif %}>Hogar</option>
 
-                    <option value="Accidentes Personales" {% if poliza.tipo_seguro == "Accidentes Personales" %}selected{% endif %}>Accidentes Personales</option>
+                    <option value="Accidentes Personales" {% if datos.tipo_seguro == "Accidentes Personales" or not datos and poliza.es_ap %}selected{% endif %}>Accidentes Personales</option>
 
                     <option value="Caución" {% if poliza.tipo_seguro == "Caución" %}selected{% endif %}>Caución</option>
 
@@ -100,7 +101,12 @@
 
                     <option value="Otro" {% if poliza.tipo_seguro == "Otro" %}selected{% endif %}>Otro</option>
 
-                </select>
+                </select><fieldset id="datos-ap" hidden><legend>Accidentes Personales</legend>
+<label for="asegurado_nombre">Nombre completo del asegurado</label><input class="form-control mb-3" id="asegurado_nombre" name="asegurado_nombre" maxlength="200" value="{% if datos %}{{ datos.asegurado_nombre }}{% else %}{{ poliza.asegurado_nombre|default:'' }}{% endif %}">
+<label for="asegurado_documento">Documento del asegurado</label><input class="form-control mb-3" id="asegurado_documento" name="asegurado_documento" maxlength="20" value="{% if datos %}{{ datos.asegurado_documento }}{% else %}{{ poliza.asegurado_documento|default:'' }}{% endif %}">
+<label for="actividad_declarada">Actividad declarada</label><input class="form-control mb-3" id="actividad_declarada" name="actividad_declarada" maxlength="200" value="{% if datos %}{{ datos.actividad_declarada }}{% else %}{{ poliza.actividad_declarada|default:'' }}{% endif %}">
+</fieldset>
+
 
 
                 <input class="form-control mb-3"
@@ -263,5 +269,6 @@ periodicidad.addEventListener(
 actualizarCantidadCuotas();
 
 </script>
+<script src="{% static 'principal/js/poliza_ap.js' %}"></script>
 </body>
 </html>

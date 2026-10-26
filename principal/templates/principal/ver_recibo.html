@@ -33,6 +33,13 @@
 
 <p><strong>Tipo:</strong> {{ poliza.tipo_seguro }}</p>
 
+{% if poliza.es_ap %}
+<p><strong>Tomador:</strong> {{ cliente }}</p>
+<p><strong>Asegurado:</strong> {{ poliza.asegurado_nombre }}</p>
+<p><strong>Documento:</strong> {{ poliza.asegurado_documento }}</p>
+<p><strong>Actividad declarada:</strong> {{ poliza.actividad_declarada }}</p>
+<p><strong>Cobertura:</strong> {{ poliza.cobertura }}</p>
+{% else %}
 <p><strong>Vehículo:</strong>
 {% if vehiculo %}
 {{ vehiculo.patente }} -
@@ -42,6 +49,7 @@
 Sin vehículo
 {% endif %}
 </p>
+{% endif %}
 
 <hr>
 

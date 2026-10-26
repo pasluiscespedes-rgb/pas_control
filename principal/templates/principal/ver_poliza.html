@@ -77,7 +77,7 @@ box-shadow:none;
 
 <div class="col-md-6">
 
-<h5>ASEGURADO</h5>
+<h5>{% if poliza.es_ap %}TOMADOR{% else %}ASEGURADO{% endif %}</h5>
 
 <p class="dato">
 
@@ -149,7 +149,13 @@ Vencimiento:
 
 <hr>
 
-{% if vehiculo %}
+{% if poliza.es_ap %}
+<p><strong>Tomador:</strong> {{ cliente }}</p>
+<p><strong>Asegurado:</strong> {{ poliza.asegurado_nombre }}</p>
+<p><strong>Documento:</strong> {{ poliza.asegurado_documento }}</p>
+<p><strong>Actividad declarada:</strong> {{ poliza.actividad_declarada }}</p>
+<p><strong>Cobertura:</strong> {{ poliza.cobertura }}</p>
+{% elif vehiculo %}
 
 <h5>VEHÍCULO ASEGURADO</h5>
 

@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from clientes.models import Cliente
 from vehiculos.models import Vehiculo, MarcaVehiculo, ModeloVehiculo
 from polizas.models import Poliza
+from polizas.forms import DatosAPForm
 from cobros.models import Cobro
 from recibos.models import Recibo
 from datetime import datetime
@@ -803,7 +804,7 @@ def crear_poliza(request, cliente_id=None):
 
         importe_cuota = None
 
-        if importe_cuota_texto:
+        if importe_cuota_texto and tipo_seguro.casefold() != "accidentes personales":
             importe_cuota = Decimal(
                 importe_cuota_texto
                 .replace(".", "")
@@ -811,6 +812,25 @@ def crear_poliza(request, cliente_id=None):
     )
 
         errores = []
+
+        es_ap = tipo_seguro.casefold() == "accidentes personales"
+        datos_ap = {}
+        if es_ap:
+            tipo_seguro = "Accidentes Personales"
+            vehiculo_id = None
+            formulario_ap = DatosAPForm(request.POST)
+            if formulario_ap.is_valid():
+                datos_ap = {
+                    campo: formulario_ap.cleaned_data[campo]
+                    for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura")
+                }
+                importe_cuota = formulario_ap.cleaned_data["importe_cuota"]
+            else:
+                errores.extend(
+                    f"{formulario_ap.fields[campo].label}: {error}"
+                    for campo, mensajes in formulario_ap.errors.items()
+                    for error in mensajes
+                )
 
         if not cliente_id:
           errores.append("Debe seleccionar un cliente.")
@@ -834,7 +854,7 @@ def crear_poliza(request, cliente_id=None):
          if Poliza.objects.filter(numero_poliza__iexact=numero_poliza).exists():
           errores.append("Ya existe una póliza con ese número.")
 
-         if errores:
+        if errores:
             return render(
              request,
             "principal/crear_poliza.html",
@@ -885,10 +905,11 @@ def crear_poliza(request, cliente_id=None):
 
         poliza = Poliza.objects.create(
           cliente=cliente,
+          **{k: v for k, v in datos_ap.items() if k != "cobertura"},
           vehiculo=vehiculo,
           tipo_seguro=tipo_seguro,
           compania=compania,
-          porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
+          porcentaje_comision=(formulario_ap.cleaned_data.get("porcentaje_comision") or 0) if es_ap else (request.POST.get("porcentaje_comision") or 0),
           importe_cuota=importe_cuota,
           numero_poliza=numero_poliza,
           cobertura=cobertura,
@@ -951,9 +972,31 @@ def editar_poliza(request, poliza_id):
 
         errores = []
 
-        importe_cuota = None
+        es_ap = tipo_seguro.casefold() == "accidentes personales"
+        datos_ap = {}
+        if es_ap:
+            tipo_seguro = "Accidentes Personales"
+            vehiculo_id = None
+            formulario_ap = DatosAPForm(request.POST)
+            if formulario_ap.is_valid():
+                datos_ap = {
+                    campo: formulario_ap.cleaned_data[campo]
+                    for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura")
+                }
+                importe_cuota = formulario_ap.cleaned_data["importe_cuota"]
+            else:
+                errores.extend(
+                    f"{formulario_ap.fields[campo].label}: {error}"
+                    for campo, mensajes in formulario_ap.errors.items()
+                    for error in mensajes
+                )
 
-        if importe_cuota_texto:
+        if es_ap != poliza.es_ap and poliza.recibo_set.exists():
+            errores.append("No se puede cambiar entre AP y otro ramo si la póliza tiene recibos. Registre una nueva póliza.")
+
+        importe_cuota = formulario_ap.cleaned_data.get("importe_cuota") if es_ap else None
+
+        if importe_cuota_texto and tipo_seguro.casefold() != "accidentes personales":
             try:
                 importe_normalizado = importe_cuota_texto.replace(" ", "")
 
@@ -1088,6 +1131,7 @@ def editar_poliza(request, poliza_id):
                 {
                     "poliza": poliza,
                     "errores": errores,
+                    "datos": request.POST,
                 },
             )
 
@@ -1096,6 +1140,9 @@ def editar_poliza(request, poliza_id):
         cambios = []
 
         campos = [
+            ("Asegurado AP", poliza.asegurado_nombre, datos_ap.get("asegurado_nombre", poliza.asegurado_nombre)),
+            ("Documento AP", poliza.asegurado_documento, datos_ap.get("asegurado_documento", poliza.asegurado_documento)),
+            ("Actividad AP", poliza.actividad_declarada, datos_ap.get("actividad_declarada", poliza.actividad_declarada)),
             (
                 "Vehículo",
                 str(poliza.vehiculo or "Sin vehículo"),
@@ -1169,10 +1216,12 @@ def editar_poliza(request, poliza_id):
                     f"'{nuevo_texto or 'Sin dato'}'"
                 )
 
+        for campo, valor in datos_ap.items():
+            setattr(poliza, campo, valor)
         poliza.vehiculo = vehiculo
         poliza.tipo_seguro = tipo_seguro
         poliza.compania = compania
-        poliza.porcentaje_comision = request.POST.get("porcentaje_comision") or 0
+        poliza.porcentaje_comision = (formulario_ap.cleaned_data.get("porcentaje_comision") or 0) if es_ap else (request.POST.get("porcentaje_comision") or 0)
         poliza.importe_cuota = importe_cuota
         poliza.numero_poliza = numero_poliza
         poliza.cobertura = cobertura
@@ -1866,7 +1915,7 @@ def imprimir_poliza(request, poliza_id):
     p.drawString(
         1.9 * cm,
         y - 0.65 * cm,
-        "DATOS DEL ASEGURADO"
+        "DATOS DEL TOMADOR" if poliza.es_ap else "DATOS DEL ASEGURADO"
     )
 
     # Datos
@@ -1975,50 +2024,54 @@ def imprimir_poliza(request, poliza_id):
         6
     )
 
-    # Título
-    p.setFillColor(azul)
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(
-        1.9 * cm,
-        y3 - 0.65 * cm,
-        "DATOS DEL VEHÍCULO"
-    )
+    if poliza.es_ap:
+        from principal.fortex_pdf import dibujar_datos_ap
+        dibujar_datos_ap(p, poliza, 1.9 * cm, y3 - 0.65 * cm, 17 * cm)
+    else:
+        # Título
+        p.setFillColor(azul)
+        p.setFont("Helvetica-Bold", 10)
+        p.drawString(
+            1.9 * cm,
+            y3 - 0.65 * cm,
+            "DATOS DEL VEHÍCULO"
+        )
 
-    # Datos
-    p.setFillColor(colors.black)
-    p.setFont("Helvetica", 9)
+        # Datos
+        p.setFillColor(colors.black)
+        p.setFont("Helvetica", 9)
 
-    # Fila 1
-    p.drawString(
-        1.9 * cm,
-        y3 - 1.30 * cm,
-        f"Marca y modelo: {vehiculo.marca} {vehiculo.modelo}"
-    )
+        # Fila 1
+        p.drawString(
+            1.9 * cm,
+            y3 - 1.30 * cm,
+            f"Marca y modelo: {vehiculo.marca} {vehiculo.modelo}"
+        )
 
-    p.drawString(
-        13.0 * cm,
-        y3 - 1.30 * cm,
-        f"Patente: {vehiculo.patente}"
-    )
+        p.drawString(
+            13.0 * cm,
+            y3 - 1.30 * cm,
+            f"Patente: {vehiculo.patente}"
+        )
 
-    # Fila 2
-    p.drawString(
-        1.9 * cm,
-        y3 - 2.00 * cm,
-        f"Motor: {vehiculo.motor}"
-    )
+        # Fila 2
+        p.drawString(
+            1.9 * cm,
+            y3 - 2.00 * cm,
+            f"Motor: {vehiculo.motor}"
+        )
 
-    p.drawString(
-        8.0 * cm,
-        y3 - 2.00 * cm,
-        f"Chasis: {vehiculo.chasis}"
-    )
+        p.drawString(
+            8.0 * cm,
+            y3 - 2.00 * cm,
+            f"Chasis: {vehiculo.chasis}"
+        )
 
-    p.drawString(
-        15.5 * cm,
-        y3 - 2.00 * cm,
-        f"Uso: {vehiculo.uso}"
-    )
+        p.drawString(
+            15.5 * cm,
+            y3 - 2.00 * cm,
+            f"Uso: {vehiculo.uso}"
+        )
 
     # Observaciones
     y4 = y3 - 3.55 * cm

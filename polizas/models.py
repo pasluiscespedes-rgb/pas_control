@@ -155,6 +155,29 @@ class Poliza(models.Model):
     blank=True,
     )
 
+    asegurado_nombre = models.CharField("Nombre completo del asegurado AP", max_length=200, blank=True, default="")
+    asegurado_documento = models.CharField("Documento del asegurado AP", max_length=20, blank=True, default="")
+    actividad_declarada = models.CharField("Actividad declarada AP", max_length=200, blank=True, default="")
+
+    @property
+    def es_ap(self):
+        # También reconoce las pólizas históricas guardadas en mayúsculas.
+        return self.tipo_seguro.strip().casefold() == "accidentes personales"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.es_ap:
+            errores = {}
+            for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura"):
+                if not getattr(self, campo).strip():
+                    errores[campo] = "Este dato es obligatorio para Accidentes Personales."
+            if self.vehiculo_id:
+                errores["vehiculo"] = "Una póliza AP no debe tener vehículo asociado."
+            if errores:
+                raise ValidationError(errores)
+
     def save(self, *args, **kwargs):
       import calendar
 
