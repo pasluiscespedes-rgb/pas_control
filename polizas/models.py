@@ -168,15 +168,11 @@ class Poliza(models.Model):
         from django.core.exceptions import ValidationError
 
         super().clean()
-        if self.es_ap:
-            errores = {}
-            for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura"):
-                if not getattr(self, campo).strip():
-                    errores[campo] = "Este dato es obligatorio para Accidentes Personales."
-            if self.vehiculo_id:
-                errores["vehiculo"] = "Una póliza AP no debe tener vehículo asociado."
-            if errores:
-                raise ValidationError(errores)
+        from .ramos import errores_ap
+
+        errores = errores_ap(self)
+        if errores:
+            raise ValidationError(errores)
 
     def save(self, *args, **kwargs):
       import calendar
