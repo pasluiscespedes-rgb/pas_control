@@ -86,3 +86,42 @@ class ClienteMultipolizaTests(TestCase):
         segunda.refresh_from_db()
         self.assertNotEqual(segunda.estado, "Anulada")
         self.assertEqual(Poliza.objects.filter(cliente=self.cliente).count(), 2)
+
+
+class ContratosPorRamoTests(TestCase):
+    def test_ap_exige_campos_propios_sin_vehiculo(self):
+        from polizas.ramos import errores_ap
+        ap = Poliza(
+            cliente=self._cliente(),
+            tipo_seguro="Accidentes Personales",
+            compania="ASEGURADORA DE PRUEBA",
+            fecha_alta=date(2026, 10, 1),
+        )
+        errores = errores_ap(ap)
+        self.assertEqual(
+            set(errores),
+            {"asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura"},
+        )
+
+    def test_validacion_ap_no_contamina_otros_ramos(self):
+        from polizas.ramos import errores_ap
+        poliza = Poliza(
+            cliente=self._cliente(),
+            tipo_seguro="Hogar",
+            compania="ASEGURADORA DE PRUEBA",
+            fecha_alta=date(2026, 10, 1),
+        )
+        self.assertEqual(errores_ap(poliza), {})
+
+    def test_registro_ramos_reconoce_vehiculo_solo_en_automotor_y_moto(self):
+        from polizas.ramos import configuracion_ramo
+        self.assertTrue(configuracion_ramo("Automotor").requiere_vehiculo)
+        self.assertTrue(configuracion_ramo("Moto").requiere_vehiculo)
+        self.assertFalse(configuracion_ramo("ACCIDENTES PERSONALES").requiere_vehiculo)
+        self.assertFalse(configuracion_ramo("Hogar").requiere_vehiculo)
+
+    def _cliente(self):
+        return Cliente.objects.create(
+            nombre="CLIENTE", apellido="PRUEBA",
+            dni=str(99010000 + Cliente.objects.count()),
+        )
