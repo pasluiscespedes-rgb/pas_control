@@ -182,3 +182,56 @@ class PolizaAPTests(TestCase):
         poliza.refresh_from_db()
         self.assertFalse(poliza.es_ap)
         self.assertEqual(poliza.vehiculo, self.vehiculo)
+
+    def test_ap_importes_y_comision_en_alta_y_edicion(self):
+        for i, importe in enumerate(('10.000,50', '10000.50')):
+            poliza = self.crear(numero_poliza=f'FORMAT-{i}', importe_cuota=importe, porcentaje_comision='10,50')
+            self.assertEqual(poliza.importe_cuota, Decimal('10000.50'))
+            self.assertEqual(poliza.porcentaje_comision, Decimal('10.50'))
+            response = self.client.post(reverse('editar_poliza', args=[poliza.pk]),
+                {**self.data, 'numero_poliza': f'FORMAT-{i}', 'importe_cuota': importe})
+            self.assertEqual(response.status_code, 302)
+            poliza.refresh_from_db()
+            self.assertEqual(poliza.importe_cuota, Decimal('10000.50'))
+
+    def test_ap_entrada_invalida_no_produce_error_500(self):
+        for campo, valor in (('importe_cuota', 'abc'), ('importe_cuota', 'NaN'),
+                             ('importe_cuota', '-1'), ('fecha_alta', '2026-02-31'),
+                             ('periodicidad', 'INVALIDA'), ('porcentaje_comision', '101')):
+            with self.subTest(campo=campo, valor=valor):
+                response = self.client.post(reverse('crear_poliza'), {**self.data, campo: valor})
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.context['errores'])
+                self.assertFalse(Poliza.objects.exists())
+
+    def test_caja_ap_auto_moto_totales_anulados_y_cierre(self):
+        from principal.models import CierreCaja
+        for i, ramo in enumerate(('Accidentes Personales', 'Automotor', 'Moto')):
+            poliza = self.crear(tipo_seguro=ramo, numero_poliza=f'CAJA-{i}')
+            self.cobrar(poliza)
+        # Un anulado queda excluido y los otros dos suman normalmente.
+        cobro = Cobro.objects.latest('pk')
+        cobro.anulado = True
+        cobro.save()
+        response = self.client.get(reverse('caja_diaria'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total'], Decimal('20001.00'))
+        self.assertEqual(response.context['efectivo'], Decimal('20001.00'))
+        response = self.client.post(reverse('cerrar_caja'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CierreCaja.objects.get().total_cobrado, Decimal('20001.00'))
+        self.turno.refresh_from_db()
+        self.assertFalse(self.turno.abierto)
+
+    def test_diagnostico_otros_ramos_sin_vehiculo(self):
+        # Documenta el comportamiento existente, sin habilitar nuevos ramos.
+        for i, ramo in enumerate(('Hogar', 'Caución', 'Agro', 'Vida', 'Comercio', 'Otro')):
+            with self.subTest(ramo=ramo):
+                poliza = self.crear(tipo_seguro=ramo, vehiculo='', numero_poliza=f'RAMO-{i}')
+                self.assertIsNone(poliza.vehiculo_id)
+                self.assertEqual(self.cobrar(poliza).status_code, 302)
+                recibo = Recibo.objects.get(poliza=poliza)
+                with self.assertRaisesRegex(AttributeError, 'marca'):
+                    self.client.get(reverse('recibo_pdf', args=[recibo.pk]))
+                with self.assertRaisesRegex(AttributeError, 'marca'):
+                    self.client.get(reverse('imprimir_poliza', args=[poliza.pk]))

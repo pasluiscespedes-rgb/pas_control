@@ -804,7 +804,7 @@ def crear_poliza(request, cliente_id=None):
 
         importe_cuota = None
 
-        if importe_cuota_texto:
+        if importe_cuota_texto and tipo_seguro.casefold() != "accidentes personales":
             importe_cuota = Decimal(
                 importe_cuota_texto
                 .replace(".", "")
@@ -820,7 +820,11 @@ def crear_poliza(request, cliente_id=None):
             vehiculo_id = None
             formulario_ap = DatosAPForm(request.POST)
             if formulario_ap.is_valid():
-                datos_ap = formulario_ap.cleaned_data
+                datos_ap = {
+                    campo: formulario_ap.cleaned_data[campo]
+                    for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura")
+                }
+                importe_cuota = formulario_ap.cleaned_data["importe_cuota"]
             else:
                 errores.extend(
                     f"{formulario_ap.fields[campo].label}: {error}"
@@ -905,7 +909,7 @@ def crear_poliza(request, cliente_id=None):
           vehiculo=vehiculo,
           tipo_seguro=tipo_seguro,
           compania=compania,
-          porcentaje_comision=request.POST.get("porcentaje_comision") or 0,
+          porcentaje_comision=(formulario_ap.cleaned_data.get("porcentaje_comision") or 0) if es_ap else (request.POST.get("porcentaje_comision") or 0),
           importe_cuota=importe_cuota,
           numero_poliza=numero_poliza,
           cobertura=cobertura,
@@ -975,7 +979,11 @@ def editar_poliza(request, poliza_id):
             vehiculo_id = None
             formulario_ap = DatosAPForm(request.POST)
             if formulario_ap.is_valid():
-                datos_ap = formulario_ap.cleaned_data
+                datos_ap = {
+                    campo: formulario_ap.cleaned_data[campo]
+                    for campo in ("asegurado_nombre", "asegurado_documento", "actividad_declarada", "cobertura")
+                }
+                importe_cuota = formulario_ap.cleaned_data["importe_cuota"]
             else:
                 errores.extend(
                     f"{formulario_ap.fields[campo].label}: {error}"
@@ -986,9 +994,9 @@ def editar_poliza(request, poliza_id):
         if es_ap != poliza.es_ap and poliza.recibo_set.exists():
             errores.append("No se puede cambiar entre AP y otro ramo si la póliza tiene recibos. Registre una nueva póliza.")
 
-        importe_cuota = None
+        importe_cuota = formulario_ap.cleaned_data.get("importe_cuota") if es_ap else None
 
-        if importe_cuota_texto:
+        if importe_cuota_texto and tipo_seguro.casefold() != "accidentes personales":
             try:
                 importe_normalizado = importe_cuota_texto.replace(" ", "")
 
@@ -1213,7 +1221,7 @@ def editar_poliza(request, poliza_id):
         poliza.vehiculo = vehiculo
         poliza.tipo_seguro = tipo_seguro
         poliza.compania = compania
-        poliza.porcentaje_comision = request.POST.get("porcentaje_comision") or 0
+        poliza.porcentaje_comision = (formulario_ap.cleaned_data.get("porcentaje_comision") or 0) if es_ap else (request.POST.get("porcentaje_comision") or 0)
         poliza.importe_cuota = importe_cuota
         poliza.numero_poliza = numero_poliza
         poliza.cobertura = cobertura
