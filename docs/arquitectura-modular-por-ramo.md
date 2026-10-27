@@ -84,3 +84,16 @@ Criterios de aceptación nuevos:
 8. Exportación de nómina y conciliación con endosos/aseguradora, con control de permisos y protección de datos personales.
 
 Orden: actualizar pruebas y esquema de datos en entorno aislado, sin migrar producción; decidir formato de tomador jurídico y si las nóminas se cargan manualmente o importan desde Excel antes de construir UI.
+
+
+## Adenda V3: tomador jurídico y captura documental (26/10/2026)
+Decisiones confirmadas:
+- Si contrata una empresa, registrar RAZÓN SOCIAL legal y CUIT (no CUIL empresarial), no usar nombre de fantasía como identidad. Nombre de fantasía solo dato opcional auxiliar.
+- Persona jurídica es entidad propia; no fabricar DNI ni introducir empresa en Cliente persona física.
+- Nómina AP: ingreso individual por fotografía de frente y dorso del DNI usando cámara documental/teléfono, o carga de archivos fotográficos; siempre conservar alternativa manual.
+- Flujo: obtener dos caras -> extracción OCR/parser -> proponer campos con confianza -> revisión y corrección humana -> validación -> alta en nómina -> registro auditable. Nunca confirmar altas solo por OCR.
+- Reutilizar la infraestructura documental existente de FORTEX, sin copiar ni acoplar el módulo de vehículos; mantener separada lógica de reconocimiento y lógica de seguros.
+- Si OCR falla o no detecta un campo, permitir carga manual; jamás inventar DNI, domicilio, fecha de nacimiento u otros datos.
+- Archivos con datos personales: acceso por permisos, minimización, cifrado en reposo si se almacenan, política de retención/borrado, sin volcar imágenes ni números completos en logs. Evaluar necesidad real de guardar fotografías tras extracción.
+- No confundir capturar DNI con aprobar cobertura: el alta en la aseguradora y su confirmación son procesos separados.
+- Sin despliegue, migraciones ni acceso a datos reales hasta revisión de privacidad, integridad y respaldo.
