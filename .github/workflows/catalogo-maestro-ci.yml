@@ -10,7 +10,7 @@ permissions:
 jobs:
   catalogo-django-postgres:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:18.6
@@ -58,7 +58,13 @@ jobs:
           python manage.py fortex_catalogo_importar --archivo vehiculos/catalogo_maestro/ejemplo_dnrpa_sintetico.csv --codigo CI --titulo "Fichas sintéticas" --aplicar
           python manage.py fortex_catalogo_importar --archivo vehiculos/datos_dnrpa/catalogo_motos_dnrpa_2026.csv --codigo DNRPA_MOTOS_2026 --titulo "Catalogo curado de motovehiculos" --aplicar
           python manage.py fortex_catalogo_importar --archivo vehiculos/datos_dnrpa/catalogo_motos_dnrpa_2026.csv --codigo DNRPA_MOTOS_2026 --titulo "Catalogo curado de motovehiculos" --aplicar
-          python manage.py fortex_catalogo_importar --archivo vehiculos/datos_dnrpa/dnrpa-inscripciones-iniciales-autos-202501.csv --codigo DNRPA_AUTOS_202501 --titulo "DNRPA automotores enero 2025" --licencia "CC BY 4.0" --aplicar
+          for mes in $(seq -w 1 12); do
+            python manage.py fortex_catalogo_importar \
+              --archivo "vehiculos/datos_dnrpa/dnrpa-inscripciones-iniciales-autos-2025${mes}.csv" \
+              --codigo "DNRPA_AUTOS_2025${mes}" \
+              --titulo "DNRPA automotores 2025-${mes}" \
+              --licencia "CC BY 4.0" --aplicar
+          done
           python manage.py fortex_catalogo_auditar
       - name: Sintaxis de JS (sin navegador ni clientes)
         run: |
