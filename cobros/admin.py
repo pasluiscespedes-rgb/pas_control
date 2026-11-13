@@ -3,6 +3,8 @@ from .models import Cobro
 
 @admin.register(Cobro)
 class CobroAdmin(admin.ModelAdmin):
+    readonly_fields = ('anulado', 'anulado_por', 'fecha_anulacion', 'motivo_anulacion')
+
     list_display = (
         "cliente",
         "poliza",

@@ -2,7 +2,10 @@ from datetime import date, timedelta
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.db import transaction
+from recibos.permisos import puede_emitir_recibo, puede_ver_todos_recibos, recibos_visibles
+from django.views.decorators.http import require_POST, require_safe
 
 from clientes.models import Cliente
 from vehiculos.models import Vehiculo, MarcaVehiculo, ModeloVehiculo
@@ -159,14 +162,17 @@ def detalle_cliente(request, cliente_id):
 
     riesgos = Vehiculo.objects.filter(cliente=cliente)
     polizas = Poliza.objects.filter(cliente=cliente)
-    recibos = Recibo.objects.filter(poliza__cliente=cliente).order_by("-fecha")
+    recibos = recibos_visibles(request.user).filter(poliza__cliente=cliente).order_by("-fecha")
     cobros = Cobro.objects.filter(poliza__cliente=cliente).order_by("-fecha_pago")
     movimientos = MovimientoCliente.objects.filter(cliente=cliente).select_related("usuario")
+    if not puede_ver_todos_recibos(request.user):
+        # El texto histórico de estos movimientos puede incluir un número de recibo,
+        # pero el movimiento no identifica inequívocamente el objeto autorizado.
+        movimientos = movimientos.exclude(tipo__in=('cobro', 'recibo'))
 
     for poliza in polizas:
        poliza.ultimo_recibo = (
-        Recibo.objects
-        .filter(poliza=poliza)
+        recibos.filter(poliza=poliza)
         .order_by("-fecha", "-id")
         .first()
     )
@@ -1346,7 +1352,6 @@ def generar_numero_recibo():
 
     return f"R-{ultimo_numero + 1:06d}"
 
-@csrf_exempt
 @login_required
 def crear_cobro_seguro(request, cliente_id=None):
     turno_abierto = TurnoCaja.objects.filter(
@@ -1363,7 +1368,7 @@ def crear_cobro_seguro(request, cliente_id=None):
 
     return crear_cobro(request, cliente_id)
 
-@csrf_exempt
+@transaction.atomic
 def crear_cobro(request, cliente_id=None):
     cliente_seleccionado = None
 
@@ -1386,7 +1391,7 @@ def crear_cobro(request, cliente_id=None):
         plus = request.POST.get("plus", "0").strip()
         plus = plus.replace(".", "").replace(",", ".")
         fecha_pago = request.POST.get("fecha_pago") or date.today()
-        poliza = Poliza.objects.get(
+        poliza = Poliza.objects.select_for_update().get(
             id=request.POST.get("poliza")
         )
 
@@ -1559,6 +1564,15 @@ def crear_cobro(request, cliente_id=None):
 
         )
 
+        if getattr(settings, 'FORTEX_RECEIPT_SECURITY_ENABLED', False):
+            from recibos.autenticidad import capturar
+            recibo.refresh_from_db()
+            cobro.refresh_from_db()
+            capturar(recibo, cobro)
+        else:
+            from recibos.permisos import autorizar_emisor
+            autorizar_emisor(recibo, cobro)
+
         MovimientoCliente.objects.create(
             cliente=poliza.cliente,
             tipo="cobro",
@@ -1581,8 +1595,9 @@ def crear_cobro(request, cliente_id=None):
            "formas_pago": Cobro.FORMAS_PAGO,
         })
 
+@login_required
 def lista_recibos(request):
-    recibos = Recibo.objects.all().order_by("-id")
+    recibos = recibos_visibles(request.user).order_by("-id")
 
     return render(
         request,
@@ -1592,24 +1607,36 @@ def lista_recibos(request):
         },
     )
 
+@login_required
 def ver_recibo(request, recibo_id):
-    recibo = Recibo.objects.get(id=recibo_id)
+    recibo = get_object_or_404(recibos_visibles(request.user), pk=recibo_id)
+    registro = getattr(recibo, 'autenticidad', None)
+    pendiente = registro is not None and registro.fecha_emision is None
 
     return render(request, "principal/ver_recibo.html", {
         "recibo": recibo,
         "poliza": recibo.poliza,
         "cliente": recibo.poliza.cliente,
         "vehiculo": recibo.poliza.vehiculo,
+        "pendiente_emision": pendiente,
+        "puede_emitir": pendiente and puede_emitir_recibo(request.user, registro),
     })
 
+@login_required
+@require_safe
 def recibo_pdf(request, recibo_id):
-    recibo = Recibo.objects.get(id=recibo_id)
+    recibo = get_object_or_404(recibos_visibles(request.user), pk=recibo_id)
+    registro = getattr(recibo, 'autenticidad', None)
+    if registro is not None:
+        from recibos.verificacion_views import pdf_autenticado
+        return pdf_autenticado(registro)
     poliza = recibo.poliza
     cliente = poliza.cliente
     vehiculo = poliza.vehiculo
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="Recibo_{recibo.id}.pdf"'
+    response["Cache-Control"] = "no-store"
 
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import A4
@@ -1662,6 +1689,10 @@ def recibo_pdf(request, recibo_id):
     "COMPROBANTE DEL ASEGURADO"
 )
 
+    p.setFont('Helvetica', 7)
+    p.drawString(1.9 * cm, 19.9 * cm, 'Recibo histórico o sin registro de autenticidad. No verificable por código.')
+    p.drawString(1.9 * cm, 19.55 * cm, 'Este recibo no certifica cobertura ni vigencia de la póliza.')
+
     p.showPage()
     p.save()
 
@@ -1669,19 +1700,18 @@ def recibo_pdf(request, recibo_id):
 
 
 
+@login_required
 def ver_ultimo_recibo(request, cliente_id):
 
     cliente = Cliente.objects.get(id=cliente_id)
 
-    recibo = Recibo.objects.filter(
+    recibo = recibos_visibles(request.user).filter(
         poliza__cliente=cliente
     ).order_by("-id").first()
 
     if not recibo:
-        return HttpResponse(
-            "<h2>Este cliente todavía no posee recibos.</h2>"
-            "<br><a href='/clientes/%d/'>Volver</a>" % cliente.id
-        )
+        from django.http import Http404
+        raise Http404('No hay recibos disponibles para esta consulta.')
 
     return redirect("ver_recibo", recibo_id=recibo.id)
 
@@ -2596,6 +2626,8 @@ def caja_pdf(request):
 
 
 @login_required
+@require_POST
+@csrf_protect
 def abrir_turno(request):
     turno_abierto = TurnoCaja.objects.filter(
         usuario=request.user,
@@ -2638,6 +2670,8 @@ def abrir_turno(request):
     return redirect("caja_diaria")
 
 @login_required
+@require_POST
+@csrf_protect
 def cerrar_caja(request):
     hoy = date.today()
 

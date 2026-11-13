@@ -1,16 +1,46 @@
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils import timezone
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q
+from django.http import Http404
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods
+from polizas.models import Poliza
+from recibos.permisos import recibos_visibles
 
 from .models import Cobro
 from principal.views import calcular_proximo_vencimiento, actualizar_estado_poliza
 
+
+def cobros_anulables(usuario):
+    cobros = Cobro.objects.all()
+    if not usuario.is_active or not usuario.has_perm('cobros.anular_cobro'):
+        return cobros.none()
+    if usuario.is_superuser:
+        return cobros
+    return cobros.filter(
+        Q(autenticidadrecibo__recibo__in=recibos_visibles(usuario))
+        | Q(autenticidadrecibo__isnull=True, registrado_por=usuario)
+    )
+
+
 @login_required
+@permission_required('cobros.anular_cobro', raise_exception=True)
+@require_http_methods(['GET', 'HEAD', 'POST'])
+@csrf_protect
+@transaction.atomic
 def anular_cobro(request, cobro_id):
-    cobro = get_object_or_404(Cobro, id=cobro_id)
+    autorizados = cobros_anulables(request.user)
+    cobro = get_object_or_404(autorizados, id=cobro_id)
 
     if request.method == "POST":
+        # Orden compartido con el alta: poliza, cobro, autenticidad.
+        poliza_bloqueada = Poliza.objects.select_for_update().get(pk=cobro.poliza_id)
+        cobro = get_object_or_404(Cobro.objects.select_for_update(), pk=cobro_id)
+        if not autorizados.filter(pk=cobro.pk).exists():
+            raise Http404
         motivo = request.POST.get("motivo", "").strip()
 
         if not motivo:
@@ -28,7 +58,7 @@ def anular_cobro(request, cobro_id):
         cobro.save()
 
         # Recalcular la póliza después de anular el cobro
-        poliza = cobro.poliza
+        poliza = poliza_bloqueada
 
         cuotas_pagadas = set()
 
@@ -78,6 +108,7 @@ def historial_cobros(request):
     cobros = (
         Cobro.objects
         .select_related("cliente", "poliza", "anulado_por")
+        .annotate(puede_anular=Exists(cobros_anulables(request.user).filter(pk=OuterRef('pk'))))
         .order_by("-fecha_pago", "-id")
     )
 

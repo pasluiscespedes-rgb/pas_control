@@ -5,6 +5,9 @@ from django.conf import settings
 
 
 class Cobro(models.Model):
+    class Meta:
+        permissions = [('anular_cobro', 'Puede anular cobros autorizados')]
+
 
     FORMAS_PAGO = [
         ("Efectivo", "Efectivo"),

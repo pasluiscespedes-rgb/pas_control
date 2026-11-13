@@ -12,11 +12,16 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from recibos.configuracion import configurar_autenticidad
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
+
+# Activación explícita en una futura integración autorizada. Nunca reutilizar SECRET_KEY.
+# JSON {"id-de-clave": "secreto-aleatorio-dedicado"}; no registrar ni versionar su valor.
+FORTEX_RECEIPT_SECURITY_ENABLED, FORTEX_RECEIPT_ACTIVE_KEY, FORTEX_RECEIPT_KEYS = configurar_autenticidad(os.environ)
 
 
 # Quick-start development settings - unsuitable for production
@@ -67,6 +72,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'recibos.infraestructura.VerificadorMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -196,3 +202,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 3600
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
+
+# Limites del verificador: compartidos entre procesos mediante la base de datos.
+FORTEX_VERIFIER_MAX_BODY = 6 * 1024 * 1024
+FORTEX_VERIFIER_PER_IP = 20
+FORTEX_VERIFIER_GLOBAL = 200
+FORTEX_VERIFIER_WINDOW = 60

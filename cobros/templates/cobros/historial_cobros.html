@@ -126,7 +126,7 @@
                         <br>
                         <strong>Fecha de anulación:</strong>
                         {{ cobro.fecha_anulacion|date:"d/m/Y H:i" }}
-                    {% else %}
+                    {% elif cobro.puede_anular %}
                         <a
                             class="boton-anular"
                             href="{% url 'cobros:anular_cobro' cobro.id %}">

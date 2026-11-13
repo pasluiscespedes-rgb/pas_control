@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
+from recibos.verificacion_views import emitir_pdf, verificar_recibo
 
 urlpatterns = [
+    path('recibos/verificar/', verificar_recibo, name='verificar_recibo'),
     path("service-worker.js", views.service_worker, name="service_worker"),
     path("", views.inicio, name="inicio"),
     path("politica-de-privacidad/", views.politica_privacidad, name="politica_privacidad"),
@@ -26,6 +28,7 @@ urlpatterns = [
     path("polizas/<int:poliza_id>/completar/", views.completar_poliza, name="completar_poliza"),
     path("polizas/<int:poliza_id>/pdf/", views.imprimir_poliza, name="imprimir_poliza"),
     path("recibos/<int:recibo_id>/pdf/", views.recibo_pdf, name="recibo_pdf"),
+    path("recibos/<int:recibo_id>/emitir/", emitir_pdf, name="emitir_recibo_pdf"),
     path("vencimientos/",views.centro_vencimientos,name="centro_vencimientos"),
     path("vencimientos/avisos-del-dia/",views.avisos_del_dia,name="avisos_del_dia"),
     path("vencimientos/avisos-del-dia/<int:poliza_id>/whatsapp/",views.enviar_aviso_whatsapp,name="enviar_aviso_whatsapp",),

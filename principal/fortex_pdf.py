@@ -124,7 +124,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
     p.drawRightString(
     x + ancho - 0.25 * cm,
     y - 1.65 * cm,
-    f"Fecha: {recibo.fecha.strftime('%d/%m/%Y')}"
+    f"Fecha del recibo: {recibo.fecha.strftime('%d/%m/%Y')}"
 )
 
     # Caja cliente
@@ -174,12 +174,12 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     p.setFillColor(AZUL)
     p.setFont("Helvetica-Bold", 7)
-    p.drawString(x + 0.40 * cm, y2 - 0.45 * cm, "VEHÍCULO:")
+    p.drawString(x + 0.40 * cm, y2 - 0.45 * cm, "VEHÍCULO:" if vehiculo else "RIESGO:")
 
     p.setFillColor(NEGRO)
     texto_ajustado(
         p,
-        f"{vehiculo.marca} {vehiculo.modelo}",
+        f"{vehiculo.marca} {vehiculo.modelo}" if vehiculo else getattr(poliza, 'tipo_seguro', 'Sin vehículo'),
         x + 1.85 * cm,
         y2 - 0.45 * cm,
         15.6 * cm,
@@ -192,7 +192,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "PATENTE",
-    vehiculo.patente,
+    getattr(vehiculo, 'patente', 'No aplica'),
     x + 0.40 * cm,
     y2 - 1.10 * cm,
     3.00 * cm
@@ -200,7 +200,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "MOTOR",
-    vehiculo.motor,
+    getattr(vehiculo, 'motor', 'No aplica'),
     x + 4.50 * cm,
     y2 - 1.10 * cm,
     4.50 * cm
@@ -208,7 +208,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "CHASIS",
-    vehiculo.chasis,
+    getattr(vehiculo, 'chasis', 'No aplica'),
     x + 10.20 * cm,
     y2 - 1.10 * cm,
     7.00 * cm
@@ -232,7 +232,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 )
 
     campo(
-    p, "FECHA DE VENCIMIENTO:",
+    p, "VENCIMIENTO DE CUOTA:",
     vencimiento_recibo.strftime("%d/%m/%Y"),
     x + 5.40 * cm,
     y3 - 0.38 * cm,
@@ -241,7 +241,7 @@ def dibujar_recibo_fortex(p, recibo, x, y, copia):
 
     campo(
     p, "USO:",
-    getattr(vehiculo, "uso", "Particular"),
+    getattr(vehiculo, "uso", "No aplica"),
     x + 11.50 * cm,
     y3 - 0.38 * cm,
     5.50 * cm

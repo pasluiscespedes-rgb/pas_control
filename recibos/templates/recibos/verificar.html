@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verificar recibo FORTEX</title></head>
+<body><main><h1>Verificar recibo FORTEX</h1>
+<p>Ingrese el código y seleccione el PDF completo. Un código por sí solo no autentica el documento.</p>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button type="submit">Verificar</button></form>
+{% if resultado %}<p role="status">Resultado: <strong>{{ resultado }}</strong></p>{% endif %}
+<p>AUTENTICO: archivo idéntico al emitido por FORTEX, sin anulación registrada del documento al consultar.</p>
+<p>DOCUMENTO_NO_COINCIDE: el archivo fue modificado o no corresponde al código.</p>
+<p>ANULADO: no utilizar el comprobante. REGISTRO_INCONSISTENTE: contactar a FORTEX.</p>
+<p>NO_VERIFICABLE: código inexistente o recibo histórico sin certificación. No implica falsificación.</p>
+<p>Para papel, solicite a FORTEX el cotejo de los datos originales; esta consulta requiere el PDF.</p>
+<p>{{ aviso }}</p></main></body></html>

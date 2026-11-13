@@ -64,11 +64,20 @@ Sin vehículo
 <div class="text-center">
 
 
-<a href="/recibos/{{ recibo.id }}/pdf/"
+{% if puede_emitir %}
+<form method="post" action="{% url 'emitir_recibo_pdf' recibo.id %}" class="d-inline">
+    {% csrf_token %}
+    <button class="btn btn-primary" type="submit">Emitir recibo</button>
+</form>
+{% elif pendiente_emision %}
+<p>El recibo está pendiente de emisión.</p>
+{% else %}
+<a href="{% url 'recibo_pdf' recibo.id %}"
    target="_blank"
    class="btn btn-primary">
     🖨️ Imprimir recibo
 </a>
+{% endif %}
 
 <a href="/clientes/{{ cliente.id }}/"
 class="btn btn-primary">

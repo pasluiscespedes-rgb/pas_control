@@ -466,10 +466,10 @@ Ficha de {{ cliente.apellido }} {{ cliente.nombre }} | FORTEX
                             <td>$ {{ recibo.importe }}</td>
 
                             <td>
-                                <a href="{% url 'recibo_pdf' recibo.id %}"
+                                <a href="{% url 'ver_recibo' recibo.id %}"
                                    target="_blank"
                                    class="boton-tabla">
-                                    🖨️ Ver recibo
+                                    Ver recibo
                                 </a>
                             </td>
                         </tr>

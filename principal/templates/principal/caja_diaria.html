@@ -91,13 +91,15 @@
                </a>
                {% endif %}
 
-               <a href="{% url 'abrir_turno' %}" class="btn btn-info">
-                  🔓 Abrir turno
-               </a>
+               <form method="post" action="{% url 'abrir_turno' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-info">🔓 Abrir turno</button>
+               </form>
 
-               <a href="{% url 'cerrar_caja' %}" class="btn btn-danger">
-                  🔒 Cerrar caja
-               </a>
+               <form method="post" action="{% url 'cerrar_caja' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger">🔒 Cerrar caja</button>
+               </form>
 
                <a href="#" class="btn btn-primary">
                   📊 Exportar Excel
