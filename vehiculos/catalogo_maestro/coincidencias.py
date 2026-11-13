@@ -23,7 +23,9 @@ def resolver_ocr(marca_texto, modelo_texto, tipo=None, anio=None, limite=5):
     if tipo:
         qs = qs.filter(tipo=tipo)
     # El año es señal adicional, no motivo para borrar un modelo histórico.
-    candidatos = list(qs[:3000])
+    candidatos = list(qs[:3001])
+    if len(candidatos) > 3000:
+        return {'estado': 'REVISAR', 'motivo': 'CATALOGO_EXCESIVO', 'opciones': []}
     exactos = {m.pk: m for m in candidatos if normalizar(m.nombre) == nmodelo}
     ids = list(AliasModeloVehiculo.objects.filter(modelo__in=candidatos, normalizado=nmodelo, aprobada=True)
                .values_list('modelo_id', flat=True))
