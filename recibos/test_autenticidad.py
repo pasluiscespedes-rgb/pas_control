@@ -186,7 +186,8 @@ class AutenticidadTests(TestCase):
         self.assertEqual(verificar('F'*32, pdf), 'NO_VERIFICABLE')
         self.assertEqual(verificar('invalido', pdf), 'NO_VERIFICABLE')
 
-    def test_verificador_publico_no_revela_datos(self):
+    def test_verificador_interno_no_revela_datos(self):
+        self.client.force_login(self.user)
         pdf = emitir(self.recibo.pk)
         response = self.client.post('/recibos/verificar/', {'codigo': self.registro.codigo,
                         'archivo': SimpleUploadedFile('sintetico.pdf', pdf)})
@@ -195,7 +196,13 @@ class AutenticidadTests(TestCase):
         self.assertNotContains(response, '12345.67')
         self.assertEqual(response['Cache-Control'], 'no-store')
 
+    def test_externo_no_puede_abrir_ni_verificar(self):
+        ruta = '/recibos/verificar/'
+        self.assertEqual(self.client.get(ruta).status_code, 302)
+        self.assertEqual(self.client.post(ruta, {}).status_code, 403)
+
     def test_solo_codigo_no_autentica(self):
+        self.client.force_login(self.user)
         response = self.client.post('/recibos/verificar/', {'codigo': self.registro.codigo})
         self.assertIsNone(response.context['resultado'])
 

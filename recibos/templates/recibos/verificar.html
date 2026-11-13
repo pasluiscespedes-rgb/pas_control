@@ -1,12 +1,49 @@
+{% load static %}
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verificar recibo FORTEX</title></head>
-<body><main><h1>Verificar recibo FORTEX</h1>
-<p>Ingrese el código y seleccione el PDF completo. Un código por sí solo no autentica el documento.</p>
-<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button type="submit">Verificar</button></form>
-{% if resultado %}<p role="status">Resultado: <strong>{{ resultado }}</strong></p>{% endif %}
-<p>AUTENTICO: archivo idéntico al emitido por FORTEX, sin anulación registrada del documento al consultar.</p>
-<p>DOCUMENTO_NO_COINCIDE: el archivo fue modificado o no corresponde al código.</p>
-<p>ANULADO: no utilizar el comprobante. REGISTRO_INCONSISTENTE: contactar a FORTEX.</p>
-<p>NO_VERIFICABLE: código inexistente o recibo histórico sin certificación. No implica falsificación.</p>
-<p>Para papel, solicite a FORTEX el cotejo de los datos originales; esta consulta requiere el PDF.</p>
-<p>{{ aviso }}</p></main></body></html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Control interno de recibos | FORTEX</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,"Segoe UI",sans-serif;background:#07111f;color:#e3efff}
+.wrap{width:min(760px,calc(100% - 28px));margin:40px auto}
+.head{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.head img{width:82px;height:82px;object-fit:contain}
+.head h1{font-size:2rem;margin:0}.head p{margin:0;color:#adc8e4}
+.pill{font-size:.73rem;color:#8cceff;border:1px solid #32749c;border-radius:999px;padding:3px 10px;letter-spacing:.08em}
+main{padding:clamp(20px,5vw,34px);background:#0c223b;border:1px solid #245273;border-radius:16px;box-shadow:0 15px 35px #0007}
+h2{margin:0 0 12px}p{color:#c5d7e9}
+label{display:block;font-weight:600;margin:18px 0 8px}
+input[type=text],input[type=file]{display:block;width:100%;max-width:100%;padding:11px;border:1px solid #608bab;background:#081a30;border-radius:8px;color:#fff;font:inherit}
+button,.back{display:inline-block;padding:12px 20px;border:0;border-radius:9px;background:#0d86c9;color:#fff;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
+button{margin-top:20px}.back{margin-top:20px;background:#31516b}
+.note{padding:12px 16px;background:#132e46;border-left:3px solid #64bcf4;border-radius:5px}
+.result{border:1px solid #528ab7;border-radius:9px;margin-top:24px;padding:16px}
+.errorlist{color:#ffbac0}li{margin-bottom:8px}small{color:#9db4cc}
+</style></head>
+<body><div class="wrap">
+<header class="head">
+<img src="{% static 'principal/img/fortex_logo.png' %}" alt="Logo oficial de FORTEX">
+<div><span class="pill">USO EXCLUSIVO DE FORTEX</span><h1>FORTEX</h1><p>Gestión Integral · Control de autenticidad</p></div>
+</header>
+<main>
+<h2>Verificar comprobante digital</h2>
+<p>Acceso exclusivo para usuarios internos autenticados. Se compara el PDF recibido con el original firmado en FORTEX.</p>
+<p class="note">Un recibo impreso no se verifica escaneándolo como PDF: para comprobar un papel debemos cotejar sus datos con el registro auténtico.</p>
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}{{ form.non_field_errors }}
+<label for="{{ form.codigo.id_for_label }}">Código FORTEX (32 caracteres)</label>{{ form.codigo }}{{ form.codigo.errors }}
+<label for="{{ form.archivo.id_for_label }}">PDF original recibido</label>{{ form.archivo }}{{ form.archivo.errors }}
+<button type="submit">🛡️ Verificar documento</button>
+</form>
+{% if resultado %}<section class="result" role="status">Resultado: <strong>{{ resultado }}</strong></section>{% endif %}
+<details style="margin-top:22px"><summary>Interpretación de resultados</summary><ul>
+<li><strong>AUTENTICO:</strong> archivo coincidente, sin anulación registrada.</li>
+<li><strong>DOCUMENTO_NO_COINCIDE:</strong> archivo diferente del original.</li>
+<li><strong>ANULADO:</strong> no aceptar el comprobante.</li>
+<li><strong>REGISTRO_INCONSISTENTE:</strong> consultar al administrador.</li>
+<li><strong>NO_VERIFICABLE:</strong> código inexistente o histórico, no necesariamente falso.</li>
+</ul></details>
+<a class="back" href="{% url 'lista_recibos' %}">← Volver a Recibos</a>
+<p><small>{{ aviso }}</small></p>
+</main></div></body></html>

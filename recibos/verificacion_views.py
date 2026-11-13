@@ -1,5 +1,5 @@
 from django import forms
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -24,8 +24,11 @@ class VerificacionForm(forms.Form):
         return f
 
 
+@login_required
 @require_http_methods(['GET', 'POST'])
 def verificar_recibo(request):
+    if not request.user.is_active:
+        raise PermissionDenied('Acceso interno FORTEX.')
     form = VerificacionForm(request.POST or None, request.FILES or None)
     resultado = None
     if request.method == 'POST' and form.is_valid():

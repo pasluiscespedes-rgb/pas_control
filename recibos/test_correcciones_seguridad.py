@@ -131,13 +131,14 @@ class CorreccionesSeguridadTests(TestCase):
         self.user.user_permissions.add(Permission.objects.get(content_type__app_label='cobros', codename='anular_cobro'))
         self.assertEqual(operador.post(reverse('cobros:anular_cobro', args=[self.cobro.pk]),
                                       {'motivo': 'Sintético'}, **token).status_code, 302)
-        public = Client(enforce_csrf_checks=True)
+        interno = Client(enforce_csrf_checks=True)
+        interno.force_login(self.user)
         ruta = reverse('verificar_recibo')
-        public.get(ruta)
+        interno.get(ruta)
         for archivo, expected in ((pdf + b'cambio', 'DOCUMENTO_NO_COINCIDE'), (pdf, 'ANULADO')):
-            result = public.post(ruta, {'codigo': self.registro.codigo,
-                                       'archivo': SimpleUploadedFile('sintetico.pdf', archivo)},
-                                 HTTP_X_CSRFTOKEN=public.cookies['csrftoken'].value)
+            result = interno.post(ruta, {'codigo': self.registro.codigo,
+                                        'archivo': SimpleUploadedFile('sintetico.pdf', archivo)},
+                                  HTTP_X_CSRFTOKEN=interno.cookies['csrftoken'].value)
             self.assertEqual(result.context['resultado'], expected)
             self.assertNotContains(result, self.cliente.apellido)
 

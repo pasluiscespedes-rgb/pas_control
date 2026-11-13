@@ -69,6 +69,11 @@ class VerificadorMiddleware:
         except Resolver404:
             target = False
         if target and request.method == 'POST':
+            # El middleware de autenticacion precede a este control.
+            # Usuarios externos no verifican documentos ni consumen cuota.
+            usuario = getattr(request, 'user', None)
+            if not usuario or not usuario.is_authenticated or not usuario.is_active:
+                return rechazo('Acceso interno FORTEX: iniciar sesion.', 403)
             # Exigir longitud conocida. El limite del reverse proxy sigue siendo necesario
             # para frenar el cuerpo antes de que WSGI/ASGI lo reciba o lo almacene.
             try:

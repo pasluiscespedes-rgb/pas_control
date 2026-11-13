@@ -111,12 +111,13 @@ class FlujosIntegradosTests(TestCase):
             self.assertIn(old, pdf)
             altered = pdf.replace(old, new, 1)
             self.assertEqual(verificar(registro.codigo, altered), 'DOCUMENTO_NO_COINCIDE')
-        # Ruta publica real, CSRF real, ningun dato del cliente en la respuesta.
-        public = Client(enforce_csrf_checks=True)
-        public.get(reverse('verificar_recibo'))
-        result = public.post(reverse('verificar_recibo'), {'codigo': registro.codigo,
+        # Ruta interna autenticada y CSRF real.
+        interno = Client(enforce_csrf_checks=True)
+        interno.force_login(self.user)
+        interno.get(reverse('verificar_recibo'))
+        result = interno.post(reverse('verificar_recibo'), {'codigo': registro.codigo,
             'archivo': SimpleUploadedFile('sintetico.pdf', pdf)},
-            HTTP_X_CSRFTOKEN=public.cookies['csrftoken'].value)
+            HTTP_X_CSRFTOKEN=interno.cookies['csrftoken'].value)
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.context['resultado'], 'AUTENTICO')
         self.assertNotContains(result, self.cliente.apellido)
@@ -195,6 +196,10 @@ class FlujosIntegradosTests(TestCase):
 
 
 class InfraestructuraTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='verificador_interno')
+        self.client.force_login(self.user)
+
     def post(self, ip='127.0.0.1'):
         return self.client.post(reverse('verificar_recibo'), {}, REMOTE_ADDR=ip)
 
@@ -202,6 +207,7 @@ class InfraestructuraTests(TestCase):
         with override_settings(FORTEX_VERIFIER_PER_IP=2):
             self.assertEqual(self.post().status_code, 200)
             other = Client()
+            other.force_login(self.user)
             self.assertEqual(other.post(reverse('verificar_recibo'), {},
                                         HTTP_X_FORWARDED_FOR='1.2.3.4').status_code, 200)
             response = self.post()
@@ -230,6 +236,7 @@ class InfraestructuraTests(TestCase):
     def test_limite_http_antes_de_leer_archivo_y_longitud_obligatoria(self):
         middleware = VerificadorMiddleware(lambda request: self.fail('No debe leer ni continuar'))
         req = RequestFactory().post(reverse('verificar_recibo'))
+        req.user = self.user
         req.META['CONTENT_LENGTH'] = str(6*1024*1024 + 1)
         self.assertEqual(middleware(req).status_code, 413)
         del req.META['CONTENT_LENGTH']
