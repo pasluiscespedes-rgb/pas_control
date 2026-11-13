@@ -1188,7 +1188,7 @@ def editar_poliza(request, poliza_id):
         poliza.fecha_vencimiento = fecha_vencimiento
         poliza.fecha_vencimiento = calcular_proximo_vencimiento(
             fecha_alta,
-            numero_cuota,
+            max(1, numero_cuota),  # Sin cobros, conservar primer vencimiento al mes.
         )
         poliza.cantidad_cuotas = cantidad_cuotas
         poliza.numero_cuota = numero_cuota

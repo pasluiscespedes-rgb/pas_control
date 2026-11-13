@@ -49,7 +49,7 @@ class EditarPeriodicidadTests(TestCase):
         self.assertEqual(self.poliza.cantidad_cuotas, 4)
         self.assertEqual(self.poliza.numero_cuota, 0)
         self.assertEqual(self.poliza.fecha_fin_vigencia, date(2027, 3, 1))
-        self.assertEqual(self.poliza.fecha_vencimiento, date(2026, 11, 1))
+        self.assertEqual(self.poliza.fecha_vencimiento, date(2026, 12, 1))
         self.assertEqual(Cobro.objects.count(), 0)
 
     def test_cobro_y_recibo_anteriores_se_conservan(self):
