@@ -101,7 +101,6 @@ def emitir(recibo_id, *, usuario=None):
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import cm
-    from reportlab.graphics.barcode import createBarcodeDrawing
     from cobros.models import Cobro
     cobro_id = AutenticidadRecibo.objects.values_list("cobro_id", flat=True).get(recibo_id=recibo_id)
     cobro = Cobro.objects.select_for_update().get(pk=cobro_id)
@@ -123,21 +122,18 @@ def emitir(recibo_id, *, usuario=None):
     r.fecha_emision = timezone.now()
     output = io.BytesIO()
     p = canvas.Canvas(output, pagesize=A4)
-    dibujar_recibo_fortex(p, objeto_recibo(r.original), 1.50*cm, 29.1*cm,
-                         'COMPROBANTE DEL ASEGURADO')
-    p.setFont('Helvetica', 7)
-    lines = [
-        'Verificación FORTEX: ' + r.codigo,
-        'Pago declarado: ' + r.original['fecha_pago_declarada'] + ' | Registro del cobro: ' +
-        (r.original['fecha_registro'] or 'NO CONSTA'),
-        'Emisión PDF: ' + r.fecha_emision.isoformat(),
-        'Escanee el QR y presente el PDF completo con el código.',
-        AVISO,
-    ]
-    for i, line in enumerate(lines):
-        p.drawString(1.9*cm, (19.9-i*0.35)*cm, line)
-    qr = createBarcodeDrawing('QR', value=verifier_url, width=3.2*cm, height=3.2*cm)
-    qr.drawOn(p, 1.9*cm, 15*cm)
+    dibujar_recibo_fortex(
+        p, objeto_recibo(r.original), 1.50*cm, 29.1*cm,
+        'COMPROBANTE DEL ASEGURADO',
+        verificacion={
+            'codigo': r.codigo,
+            'url': verifier_url,
+            'fecha_pago_declarada': r.original['fecha_pago_declarada'],
+            'fecha_registro': r.original['fecha_registro'] or 'NO CONSTA',
+            'fecha_emision': r.fecha_emision.isoformat(),
+            'importe_original': r.original['importe'],
+        },
+    )
     p.showPage()
     p.save()
     r.pdf = output.getvalue()
