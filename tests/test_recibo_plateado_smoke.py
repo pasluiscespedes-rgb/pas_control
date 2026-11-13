@@ -66,7 +66,7 @@ def main():
         document = PdfReader(BytesIO(data))
         assert len(document.pages) == 1
         text = document.pages[0].extract_text()
-        for expected in ("FORTEX", "VERIFICACIÓN INTERNA", "0123456789ABCDEF0123456789ABCDEF", "40000,00"):
+        for expected in ("FORTEX", "VERIFICACIÓN INTERNA", "0123456789ABCDEF0123456789ABCDEF", "40.000,00"):
             assert expected in text, (method, expected, text[:400])
         assert ("PAGADO" in text) == watermark, ("marca de agua", method)
         (target / f"recibo_sintetico_{method.lower()}.pdf").write_bytes(data)
