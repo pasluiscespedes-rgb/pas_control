@@ -1,0 +1,32 @@
+name: Receipt layout smoke (synthetic)
+
+on:
+  push:
+    branches:
+      - design/recibo-plateado-20261113
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install isolated rendering dependencies
+        run: python -m pip install reportlab==5.0.0 pillow==12.3.0 python-dateutil==2.9.0.post0 pypdf
+      - name: Compile layout, generator and authenticity module
+        run: python -m compileall -q principal/recibo_seguro_layout.py principal/fortex_pdf.py recibos/autenticidad.py
+      - name: Render PDFs and test watermark conditional
+        run: python tests/test_recibo_plateado_smoke.py
+      - name: Save synthetic samples
+        uses: actions/upload-artifact@v4
+        with:
+          name: recibos-plateados-sinteticos
+          path: test-artifacts/
+          retention-days: 3
