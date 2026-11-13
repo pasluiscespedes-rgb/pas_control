@@ -65,7 +65,6 @@
   }
   async function buscarModelos() {
     clearTimeout(temporizador);
-    const esta = ++secuencia;
     const q = buscar.value.trim();
     vaciar();
     // vaciar() cambia el contador para invalidar peticiones previas.
@@ -128,7 +127,7 @@
     const t = tipoDesdeDocumento(datos.tipo);
     if (t) {
       tipo.value = t;
-      if (t === "Moto") riesgo.value = "Motocicleta";
+      riesgo.value = t === "Moto" ? "Motocicleta" : "Automotor";
       actualizarMarcasPorTipo();
       tipo.value = t;
     }
@@ -177,18 +176,20 @@
   // Restauración de un formulario que volvió por errores de validación.
   const marcaPrevia = marca.dataset.previo;
   const modeloPrevio = modelo.dataset.previo;
+  const modeloPrevioManual = modelo.dataset.previoManual;
+  const marcaPreviaManual = marca.dataset.previoManual;
   if (marcaPrevia) {
     const m = Array.from(marca.options).find(o => o.value === marcaPrevia);
     marca.value = m ? m.value : "OTRA";
     actualizarMarcaManual();
-    if (!m) marcaManual.value = marcaPrevia;
+    if (!m) marcaManual.value = marcaPreviaManual || (marcaPrevia === "OTRA" ? "" : marcaPrevia);
   } else actualizarMarcaManual();
   vaciar();
   if (modeloPrevio) {
     modelo.value = "OTRO";
     actualizarModeloManual();
-    modeloManual.value = modeloPrevio;
-    buscar.value = modeloPrevio;
+    modeloManual.value = modeloPrevio === "OTRO" ? (modeloPrevioManual || "") : modeloPrevio;
+    buscar.value = modeloManual.value;
   }
   window.fortexProponerOCR = fortexProponerOCR;
 })();
