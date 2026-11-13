@@ -107,9 +107,14 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
         p.restoreState()
 
         logo = Path(settings.BASE_DIR) / "principal" / "static" / "principal" / "img" / "fortex_logo_redondo.png"
+        p.saveState()
+        logo_clip = p.beginPath()
+        logo_clip.circle(X(1.185), Y(0.755), 0.535 * cm)
+        p.clipPath(logo_clip, stroke=0, fill=0)
         p.drawImage(ImageReader(str(logo)), X(0.65), Y(1.29),
                     width=1.07 * cm, height=1.07 * cm,
                     preserveAspectRatio=True, mask="auto")
+        p.restoreState()
 
         p.setFillColor(INK)
         p.setFont("Helvetica-Bold", 21)
@@ -219,11 +224,11 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
         _texto(p, "MATRÍCULA SSN N.º 104752", X(5.35), Y(6.27), 10 * cm, 6.1, True)
 
         p.setFillColor(NAVY)
-        p.roundRect(X(0.15), Y(6.66), 17.70 * cm, 0.28 * cm,
+        p.roundRect(X(0.15), Y(6.68), 17.70 * cm, 0.34 * cm,
                     0.05 * cm, fill=1, stroke=0)
         p.setFillColor(colors.white)
         p.setFont("Helvetica-Bold", 7)
-        p.drawCentredString(X(9), Y(6.56), copia)
+        p.drawCentredString(X(9), Y(6.60), copia)
 
         # Verificación real, dentro del formato. El QR NO incluye datos personales.
         _marco(p, X(0.14), Y(8.49), 17.72 * cm, 1.79 * cm)
