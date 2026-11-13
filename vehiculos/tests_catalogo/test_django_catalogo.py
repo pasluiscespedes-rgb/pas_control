@@ -43,7 +43,7 @@ class ImportacionTest(TestCase):
         self.assertEqual(resolver_ocr('TOYOTA','HILUXX','Camioneta')['estado'],'REVISAR')
 
     def test_endpoint_requiere_login(self):
-        respuesta=Client().get('/vehiculos/catalogo/buscar/?q=hilux')
+        respuesta=Client().get('/vehiculos/catalogo/buscar/?q=hilux', secure=True)
         self.assertEqual(respuesta.status_code,302)
 
     def test_busqueda_modelos_autenticada_y_filtrada(self):
@@ -53,7 +53,7 @@ class ImportacionTest(TestCase):
         ModeloVehiculo.objects.create(marca=marca, nombre='RANGER', tipo='Auto')
         navegador = Client()
         navegador.force_login(usuario)
-        r = navegador.get('/vehiculos/catalogo/buscar/', {'q':'RAN','marca':'FORD','tipo':'Camioneta'})
+        r = navegador.get('/vehiculos/catalogo/buscar/', {'q':'RAN','marca':'FORD','tipo':'Camioneta'}, secure=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.json()['resultados']), 1)
         self.assertEqual(r.json()['resultados'][0]['tipo'], 'Camioneta')
@@ -70,7 +70,7 @@ class ImportacionTest(TestCase):
         usuario = User.objects.create_user(username='lector_ci', password='clave-ci')
         c = Client()
         c.force_login(usuario)
-        r = c.get('/vehiculos/catalogo/sugerencias/', {'marca':'INEXISTENTE','modelo':'XX'})
+        r = c.get('/vehiculos/catalogo/sugerencias/', {'marca':'INEXISTENTE','modelo':'XX'}, secure=True)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()['estado'], 'REVISAR')
         self.assertFalse(MarcaVehiculo.objects.exists())
