@@ -9,7 +9,7 @@ import sys
 # Import only the visual module, not Django settings or the production database.
 django = ModuleType("django")
 conf = ModuleType("django.conf")
-conf.settings = SimpleNamespace(BASE_DIR=Path(__file__).resolve().parents[2])
+conf.settings = SimpleNamespace(BASE_DIR=Path(__file__).resolve().parents[1])
 django.conf = conf
 sys.modules["django"] = django
 sys.modules["django.conf"] = conf
@@ -19,6 +19,7 @@ from pypdf import PdfReader
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from principal.recibo_seguro_layout import dibujar_recibo_seguro
 
 
