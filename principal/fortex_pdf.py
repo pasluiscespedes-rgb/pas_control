@@ -81,7 +81,13 @@ def dibujar_marca_fortex(p, x, y):
     p.setFillColor(NEGRO)
 
 
-def dibujar_recibo_fortex(p, recibo, x, y, copia):
+def dibujar_recibo_fortex(p, recibo, x, y, copia, verificacion=None):
+    # Sin verificación, conservar la presentación histórica original.
+    # Con verificación firmada, usar la plantilla oficial plateada y QR real.
+    if verificacion is not None:
+        from principal.recibo_seguro_layout import dibujar_recibo_seguro
+        return dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion)
+
     poliza = recibo.poliza
     cliente = poliza.cliente
     vehiculo = poliza.vehiculo
