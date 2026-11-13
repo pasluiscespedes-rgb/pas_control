@@ -106,7 +106,7 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
             p.drawPath(t, fill=1, stroke=0)
         p.restoreState()
 
-        logo = Path(settings.BASE_DIR) / "principal" / "static" / "principal" / "img" / "fortex_logo.png"
+        logo = Path(settings.BASE_DIR) / "principal" / "static" / "principal" / "img" / "fortex_logo_redondo.png"
         p.drawImage(ImageReader(str(logo)), X(0.65), Y(1.29),
                     width=1.07 * cm, height=1.07 * cm,
                     preserveAspectRatio=True, mask="auto")
@@ -163,6 +163,17 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
 
         # Riesgo asegurado. No suponer que todas las pólizas tienen vehículo.
         _marco(p, X(0.14), Y(5.02), 17.72 * cm, 1.44 * cm)
+        if str(recibo.forma_pago or "").strip().lower() in {"transferencia", "tarjeta", "cbu"}:
+            p.saveState()
+            marca_clip = p.beginPath()
+            marca_clip.roundRect(X(0.19), Y(4.99), 17.62 * cm, 1.40 * cm, 0.08 * cm)
+            p.clipPath(marca_clip, stroke=0, fill=0)
+            p.translate(X(8.8), Y(4.48))
+            p.rotate(22)
+            p.setFillColor(colors.HexColor("#E6EBF1"))
+            p.setFont("Helvetica-Bold", 25)
+            p.drawCentredString(0, 0, "PAGADO")
+            p.restoreState()
         p.setFillColor(SOFT)
         p.rect(X(0.19), Y(3.96), 17.62 * cm, 0.32 * cm, fill=1, stroke=0)
         p.setFillColor(NAVY)
