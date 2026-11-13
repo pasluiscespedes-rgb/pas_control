@@ -528,7 +528,7 @@ def crear_riesgo(request, cliente_id=None):
        cliente_preseleccionado = Cliente.objects.get(id=cliente_id)
 
     marcas = MarcaVehiculo.objects.filter(activa=True).order_by("nombre")
-    modelos = ModeloVehiculo.objects.filter(activa=True).select_related("marca").order_by("marca__nombre", "nombre")
+    tipos_vehiculo = Vehiculo.TIPO_CHOICES
 
     if request.method == "POST":
         
@@ -550,7 +550,19 @@ def crear_riesgo(request, cliente_id=None):
         chasis = request.POST.get("chasis", "").strip().upper()
         uso = request.POST.get("uso", "").strip()
 
-        errores = [] 
+        errores = []
+        if tipo not in {codigo for codigo, _ in Vehiculo.TIPO_CHOICES}:
+            errores.append("Debe seleccionar una clase de vehículo válida.")
+        # Si el selector del catálogo identificó un modelo concreto, verificar
+        # marca, modelo y clase en servidor. La entrada manual sigue permitida.
+        catalogo_id = request.POST.get("modelo_catalogo_id", "").strip()
+        if catalogo_id:
+            if not catalogo_id.isdecimal() or not ModeloVehiculo.objects.filter(
+                id=catalogo_id, marca__nombre__iexact=marca,
+                nombre__iexact=modelo, tipo=tipo, activa=True,
+            ).exists():
+                errores.append("La selección del catálogo cambió. Revise el modelo.")
+
 
         if not cliente_id:
          errores.append("Debe seleccionar un cliente.")
@@ -592,7 +604,7 @@ def crear_riesgo(request, cliente_id=None):
               "clientes": clientes,
               "errores": errores,
               "marcas": marcas,
-              "modelos": modelos,
+              "tipos_vehiculo": tipos_vehiculo,
               "datos": request.POST,
               "cliente_preseleccionado": cliente_preseleccionado,
               
@@ -632,7 +644,7 @@ def crear_riesgo(request, cliente_id=None):
     return render(request, "principal/crear_riesgo.html", {
         "clientes": clientes,
         "marcas": marcas,
-        "modelos": modelos,
+        "tipos_vehiculo": tipos_vehiculo,
         "cliente_preseleccionado": cliente_preseleccionado,
     })
 
