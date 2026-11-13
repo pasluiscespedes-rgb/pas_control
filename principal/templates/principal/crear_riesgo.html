@@ -238,6 +238,12 @@
             </div>
         </div>       
                 <h5>🚗 Datos del vehículo</h5>
+                <label for="tipo_vehiculo">Clase del vehículo</label>
+                <select name="tipo" id="tipo_vehiculo" class="form-select mb-3" required>
+                  {% for codigo, nombre in tipos_vehiculo %}
+                    <option value="{{ codigo }}" {% if datos.tipo == codigo %}selected{% endif %}>{{ nombre }}</option>
+                  {% endfor %}
+                </select>
 
                 <input
                   class="form-control mb-3"
@@ -248,7 +254,7 @@
                   required
                 >
 
-                <select class="form-control mb-3" name="marca" id="marca" required>
+                <select class="form-select mb-3" name="marca" id="marca" data-previo="{{ datos.marca|default:'' }}" data-previo-manual="{{ datos.marca_manual|default:'' }}" required>
                   <option value="">Seleccione una marca</option>
 
                   {% for marca in marcas %}
@@ -269,21 +275,18 @@
                    style="display:none;"
                 >
 
-                <select class="form-control mb-3" name="modelo" id="modelo" required>
+                <label for="catalogo_buscar_modelo">Buscar modelo (sin cargar todo el catálogo)</label>
+                <input type="search" class="form-control mb-2" id="catalogo_buscar_modelo"
+                       placeholder="Escribí dos o más letras del modelo" autocomplete="off">
+                <select class="form-select mb-2" name="modelo" id="modelo"
+                        data-previo="{{ datos.modelo|default:'' }}"
+                        data-previo-manual="{{ datos.modelo_manual|default:'' }}" required>
                   <option value="">Seleccione un modelo</option>
-
-                   {% for modelo in modelos %}
-                   <option
-                      value="{{ modelo.nombre }}"
-                      data-marca="{{ modelo.marca.nombre }}"
-                      data-tipo="{{ modelo.tipo }}"
-                    >
-                      {{ modelo.marca.nombre }} - {{ modelo.nombre }}
-                   </option>
-                   {% endfor %}
-
                   <option value="OTRO">➕ Otro modelo / escribir manualmente</option>
                 </select>
+                <input type="hidden" name="modelo_catalogo_id" id="modelo_catalogo_id">
+                <div id="catalogo_estado" class="text-muted small mb-3" role="status" aria-live="polite"></div>
+                <div id="catalogo_propuesta_ocr" class="mb-3" role="status" aria-live="polite"></div>
 
                 <input
                    class="form-control mb-3"
@@ -378,117 +381,7 @@
 }
 </script>
 
-<script>
-const marcaSelect = document.getElementById("marca");
-const modeloSelect = document.getElementById("modelo");
-const tipoRiesgoSelect = document.getElementById("tipo_riesgo");
-const marcaManual = document.getElementById("marca_manual");
-const modeloManual = document.getElementById("modelo_manual");
-
-const opcionesModelo = Array.from(modeloSelect.options);
-const opcionesMarca = Array.from(marcaSelect.options);
-
-function actualizarMarcaManual() {
-    const esOtraMarca = marcaSelect.value === "OTRA";
-
-    marcaManual.style.display = esOtraMarca ? "block" : "none";
-    marcaManual.required = esOtraMarca;
-
-    if (!esOtraMarca) {
-        marcaManual.value = "";
-    }
-}
-
-function actualizarMarcasPorTipo() {
-    const tipoSeleccionado = tipoRiesgoSelect.value;
-    const tipoEsperado = tipoSeleccionado === "Motocicleta" ? "Moto" : "Auto";
-
-    const marcasPermitidas = new Set();
-
-    opcionesModelo.forEach(function(opcion) {
-        if (opcion.dataset.tipo === tipoEsperado && opcion.dataset.marca) {
-            marcasPermitidas.add(opcion.dataset.marca);
-        }
-    });
-
-    marcaSelect.innerHTML =
-        '<option value="">Seleccione una marca</option>';
-
-    opcionesMarca.forEach(function(opcion) {
-        if (
-            opcion.value === "OTRA" ||
-            marcasPermitidas.has(opcion.value)
-        ) {
-            marcaSelect.appendChild(opcion.cloneNode(true));
-        }
-    });
-
-    marcaSelect.value = "";
-}
-
-function actualizarModelos() {
-    const marcaSeleccionada = marcaSelect.value;
-    const tipoSeleccionado = tipoRiesgoSelect.value;
-
-    modeloSelect.innerHTML =
-        '<option value="">Seleccione un modelo</option>';
-
-    if (marcaSeleccionada && marcaSeleccionada !== "OTRA") {
-        opcionesModelo.forEach(function(opcion) {
-            const marcaModelo = opcion.dataset.marca;
-            const tipoModelo = opcion.dataset.tipo;
-            const tipoEsperado = tipoSeleccionado === "Motocicleta" ? "Moto" : "Auto";
-
-            if (
-                marcaModelo === marcaSeleccionada &&
-                tipoModelo === tipoEsperado
-            ) { 
-                modeloSelect.appendChild(opcion.cloneNode(true));
-            }
-        });
-    }
-
-    const opcionManual = document.createElement("option");
-    opcionManual.value = "OTRO";
-    opcionManual.textContent =
-        "➕ Otro modelo / escribir manualmente";
-
-    modeloSelect.appendChild(opcionManual);
-
-    modeloSelect.value = "";
-    actualizarModeloManual();
-}
-
-function actualizarModeloManual() {
-    const esOtroModelo = modeloSelect.value === "OTRO";
-
-    modeloManual.style.display = esOtroModelo ? "block" : "none";
-    modeloManual.required = esOtroModelo;
-
-    if (!esOtroModelo) {
-        modeloManual.value = "";
-    }
-}
-
-marcaSelect.addEventListener("change", function() {
-    actualizarMarcaManual();
-    actualizarModelos();
-});
-
-modeloSelect.addEventListener(
-    "change",
-    actualizarModeloManual
-);
-
-tipoRiesgoSelect.addEventListener("change", function() {
-    actualizarMarcasPorTipo();
-    actualizarModelos();
-});
-
-actualizarMarcaManual();
-actualizarMarcasPorTipo();
-actualizarModelos();
-</script>
+<script src="{% static 'vehiculos/catalogo_maestro/catalogo_riesgo.js' %}"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -889,81 +782,22 @@ btnLeerCedula.addEventListener("click", async function() {
         }
 
 
-        // ===========================
-        // SELECCIONAR MARCA
-        // ===========================
-
-        if (tipoVehiculo === "MOTOCICLETA") {
-            tipoRiesgoSelect.value = "Motocicleta";
-            actualizarMarcasPorTipo();
-            actualizarMarcaManual();
-            actualizarModelos();
-        }
-
-        if (marca) {
-
-            const opcionMarca =
-                Array.from(marcaSelect.options).find(function(opcion) {
-
-                    return opcion.value
-                        .trim()
-                        .toUpperCase() === marca;
-                });
-
-            if (opcionMarca) {
-
-                marcaSelect.value = opcionMarca.value;
-
-                actualizarMarcaManual();
-                actualizarModelos();
-
-            } else {
-
-                marcaSelect.value = "OTRA";
-
-                actualizarMarcaManual();
-
-                marcaManual.value = marca;
-            }
-        }
-
-
-        // ===========================
-        // SELECCIONAR MODELO
-        // ===========================
-
-        if (modelo && marcaSelect.value !== "OTRA") {
-
-            const opcionModelo =
-                Array.from(modeloSelect.options).find(function(opcion) {
-
-                    return opcion.value
-                        .trim()
-                        .toUpperCase() === modelo;
-                });
-
-            if (opcionModelo) {
-
-                modeloSelect.value = opcionModelo.value;
-
-                actualizarModeloManual();
-
-            } else {
-
-                modeloSelect.value = "OTRO";
-
-                actualizarModeloManual();
-
-                modeloManual.value = modelo;
-            }
-
-        } else if (modelo) {
-
-            modeloSelect.value = "OTRO";
-
-            actualizarModeloManual();
-
-            modeloManual.value = modelo;
+        // Catálogo FORTEX: solo propone, nunca confirma ni guarda sin intervención humana.
+        if (window.fortexProponerOCR) {
+          await window.fortexProponerOCR({marca, modelo, tipo: tipoVehiculo});
+        } else {
+          const campoMarca = document.getElementById("marca");
+          const campoMarcaManual = document.getElementById("marca_manual");
+          const campoModelo = document.getElementById("modelo");
+          const campoModeloManual = document.getElementById("modelo_manual");
+          campoMarca.value = "OTRA";
+          campoMarcaManual.style.display = "block";
+          campoMarcaManual.required = true;
+          campoMarcaManual.value = marca || "";
+          campoModelo.value = "OTRO";
+          campoModeloManual.style.display = "block";
+          campoModeloManual.required = true;
+          campoModeloManual.value = modelo || "";
         }
         resultadoOCR.textContent =
             "QR DETECTADO:\n\n" +
