@@ -71,4 +71,7 @@ class ModeloAnioAdmin(admin.ModelAdmin):
 
     list_filter = (
         "anio",
-    )   
+    )
+
+# Admin de fuentes y equivalencias validadas del catalogo maestro.
+from .catalogo_maestro import admin as catalogo_admin

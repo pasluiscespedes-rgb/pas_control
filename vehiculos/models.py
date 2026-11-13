@@ -134,4 +134,7 @@ class ModeloAnio(models.Model):
         ordering = ["anio"]
 
     def __str__(self):
-        return f"{self.modelo} - {self.anio}"      
+        return f"{self.modelo} - {self.anio}"
+
+# FORTEX catalogo maestro: modelos aditivos, no alteran Vehiculo.
+from .catalogo_maestro.modelos import FuenteCatalogoVehiculo, RegistroFuenteModelo, AliasMarcaVehiculo, AliasModeloVehiculo

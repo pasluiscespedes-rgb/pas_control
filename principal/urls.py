@@ -53,3 +53,8 @@ urlpatterns = [
     
     
 ]
+
+# Consultas de catalogo solo lectura y autenticadas.
+from vehiculos.catalogo_maestro.views import sugerir_vehiculo, buscar_modelos
+urlpatterns.append(path('vehiculos/catalogo/sugerencias/', sugerir_vehiculo, name='fortex_catalogo_sugerencias'))
+urlpatterns.append(path('vehiculos/catalogo/buscar/', buscar_modelos, name='fortex_catalogo_buscar'))
