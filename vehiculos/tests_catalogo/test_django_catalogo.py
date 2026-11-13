@@ -45,3 +45,32 @@ class ImportacionTest(TestCase):
     def test_endpoint_requiere_login(self):
         respuesta=Client().get('/vehiculos/catalogo/buscar/?q=hilux')
         self.assertEqual(respuesta.status_code,302)
+
+    def test_busqueda_modelos_autenticada_y_filtrada(self):
+        usuario = User.objects.create_user(username='catalogo_ci', password='clave-sintetica')
+        marca = MarcaVehiculo.objects.create(nombre='FORD')
+        ModeloVehiculo.objects.create(marca=marca, nombre='RANGER', tipo='Camioneta')
+        ModeloVehiculo.objects.create(marca=marca, nombre='RANGER', tipo='Auto')
+        navegador = Client()
+        navegador.force_login(usuario)
+        r = navegador.get('/vehiculos/catalogo/buscar/', {'q':'RAN','marca':'FORD','tipo':'Camioneta'})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.json()['resultados']), 1)
+        self.assertEqual(r.json()['resultados'][0]['tipo'], 'Camioneta')
+
+    def test_ocr_no_elige_entre_dos_tipos_sin_categoria(self):
+        marca = MarcaVehiculo.objects.create(nombre='FORD')
+        ModeloVehiculo.objects.create(marca=marca, nombre='RANGER', tipo='Camioneta')
+        ModeloVehiculo.objects.create(marca=marca, nombre='RANGER', tipo='Auto')
+        r = resolver_ocr('FORD','RANGER')
+        self.assertEqual(r['estado'], 'REVISAR')
+        self.assertEqual(r['motivo'], 'AMBIGUA')
+
+    def test_sugerencias_no_permiten_escritura(self):
+        usuario = User.objects.create_user(username='lector_ci', password='clave-ci')
+        c = Client()
+        c.force_login(usuario)
+        r = c.get('/vehiculos/catalogo/sugerencias/', {'marca':'INEXISTENTE','modelo':'XX'})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['estado'], 'REVISAR')
+        self.assertFalse(MarcaVehiculo.objects.exists())
