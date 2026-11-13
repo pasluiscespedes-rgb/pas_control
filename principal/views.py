@@ -1183,6 +1183,8 @@ def editar_poliza(request, poliza_id):
         poliza.numero_poliza = numero_poliza
         poliza.cobertura = cobertura
         poliza.fecha_alta = fecha_alta
+        # Guardar la periodicidad elegida antes de recalcular vigencia y cuotas.
+        poliza.periodicidad = periodicidad
         poliza.fecha_vencimiento = fecha_vencimiento
         poliza.fecha_vencimiento = calcular_proximo_vencimiento(
             fecha_alta,

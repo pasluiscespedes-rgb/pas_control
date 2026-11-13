@@ -187,17 +187,19 @@
                      type="number"
                      name="numero_cuota"
                      placeholder="Número de cuota"
-                     min="1"
+                     min="0"
                      value="{{ poliza.numero_cuota}}"
                      required>
 
                 <label>Estado</label>
                 <select class="form-select mb-3" name="estado">
 
+                    <option value="Al día" {% if poliza.estado == "Al día" %}selected{% endif %}>Al día</option>
                     <option value="Pendiente"
                        {% if poliza.estado == "Pendiente" %}selected{% endif %}>
                         Pendiente
                     </option>
+                    <option value="Morosa" {% if poliza.estado == "Morosa" %}selected{% endif %}>Morosa</option>
 
                     <option value="Vigente"
                        {% if poliza.estado == "Vigente" %}selected{% endif %}>
