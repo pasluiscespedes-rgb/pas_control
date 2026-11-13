@@ -55,6 +55,8 @@ jobs:
         run: |
           python manage.py test vehiculos.tests_catalogo --verbosity 2
           python manage.py fortex_catalogo_importar --archivo vehiculos/catalogo_maestro/ejemplo_dnrpa_sintetico.csv --codigo CI --titulo "Fichas sintéticas" --aplicar
+          python manage.py fortex_catalogo_importar --archivo vehiculos/datos_dnrpa/catalogo_motos_dnrpa_2026.csv --codigo DNRPA_MOTOS_2026 --titulo "Catalogo curado de motovehiculos" --aplicar
+          python manage.py fortex_catalogo_importar --archivo vehiculos/datos_dnrpa/catalogo_motos_dnrpa_2026.csv --codigo DNRPA_MOTOS_2026 --titulo "Catalogo curado de motovehiculos" --aplicar
           python manage.py fortex_catalogo_auditar
       - name: Sintaxis de JS (sin navegador ni clientes)
         run: |
