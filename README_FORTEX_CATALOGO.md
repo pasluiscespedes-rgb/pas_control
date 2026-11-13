@@ -14,6 +14,7 @@ Ampliar sin destruir el catálogo existente de marcas/modelos para autos, motos,
 - Modelos de fuentes y procedencia de cada modelo, alias por marca/modelo aprobados manualmente.
 - Sugeridor para OCR: `COINCIDENCIA` únicamente cuando hay una coincidencia exacta única; si falta, es ambigua o solo hay parecidos, devuelve `REVISAR`.
 - Buscador autenticado con hasta 25 resultados por consulta para futuro selector asincrónico, sin entregar todo el catálogo al navegador.
+- Auditoría estadística de cobertura histórica sin mostrar clientes, documentos ni patentes (`python manage.py fortex_catalogo_auditar`).
 - Migración aditiva `vehiculos.0008_catalogo_maestro` y registro de equivalencias en Django Admin.
 - Pruebas puras (`unittest`) y pruebas adicionales Django, aún no ejecutadas.
 
