@@ -57,7 +57,7 @@ def main():
         api = B2Api(InMemoryAccountInfo(), max_upload_workers=1, max_download_workers=1,
                     max_download_streams_per_file=1)
         stage = "b2_authorization"
-        api.authorize_account(os.environ["B2_APPLICATION_KEY_ID"], os.environ["B2_APPLICATION_KEY"])
+        api.authorize_account(os.environ["B2_APPLICATION_KEY_ID"].strip(), os.environ["B2_APPLICATION_KEY"].strip())
         bucket = api.get_bucket_by_name(EXPECTED_BUCKET)
         stage = "backup_selection"
         candidates = []
