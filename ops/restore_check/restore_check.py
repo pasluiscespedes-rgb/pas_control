@@ -145,7 +145,8 @@ def main():
         return 0
     except BaseException as error:
         emit("RESTORE_FAILED", stage=stage,
-             code=str(error) if isinstance(error, RuntimeError) else "unexpected_error")
+             code=str(error) if isinstance(error, RuntimeError) else "unexpected_error",
+             exception_type=type(error).__name__)
         return 1
 
 if __name__ == "__main__":
