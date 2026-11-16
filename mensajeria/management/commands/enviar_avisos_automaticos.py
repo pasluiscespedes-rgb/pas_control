@@ -43,6 +43,8 @@ class Command(BaseCommand):
                 fecha_vencimiento__in=[ayer, manana]
             )
             .exclude(estado="Anulada")
+            # La continuación efectiva reemplaza administrativamente a la anterior.
+            .exclude(continuaciones__fecha_alta__lte=hoy)
         )
 
         if poliza_id:
