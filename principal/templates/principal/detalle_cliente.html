@@ -361,7 +361,11 @@ Ficha de {{ cliente.apellido }} {{ cliente.nombre }} | FORTEX
                                 {% endif %}
 
                                 <br><br>
-                                
+                                {% if poliza.estado != "Anulada" and not poliza.continuaciones.exists %}
+                                  <a href="{% url 'renovar_poliza' poliza.id %}" class="boton-tabla">🔄 Renovar</a>
+                                  <a href="{% url 'cambiar_aseguradora' poliza.id %}" class="boton-tabla">Cambiar aseguradora</a>
+                                {% endif %}
+                                <br><br>
                                 {% if poliza.estado != "Anulada" %}
                                 <a href="{% url 'anular_poliza' poliza.id %}"
                                    class="boton-tabla"
