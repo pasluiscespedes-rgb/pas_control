@@ -45,12 +45,12 @@ def _texto(p, texto, x, y, ancho, tam=7.0, fuerte=False, minimo=4.7):
     p.drawString(x, y, texto)
 
 
-def _campo(p, etiqueta, valor, pos_x, pos_y, ancho, tam_valor=7):
+def _campo(p, etiqueta, valor, pos_x, pos_y, ancho, tam_valor=7, separacion=0.24):
     """Etiqueta y valor en líneas independientes con distancia legible."""
     p.setFillColor(NAVY)
     _texto(p, etiqueta, pos_x, pos_y, ancho, 6.0, True)
     p.setFillColor(INK)
-    _texto(p, valor, pos_x, pos_y - 0.39 * cm, ancho, tam_valor, True, minimo=4.2)
+    _texto(p, valor, pos_x, pos_y - separacion * cm, ancho, tam_valor, True, minimo=4.2)
 
 
 def _marco(p, x, y, ancho, alto, radio=0.10):
@@ -163,9 +163,9 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
         p.line(X(14.65), Y(2.13), X(14.65), Y(3.45))
         cuotas = (str(recibo.numero_cuota) if recibo.cantidad_cuotas <= 1 else
                   f"{recibo.numero_cuota} - {recibo.numero_cuota + recibo.cantidad_cuotas - 1}")
-        _campo(p, "CUOTAS", cuotas, X(13.18), Y(2.38), 1.3 * cm, 9)
+        _campo(p, "CUOTAS", cuotas, X(13.18), Y(2.38), 1.3 * cm, 9, separacion=0.42)
         _campo(p, "IMPORTE", _dinero(recibo.importe),
-               X(14.9), Y(2.38), 2.75 * cm, 8.5)
+               X(14.9), Y(2.38), 2.75 * cm, 8.5, separacion=0.42)
 
         # Riesgo asegurado. No suponer que todas las pólizas tienen vehículo.
         _marco(p, X(0.14), Y(5.02), 17.72 * cm, 1.44 * cm)
