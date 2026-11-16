@@ -39,3 +39,16 @@ class VictoriaBridgeSecurityTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json(), {"conversaciones": []})
             self.assertEqual(response["Cache-Control"], "no-store")
+
+    def test_get_cannot_read(self):
+        self.client.force_login(self.owner)
+        with override_settings(VICTORIA_BRIDGE_OWNER_USER_ID=self.owner.pk):
+            self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    def test_csrf_required_on_authenticated_post(self):
+        from django.test import Client
+        from django.middleware.csrf import _get_new_csrf_string
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.owner)
+        with override_settings(VICTORIA_BRIDGE_OWNER_USER_ID=self.owner.pk):
+            self.assertEqual(client.post(self.url, {"buscar": "Gabriel"}).status_code, 403)
