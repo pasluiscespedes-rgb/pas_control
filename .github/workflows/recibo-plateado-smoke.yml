@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - design/recibo-plateado-20261113
+      - fix/recibo-cuotas-importe-marca-20261116
   workflow_dispatch:
 
 permissions:
