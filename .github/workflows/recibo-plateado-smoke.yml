@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - design/recibo-plateado-20261113
+      - feature/renovaciones-recibo-layout-20261116
   workflow_dispatch:
 
 permissions:
