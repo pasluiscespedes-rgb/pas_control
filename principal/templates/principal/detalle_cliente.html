@@ -248,11 +248,13 @@ Ficha de {{ cliente.apellido }} {{ cliente.nombre }} | FORTEX
                             <td>{{ poliza.numero_poliza|default:"Provisoria" }}</td>
                             <td>{{ poliza.fecha_vencimiento }}</td>
                             <td>
-                              {% if poliza.numero_cuota >= poliza.cantidad_cuotas %}
+                              {% if poliza.reemplazada %}
+                                 🔒 Reemplazada, historial consultable
+                              {% elif poliza.numero_cuota >= poliza.cantidad_cuotas %}
                                  🟢 ✓ Pagado completo
                               {% elif poliza.estado == "Al día" %}
                               
-                                 🟢 {{ poliza.estado }}
+                                 🟢 {% if poliza.reemplazada %}Reemplazada{% else %}{{ poliza.estado }}{% endif %}
                               {% elif poliza.estado == "Pendiente" %}
                                  🟡 {{ poliza.estado }}
                               {% else %}
