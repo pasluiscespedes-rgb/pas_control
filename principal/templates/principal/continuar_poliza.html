@@ -1,0 +1,37 @@
+{% extends "principal/base.html" %}
+{% block title %}{% if es_cambio %}Cambiar aseguradora{% else %}Renovar póliza{% endif %} | FORTEX{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:750px">
+  <h2>{% if es_cambio %}Cambiar aseguradora{% else %}Renovar póliza{% endif %}</h2>
+  <p><strong>Cliente:</strong> {{ anterior.cliente.apellido }}, {{ anterior.cliente.nombre }} (DNI {{ anterior.cliente.dni }})</p>
+  <p><strong>Vehículo/riesgo:</strong> {% if anterior.vehiculo %}{{ anterior.vehiculo.patente }} · {{ anterior.vehiculo.marca }} {{ anterior.vehiculo.modelo }}{% else %}{{ anterior.tipo_seguro }}{% endif %}</p>
+  <p><strong>Póliza anterior:</strong> {{ anterior.compania }} · {{ anterior.numero_poliza }} · hasta {{ anterior.fecha_fin_vigencia|date:"d/m/Y" }}</p>
+  <div class="alert alert-info">Se creará una póliza nueva para el mismo cliente y riesgo. La póliza anterior, sus cobros y recibos no se modificarán. Gestioná por separado cualquier baja anticipada en la aseguradora.</div>
+  {% if errores %}<div class="alert alert-danger"><ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+  <form method="post" class="card card-body shadow-sm">
+    {% csrf_token %}
+    <label class="form-label">Aseguradora</label>
+    <input name="compania" maxlength="100" required class="form-control mb-3" value="{% if datos %}{{ datos.compania }}{% else %}{{ anterior.compania }}{% endif %}" {% if not es_cambio %}readonly{% endif %}>
+    <label class="form-label">Número de póliza nuevo</label>
+    <input name="numero_poliza" maxlength="50" required class="form-control mb-3" value="{{ datos.numero_poliza }}">
+    <label class="form-label">Fecha de inicio de la nueva vigencia</label>
+    <input type="date" name="fecha_alta" required class="form-control mb-3" value="{% if datos %}{{ datos.fecha_alta }}{% else %}{{ anterior.fecha_fin_vigencia|date:'Y-m-d' }}{% endif %}">
+    <label class="form-label">Periodicidad</label>
+    <select name="periodicidad" class="form-select mb-3" required>
+      {% for clave, texto in periodicidades %}
+      <option value="{{ clave }}" {% if datos.periodicidad == clave or not datos and anterior.periodicidad == clave %}selected{% endif %}>{{ texto }}</option>
+      {% endfor %}
+    </select>
+    <label class="form-label">Importe de cuota (ARS)</label>
+    <input name="importe_cuota" inputmode="decimal" required class="form-control mb-3" value="{% if datos %}{{ datos.importe_cuota }}{% else %}{{ anterior.importe_cuota|default_if_none:'' }}{% endif %}">
+    <label class="form-label">Cobertura</label>
+    <input name="cobertura" maxlength="150" class="form-control mb-3" value="{% if datos %}{{ datos.cobertura }}{% else %}{{ anterior.cobertura }}{% endif %}">
+    <label class="form-label">Comisión (%)</label>
+    <input name="porcentaje_comision" inputmode="decimal" class="form-control mb-3" value="{% if datos %}{{ datos.porcentaje_comision }}{% else %}{{ anterior.porcentaje_comision }}{% endif %}">
+    <label class="form-label">Observaciones</label>
+    <textarea name="observaciones" class="form-control mb-3">{{ datos.observaciones }}</textarea>
+    <button type="submit" class="btn btn-primary">Guardar nueva póliza</button>
+    <a href="{% url 'detalle_cliente' anterior.cliente_id %}" class="btn btn-outline-secondary mt-2">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

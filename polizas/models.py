@@ -155,6 +155,22 @@ class Poliza(models.Model):
     blank=True,
     )
 
+    poliza_anterior = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="continuaciones",
+        help_text="Póliza original conservada al renovar o cambiar aseguradora.",
+    )
+    tipo_continuacion = models.CharField(
+        max_length=20, blank=True, default="",
+        choices=[("renovacion", "Renovación"), ("cambio", "Cambio de aseguradora")],
+    )
+
+    @property
+    def reemplazada(self):
+        """Estado administrativo efectivo, sin alterar el estado histórico almacenado."""
+        from django.utils import timezone
+        return self.continuaciones.filter(fecha_alta__lte=timezone.localdate()).exists()
+
     def save(self, *args, **kwargs):
       import calendar
 

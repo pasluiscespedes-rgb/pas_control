@@ -80,7 +80,7 @@ def inicio(request):
         fecha_vencimiento__lt=hoy
     ).count()
 
-    vencen_hoy = Poliza.objects.filter(
+    vencen_hoy = Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
         fecha_vencimiento=hoy    
     )
 
@@ -1384,6 +1384,8 @@ def crear_cobro(request, cliente_id=None):
         polizas = Poliza.objects.filter(cliente=cliente_seleccionado)
     else:
         polizas = Poliza.objects.all()
+    # Sólo las pólizas operativas aparecen en el selector de nuevos cobros.
+    polizas = polizas.exclude(continuaciones__fecha_alta__lte=date.today()).distinct()
 
     poliza_seleccionada = request.GET.get("poliza")
 
@@ -2165,7 +2167,7 @@ def vencimientos(request):
         fecha_vencimiento__lte=en_15_dias
     ).order_by("fecha_vencimiento")
 
-    vencidas = Poliza.objects.filter(
+    vencidas = Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
         fecha_vencimiento__lt=hoy
     ).order_by("fecha_vencimiento")
 
@@ -2203,7 +2205,7 @@ def centro_vencimientos(request):
         "vehiculo"
     ).order_by("fecha_vencimiento")
 
-    proximos_7 = Poliza.objects.filter(
+    proximos_7 = Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
         fecha_vencimiento__gt=hoy,
         fecha_vencimiento__lte=en_7_dias
     ).select_related(
@@ -2211,7 +2213,7 @@ def centro_vencimientos(request):
         "vehiculo"
     ).order_by("fecha_vencimiento")
 
-    proximos_15 = Poliza.objects.filter(
+    proximos_15 = Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
         fecha_vencimiento__gt=en_7_dias,
         fecha_vencimiento__lte=en_15_dias
     ).select_related(
@@ -2257,17 +2259,17 @@ def avisos_del_dia(request):
     categoria = request.GET.get("categoria", "hoy")
 
     consultas = {
-        "vencidas": Poliza.objects.filter(
+        "vencidas": Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
             fecha_vencimiento__lt=hoy
         ),
-        "hoy": Poliza.objects.filter(
+        "hoy": Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
             fecha_vencimiento=hoy
         ),
-        "7_dias": Poliza.objects.filter(
+        "7_dias": Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
             fecha_vencimiento__gt=hoy,
             fecha_vencimiento__lte=en_7_dias
         ),
-        "15_dias": Poliza.objects.filter(
+        "15_dias": Poliza.objects.exclude(continuaciones__fecha_alta__lte=hoy).filter(
             fecha_vencimiento__gt=en_7_dias,
             fecha_vencimiento__lte=en_15_dias
         ),
@@ -2311,6 +2313,10 @@ def enviar_aviso_whatsapp(request, poliza_id):
         Poliza.objects.select_related("cliente", "vehiculo"),
         id=poliza_id,
     )
+
+    if poliza.continuaciones.filter(fecha_alta__lte=date.today()).exists():
+        messages.error(request, "La póliza fue reemplazada. No se enviará un aviso de la anterior.")
+        return redirect("avisos_del_dia")
 
     # Determinar automáticamente a qué categoría pertenece la póliza
     hoy = date.today()
