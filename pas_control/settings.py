@@ -113,6 +113,10 @@ DATABASES = {
     }
 }
 
+# Victoria Bridge deshabilitado si no se configura el usuario propietario.
+# Nunca colocar credenciales de acceso a mensajes en el repositorio.
+VICTORIA_BRIDGE_OWNER_USER_ID = os.getenv("VICTORIA_BRIDGE_OWNER_USER_ID", "").strip() or None
+
 # WhatsApp Cloud API - FORTEX
 WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
