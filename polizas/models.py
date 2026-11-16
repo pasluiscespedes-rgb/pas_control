@@ -155,6 +155,16 @@ class Poliza(models.Model):
     blank=True,
     )
 
+    poliza_anterior = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="continuaciones",
+        help_text="Póliza original conservada al renovar o cambiar aseguradora.",
+    )
+    tipo_continuacion = models.CharField(
+        max_length=20, blank=True, default="",
+        choices=[("renovacion", "Renovación"), ("cambio", "Cambio de aseguradora")],
+    )
+
     def save(self, *args, **kwargs):
       import calendar
 
