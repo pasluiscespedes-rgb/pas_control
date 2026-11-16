@@ -165,6 +165,12 @@ class Poliza(models.Model):
         choices=[("renovacion", "Renovación"), ("cambio", "Cambio de aseguradora")],
     )
 
+    @property
+    def reemplazada(self):
+        """Estado administrativo efectivo, sin alterar el estado histórico almacenado."""
+        from django.utils import timezone
+        return self.continuaciones.filter(fecha_alta__lte=timezone.localdate()).exists()
+
     def save(self, *args, **kwargs):
       import calendar
 
