@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .renovaciones import continuar_poliza
 from recibos.verificacion_views import emitir_pdf, verificar_recibo
 
 urlpatterns = [
@@ -17,6 +18,8 @@ urlpatterns = [
     path("riesgos/<int:riesgo_id>/editar/",views.editar_riesgo,name="editar_riesgo",),
     path("polizas/", views.lista_polizas, name="lista_polizas"),
     path("polizas/nueva/", views.crear_poliza, name="crear_poliza"),
+    path("polizas/<int:poliza_id>/renovar/", continuar_poliza, {"operacion": "renovar"}, name="renovar_poliza"),
+    path("polizas/<int:poliza_id>/cambiar-aseguradora/", continuar_poliza, {"operacion": "cambiar"}, name="cambiar_aseguradora"),
     path("clientes/<int:cliente_id>/poliza/nueva/", views.crear_poliza, name="crear_poliza_cliente"),
     path("polizas/<int:poliza_id>/editar/",views.editar_poliza,name="editar_poliza",),
     path("cobros/nuevo/", views.crear_cobro_seguro, name="crear_cobro"),
