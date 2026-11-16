@@ -217,8 +217,8 @@ def crear_cliente(request):
         if Cliente.objects.filter(dni=dni).exists():
          errores.append("Ya existe un cliente con ese DNI.")
 
-        if Cliente.objects.filter(whatsapp=whatsapp).exists():
-         errores.append("Ya existe un cliente con ese WhatsApp.") 
+        # Un mismo WhatsApp puede ser compartido por varios asegurados.
+        # El DNI es el identificador único del cliente.
 
         if errores:
             return render(
@@ -335,14 +335,7 @@ def editar_cliente(request, cliente_id):
                 "Ya existe otro cliente con ese DNI."
             )
 
-        if Cliente.objects.filter(
-            whatsapp=whatsapp,
-        ).exclude(
-            id=cliente.id,
-        ).exists():
-            errores.append(
-                "Ya existe otro cliente con ese WhatsApp."
-            )
+        # Se permite compartir WhatsApp entre clientes con DNI diferente.
 
         if errores:
             return render(
