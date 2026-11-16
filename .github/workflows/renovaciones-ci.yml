@@ -1,0 +1,54 @@
+name: Renewal regression (isolated PostgreSQL)
+
+on:
+  push:
+    branches:
+      - feature/renovaciones-recibo-layout-20261116
+    paths:
+      - 'polizas/**'
+      - 'principal/renovaciones.py'
+      - '.github/workflows/renovaciones-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renewal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: fortex_test
+          POSTGRES_USER: fortex_test
+          POSTGRES_PASSWORD: isolated_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fortex_test -d fortex_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_NAME: fortex_test
+      DB_USER: fortex_test
+      DB_PASSWORD: isolated_test_only
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DJANGO_SECRET_KEY: isolated-test-only-not-production
+      DJANGO_DEBUG: 'False'
+      DJANGO_ALLOWED_HOSTS: testserver,localhost,127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install application dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check migrations without modifying sources
+        run: python manage.py makemigrations --check --dry-run
+      - name: Test renewal and insurer change only
+        run: python manage.py test polizas.test_continuaciones --verbosity 2
