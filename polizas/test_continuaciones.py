@@ -3,13 +3,14 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from clientes.models import Cliente
 from polizas.models import Poliza
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ContinuacionPolizaTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="operador_prueba", password="test")
