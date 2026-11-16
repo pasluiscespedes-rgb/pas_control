@@ -163,23 +163,12 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
         p.line(X(14.65), Y(2.13), X(14.65), Y(3.45))
         cuotas = (str(recibo.numero_cuota) if recibo.cantidad_cuotas <= 1 else
                   f"{recibo.numero_cuota} - {recibo.numero_cuota + recibo.cantidad_cuotas - 1}")
-        _campo(p, "CUOTAS", cuotas, X(13.18), Y(2.38), 1.3 * cm, 9, separacion=0.42)
+        _campo(p, "CUOTAS", cuotas, X(13.18), Y(2.38), 1.3 * cm, 9, separacion=0.48)
         _campo(p, "IMPORTE", _dinero(recibo.importe),
-               X(14.9), Y(2.38), 2.75 * cm, 8.5, separacion=0.42)
+               X(14.9), Y(2.38), 2.75 * cm, 8.5, separacion=0.48)
 
         # Riesgo asegurado. No suponer que todas las pólizas tienen vehículo.
         _marco(p, X(0.14), Y(5.02), 17.72 * cm, 1.44 * cm)
-        if str(recibo.forma_pago or "").strip().lower() in {"transferencia", "tarjeta", "cbu"}:
-            p.saveState()
-            marca_clip = p.beginPath()
-            marca_clip.roundRect(X(0.19), Y(4.99), 17.62 * cm, 1.40 * cm, 0.08 * cm)
-            p.clipPath(marca_clip, stroke=0, fill=0)
-            p.translate(X(8.8), Y(4.48))
-            p.rotate(22)
-            p.setFillColor(colors.HexColor("#A7B4C3"))
-            p.setFont("Helvetica-Bold", 27)
-            p.drawCentredString(0, 0, "PAGADO")
-            p.restoreState()
         p.setFillColor(SOFT)
         p.rect(X(0.19), Y(3.96), 17.62 * cm, 0.32 * cm, fill=1, stroke=0)
         p.setFillColor(NAVY)
@@ -198,6 +187,21 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
                X(5.47), Y(4.37), 4.5 * cm, 7)
         _campo(p, "CHASIS", getattr(vehiculo, "chasis", "No aplica"),
                X(10.60), Y(4.37), 6.8 * cm, 7)
+
+        # Sello en primer plano, limitado al panel del riesgo.
+        if str(recibo.forma_pago or "").strip().lower() in {"transferencia", "tarjeta", "cbu"}:
+            p.saveState()
+            marca_clip = p.beginPath()
+            marca_clip.roundRect(X(0.19), Y(4.99), 17.62 * cm, 1.40 * cm, 0.08 * cm)
+            p.clipPath(marca_clip, stroke=0, fill=0)
+            p.translate(X(8.8), Y(4.48))
+            p.rotate(22)
+            p.setFillColor(colors.HexColor("#64748B"))
+            if hasattr(p, "setFillAlpha"):
+                p.setFillAlpha(0.30)
+            p.setFont("Helvetica-Bold", 27)
+            p.drawCentredString(0, 0, "PAGADO")
+            p.restoreState()
 
         _marco(p, X(0.14), Y(5.69), 17.72 * cm, 0.62 * cm)
         p.setStrokeColor(LINE)
