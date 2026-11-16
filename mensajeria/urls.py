@@ -1,11 +1,13 @@
 from django.urls import path
 
 from . import views
+from . import victoria_bridge
 
 
 app_name = "mensajeria"
 
 urlpatterns = [
+    path("victoria/consultar/", victoria_bridge.consultar_whatsfortex, name="victoria_consultar"),
     path(
         "webhook/",
         views.webhook_whatsapp,
