@@ -249,6 +249,13 @@ Uso
 
 {% endif %}
 
+{% if poliza.estado != "Anulada" and not poliza.continuaciones.exists %}
+    <a href="{% url 'renovar_poliza' poliza.id %}" class="btn btn-success">🔄 Renovar póliza</a>
+    <a href="{% url 'cambiar_aseguradora' poliza.id %}" class="btn btn-outline-primary">Cambiar aseguradora</a>
+{% endif %}
+{% if poliza.poliza_anterior %}
+<p class="small">Continuación de póliza {{ poliza.poliza_anterior.numero_poliza }} ({{ poliza.poliza_anterior.compania }})</p>
+{% endif %}
 {% if poliza.estado != "Anulada" %}
     <a href="{% url 'anular_poliza' poliza.id %}"
        class="btn btn-danger">
