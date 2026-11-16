@@ -49,7 +49,7 @@ def _campo(p, etiqueta, valor, pos_x, pos_y, ancho, tam_valor=7):
     p.setFillColor(NAVY)
     _texto(p, etiqueta, pos_x, pos_y, ancho, 6.0, True)
     p.setFillColor(INK)
-    _texto(p, valor, pos_x, pos_y - 0.24 * cm, ancho, tam_valor, True)
+    _texto(p, valor, pos_x, pos_y - 0.36 * cm, ancho, tam_valor, True)
 
 
 def _marco(p, x, y, ancho, alto, radio=0.10):
@@ -168,17 +168,6 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
 
         # Riesgo asegurado. No suponer que todas las pólizas tienen vehículo.
         _marco(p, X(0.14), Y(5.02), 17.72 * cm, 1.44 * cm)
-        if str(recibo.forma_pago or "").strip().lower() in {"transferencia", "tarjeta", "cbu"}:
-            p.saveState()
-            marca_clip = p.beginPath()
-            marca_clip.roundRect(X(0.19), Y(4.99), 17.62 * cm, 1.40 * cm, 0.08 * cm)
-            p.clipPath(marca_clip, stroke=0, fill=0)
-            p.translate(X(8.8), Y(4.48))
-            p.rotate(22)
-            p.setFillColor(colors.HexColor("#A7B4C3"))
-            p.setFont("Helvetica-Bold", 27)
-            p.drawCentredString(0, 0, "PAGADO")
-            p.restoreState()
         p.setFillColor(SOFT)
         p.rect(X(0.19), Y(3.96), 17.62 * cm, 0.32 * cm, fill=1, stroke=0)
         p.setFillColor(NAVY)
@@ -254,5 +243,5 @@ def dibujar_recibo_seguro(p, recibo, x, y, copia, verificacion):
                X(1.91), Y(8.11), 15.3 * cm, 5.9)
         _texto(p, "Solo cotejo documental. No certifica cobertura ni vigencia de la póliza.",
                X(1.91), Y(8.33), 15.3 * cm, 5.8, True)
-    finally:
+\n        # Marca PAGADO en primer plano, transparente y limitada al panel del riesgo.\n        if str(recibo.forma_pago or "").strip().lower() in {"transferencia", "tarjeta", "cbu"}:\n            p.saveState()\n            marca_clip = p.beginPath()\n            marca_clip.roundRect(X(0.19), Y(4.99), 17.62 * cm, 1.40 * cm, 0.08 * cm)\n            p.clipPath(marca_clip, stroke=0, fill=0)\n            p.translate(X(8.8), Y(4.48))\n            p.rotate(22)\n            p.setFillColor(colors.HexColor("#64748B"))\n            if hasattr(p, "setFillAlpha"):\n                p.setFillAlpha(0.30)\n            p.setFont("Helvetica-Bold", 27)\n            p.drawCentredString(0, 0, "PAGADO")\n            p.restoreState()\n    finally:
         p.restoreState()
