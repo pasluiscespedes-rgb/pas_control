@@ -31,8 +31,22 @@ def continuar_poliza(request, poliza_id, operacion):
     )
     es_cambio = operacion == "cambiar"
     errores = []
+    # Opciones existentes sin reescribir denominaciones históricas.
+    aseguradoras = sorted(set(
+        Poliza.objects.exclude(compania__isnull=True)
+        .exclude(compania="")
+        .values_list("compania", flat=True).distinct()
+    ) | {anterior.compania, "NRE COMPAÑÍA DE SEGUROS PATRIMONIALES Y DE PERSONAS S.A."})
+    compania_manual = ""
     if request.method == "POST":
         compania = request.POST.get("compania", "").strip().upper()
+        if es_cambio and compania == "__OTRA__":
+            compania_manual = request.POST.get("compania_manual", "").strip().upper()
+            compania = compania_manual
+        if len(compania) > 100:
+            errores.append("La razón social no puede superar 100 caracteres.")
+        if es_cambio and compania and compania not in aseguradoras and not compania_manual:
+            errores.append("Seleccioná una aseguradora del listado o utilizá Otra aseguradora.")
         numero = request.POST.get("numero_poliza", "").strip().upper()
         cobertura = request.POST.get("cobertura", "").strip().upper()
         periodicidad = request.POST.get("periodicidad", "")
@@ -104,4 +118,6 @@ def continuar_poliza(request, poliza_id, operacion):
         "anterior": anterior, "es_cambio": es_cambio, "errores": errores,
         "datos": request.POST if request.method == "POST" else None,
         "periodicidades": Poliza.PERIODICIDADES,
+        "aseguradoras": aseguradoras,
+        "compania_manual": compania_manual,
     })
