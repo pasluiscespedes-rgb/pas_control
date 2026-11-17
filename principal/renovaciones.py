@@ -45,8 +45,12 @@ def continuar_poliza(request, poliza_id, operacion):
             compania = compania_manual
         if len(compania) > 100:
             errores.append("La razón social no puede superar 100 caracteres.")
-        if es_cambio and compania and compania not in aseguradoras and not compania_manual:
-            errores.append("Seleccioná una aseguradora del listado o utilizá Otra aseguradora.")
+        if es_cambio and compania and not compania_manual:
+            catalogo_por_nombre = {nombre.strip().casefold(): nombre for nombre in aseguradoras if nombre}
+            if compania.casefold() not in catalogo_por_nombre:
+                errores.append("Seleccioná una aseguradora del listado o utilizá Otra aseguradora.")
+            else:
+                compania = catalogo_por_nombre[compania.casefold()]
         numero = request.POST.get("numero_poliza", "").strip().upper()
         cobertura = request.POST.get("cobertura", "").strip().upper()
         periodicidad = request.POST.get("periodicidad", "")
