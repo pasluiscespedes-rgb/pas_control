@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST, require_safe
 from clientes.models import Cliente
 from vehiculos.models import Vehiculo, MarcaVehiculo, ModeloVehiculo
 from polizas.models import Poliza
+from polizas.catalogo_aseguradoras import nombres_aseguradoras
 from cobros.models import Cobro
 from recibos.models import Recibo
 from datetime import datetime
@@ -936,6 +937,7 @@ def crear_poliza(request, cliente_id=None):
 @login_required
 def editar_poliza(request, poliza_id):
     poliza = get_object_or_404(Poliza, id=poliza_id)
+    aseguradoras = nombres_aseguradoras(incluir=(poliza.compania,))
 
     if poliza.estado == "Anulada":
        messages.warning(
@@ -992,6 +994,8 @@ def editar_poliza(request, poliza_id):
 
         if not compania:
             errores.append("Debe ingresar la compañía.")
+        elif compania.casefold() not in {nombre.casefold() for nombre in aseguradoras}:
+            errores.append("Seleccioná una aseguradora del catálogo.")
 
         if not fecha_alta_texto:
             errores.append("Debe ingresar la fecha de alta.")
@@ -1099,6 +1103,7 @@ def editar_poliza(request, poliza_id):
                 {
                     "poliza": poliza,
                     "errores": errores,
+                    "aseguradoras": aseguradoras,
                 },
             )
 
@@ -1228,6 +1233,7 @@ def editar_poliza(request, poliza_id):
         "principal/editar_poliza.html",
         {
             "poliza": poliza,
+            "aseguradoras": aseguradoras,
         },
     )
 
