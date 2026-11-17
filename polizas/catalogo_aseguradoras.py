@@ -1,18 +1,25 @@
-"""Consulta central de nombres de aseguradoras sin alterar pólizas históricas.
+"""Consulta central de aseguradoras de FORTEX.
 
-Transitorio: los nombres existentes se conservan. La importación oficial SSN
-requiere una fuente validada y una migración posterior a un catálogo persistente.
+Fuente principal: catálogo persistente existente (principal.Aseguradora).
+Se preservan denominaciones de pólizas históricas para evitar pérdida de datos.
 """
+from principal.models import Aseguradora
 from polizas.models import Poliza
 
 
 def nombres_aseguradoras(*, incluir=()):
-    """Lista única, deduplicada por comparación insensible a mayúsculas."""
-    nombres = Poliza.objects.exclude(compania__isnull=True).exclude(
-        compania=""
-    ).values_list("compania", flat=True).distinct()
     canonicos = {}
-    for nombre in (*nombres, *incluir):
+    for nombre in Aseguradora.objects.filter(activa=True).values_list("nombre", flat=True):
+        nombre = str(nombre or "").strip()
+        if nombre:
+            canonicos.setdefault(nombre.casefold(), nombre)
+    for nombre in Poliza.objects.exclude(compania__isnull=True).exclude(
+        compania=""
+    ).values_list("compania", flat=True).distinct():
+        nombre = str(nombre or "").strip()
+        if nombre:
+            canonicos.setdefault(nombre.casefold(), nombre)
+    for nombre in incluir:
         nombre = str(nombre or "").strip()
         if nombre:
             canonicos.setdefault(nombre.casefold(), nombre)
