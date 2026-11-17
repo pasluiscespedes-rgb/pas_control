@@ -63,3 +63,20 @@ class ContinuacionPolizaTests(TestCase):
         respuesta = self.client.get(reverse("renovar_poliza", args=[self.anterior.pk]))
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(Poliza.objects.count(), 1)
+
+    def test_selector_cambio_incluye_aseguradoras_y_nre(self):
+        respuesta = self.client.get(reverse("cambiar_aseguradora", args=[self.anterior.pk]))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'id="compania-selector"')
+        self.assertContains(respuesta, "ASEGURADORA A")
+        self.assertContains(respuesta, "NRE COMPAÑÍA DE SEGUROS")
+
+    def test_cambio_con_otra_aseguradora_manual(self):
+        respuesta = self.enviar("cambiar", compania="__otra__", compania_manual="ASEGURADORA NUEVA")
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(Poliza.objects.get(numero_poliza="NUEVA-002").compania, "ASEGURADORA NUEVA")
+
+    def test_rechaza_aseguradora_no_listada_sin_opcion_manual(self):
+        respuesta = self.enviar("cambiar", compania="ASEGURADORA NO LISTADA")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(Poliza.objects.count(), 1)
