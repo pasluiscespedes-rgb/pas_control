@@ -24,7 +24,8 @@ class ContinuacionPolizaTests(TestCase):
 
     def enviar(self, accion, **changes):
         datos = {
-            "compania": "ASEGURADORA A" if accion == "renovar" else "ASEGURADORA B",
+            "compania": "ASEGURADORA A" if accion == "renovar" else "__otra__",
+            "compania_manual": "" if accion == "renovar" else "ASEGURADORA B",
             "numero_poliza": "NUEVA-002", "cobertura": "RC",
             "fecha_alta": "2026-04-01", "periodicidad": "Semestral",
             "importe_cuota": "25000,50", "porcentaje_comision": "15",
