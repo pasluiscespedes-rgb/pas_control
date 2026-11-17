@@ -832,6 +832,13 @@ def crear_poliza(request, cliente_id=None):
 
         if not compania:
           errores.append("Debe ingresar la compañía.")
+        else:
+          nombre_catalogo = next((nombre for nombre in aseguradoras.values_list("nombre", flat=True)
+                                  if nombre.casefold() == compania.casefold()), None)
+          if nombre_catalogo is None:
+            errores.append("Seleccioná una aseguradora activa del catálogo.")
+          else:
+            compania = nombre_catalogo
 
         if not fecha_alta:
           errores.append("Debe ingresar la fecha de alta.")
@@ -846,21 +853,17 @@ def crear_poliza(request, cliente_id=None):
          if Poliza.objects.filter(numero_poliza__iexact=numero_poliza).exists():
           errores.append("Ya existe una póliza con ese número.")
 
-         if errores:
-            return render(
-             request,
-            "principal/crear_poliza.html",
-            {
-            "clientes": clientes,
-            "vehiculos": vehiculos,
-            "cliente_seleccionado": cliente_seleccionado,
-            "errores": errores,
-            "datos": request.POST,
-            "aseguradoras":aseguradoras,
-            },  
-        ) 
+ 
 
     
+        if errores:
+            return render(request, "principal/crear_poliza.html", {
+                "clientes": clientes, "vehiculos": vehiculos,
+                "cliente_seleccionado": cliente_seleccionado,
+                "errores": errores, "datos": request.POST,
+                "aseguradoras": aseguradoras,
+            })
+
         cliente = Cliente.objects.get(id=cliente_id)
 
         vehiculo = (
