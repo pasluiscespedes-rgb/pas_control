@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_protect
 
 from polizas.models import Poliza
+from polizas.catalogo_aseguradoras import nombres_aseguradoras
 from principal.models import MovimientoCliente
 
 
@@ -31,12 +32,10 @@ def continuar_poliza(request, poliza_id, operacion):
     )
     es_cambio = operacion == "cambiar"
     errores = []
-    # Opciones existentes sin reescribir denominaciones históricas.
-    aseguradoras = sorted(set(
-        Poliza.objects.exclude(compania__isnull=True)
-        .exclude(compania="")
-        .values_list("compania", flat=True).distinct()
-    ) | {anterior.compania, "NRE COMPAÑÍA DE SEGUROS PATRIMONIALES Y DE PERSONAS S.A."})
+    # Consulta reutilizable; no modifica las denominaciones históricas.
+    aseguradoras = nombres_aseguradoras(incluir=(
+        anterior.compania, "NRE COMPAÑÍA DE SEGUROS PATRIMONIALES Y DE PERSONAS S.A.",
+    ))
     compania_manual = ""
     if request.method == "POST":
         compania = request.POST.get("compania", "").strip().upper()
