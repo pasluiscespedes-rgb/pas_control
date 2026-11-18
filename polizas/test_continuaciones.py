@@ -8,6 +8,8 @@ from django.urls import reverse
 
 from clientes.models import Cliente
 from polizas.models import Poliza
+from principal.models import Aseguradora
+from polizas.catalogo_aseguradoras import nombres_aseguradoras
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -24,7 +26,8 @@ class ContinuacionPolizaTests(TestCase):
 
     def enviar(self, accion, **changes):
         datos = {
-            "compania": "ASEGURADORA A" if accion == "renovar" else "ASEGURADORA B",
+            "compania": "ASEGURADORA A" if accion == "renovar" else "__otra__",
+            "compania_manual": "" if accion == "renovar" else "ASEGURADORA B",
             "numero_poliza": "NUEVA-002", "cobertura": "RC",
             "fecha_alta": "2026-04-01", "periodicidad": "Semestral",
             "importe_cuota": "25000,50", "porcentaje_comision": "15",
@@ -63,3 +66,33 @@ class ContinuacionPolizaTests(TestCase):
         respuesta = self.client.get(reverse("renovar_poliza", args=[self.anterior.pk]))
         self.assertEqual(respuesta.status_code, 200)
         self.assertEqual(Poliza.objects.count(), 1)
+
+    def test_selector_cambio_incluye_aseguradoras_y_nre(self):
+        respuesta = self.client.get(reverse("cambiar_aseguradora", args=[self.anterior.pk]))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'id="compania-selector"')
+        self.assertContains(respuesta, "ASEGURADORA A")
+        self.assertContains(respuesta, "NRE COMPAÑÍA DE SEGUROS")
+
+    def test_cambio_con_otra_aseguradora_manual(self):
+        respuesta = self.enviar("cambiar", compania="__otra__", compania_manual="ASEGURADORA NUEVA")
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertEqual(Poliza.objects.get(numero_poliza="NUEVA-002").compania, "ASEGURADORA NUEVA")
+
+    def test_rechaza_aseguradora_no_listada_sin_opcion_manual(self):
+        respuesta = self.enviar("cambiar", compania="ASEGURADORA NO LISTADA")
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(Poliza.objects.count(), 1)
+
+    def test_catalogo_incluye_aseguradoras_activas_y_nombres_historicos(self):
+        Aseguradora.objects.create(nombre="ASEGURADORA CENTRAL", codigo_ssn="123", activa=True)
+        Aseguradora.objects.create(nombre="ASEGURADORA INACTIVA", activa=False)
+        nombres = nombres_aseguradoras()
+        self.assertIn("ASEGURADORA CENTRAL", nombres)
+        self.assertIn("ASEGURADORA A", nombres)
+        self.assertNotIn("ASEGURADORA INACTIVA", nombres)
+
+    def test_catalogo_no_duplica_nombres_por_mayusculas(self):
+        Aseguradora.objects.create(nombre="aseguradora a", activa=True)
+        nombres = nombres_aseguradoras()
+        self.assertEqual(sum(nombre.casefold() == "aseguradora a" for nombre in nombres), 1)

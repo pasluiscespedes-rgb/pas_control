@@ -103,12 +103,13 @@
                 </select>
 
 
-                <input class="form-control mb-3"
-                      type="text"
-                      name="compania"
-                      placeholder="Compañía aseguradora"
-                      value="{{ poliza.compania }}"
-                      required>
+                <label for="compania">Compañía aseguradora</label>
+                <select id="compania" name="compania" class="form-select mb-3" required>
+                    <option value="">Seleccione una aseguradora</option>
+                    {% for nombre in aseguradoras %}
+                    <option value="{{ nombre }}" {% if poliza.compania == nombre %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
 
                 <label>Porcentaje de comisión (%)</label>
 

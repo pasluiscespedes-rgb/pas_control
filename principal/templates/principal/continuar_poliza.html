@@ -11,7 +11,32 @@
   <form method="post" class="card card-body shadow-sm">
     {% csrf_token %}
     <label class="form-label">Aseguradora</label>
-    <input name="compania" maxlength="100" required class="form-control mb-3" value="{% if datos %}{{ datos.compania }}{% else %}{{ anterior.compania }}{% endif %}" {% if not es_cambio %}readonly{% endif %}>
+    {% if es_cambio %}
+    <select id="compania-selector" name="compania" class="form-select mb-2" required>
+      <option value="">Seleccioná una aseguradora</option>
+      {% for nombre in aseguradoras %}
+      <option value="{{ nombre }}" {% if datos.compania == nombre or not datos and anterior.compania == nombre %}selected{% endif %}>{{ nombre }}</option>
+      {% endfor %}
+      <option value="__otra__" {% if compania_manual %}selected{% endif %}>Otra aseguradora (escribir nombre)</option>
+    </select>
+    <input id="compania-manual" name="compania_manual" maxlength="100" class="form-control mb-3" placeholder="Razón social de la aseguradora" value="{{ compania_manual }}" {% if not compania_manual %}hidden disabled{% endif %}>
+    <script>
+      (function () {
+        const selector = document.getElementById('compania-selector');
+        const manual = document.getElementById('compania-manual');
+        function actualizar() {
+          const otra = selector.value === '__otra__';
+          manual.hidden = !otra;
+          manual.disabled = !otra;
+          manual.required = otra;
+        }
+        selector.addEventListener('change', actualizar);
+        actualizar();
+      })();
+    </script>
+    {% else %}
+    <input name="compania" maxlength="100" required readonly class="form-control mb-3" value="{% if datos %}{{ datos.compania }}{% else %}{{ anterior.compania }}{% endif %}">
+    {% endif %>
     <label class="form-label">Número de póliza nuevo</label>
     <input name="numero_poliza" maxlength="50" required class="form-control mb-3" value="{{ datos.numero_poliza }}">
     <label class="form-label">Fecha de inicio de la nueva vigencia</label>
