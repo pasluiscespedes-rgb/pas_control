@@ -8,6 +8,13 @@ on:
       - 'principal/views.py'
       - 'principal/test_cambio_titular_vehiculo.py'
       - '.github/workflows/cambio-titular-vehiculo-ci.yml'
+  pull_request:
+    branches:
+      - feature/renovaciones-recibo-layout-20261116
+    paths:
+      - 'principal/views.py'
+      - 'principal/test_cambio_titular_vehiculo.py'
+      - '.github/workflows/cambio-titular-vehiculo-ci.yml'
   workflow_dispatch:
 
 permissions:
