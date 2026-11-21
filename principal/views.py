@@ -581,8 +581,17 @@ def crear_riesgo(request, cliente_id=None):
         if not uso:
          errores.append("Debe seleccionar el uso del vehículo.") 
 
-        if Vehiculo.objects.filter(patente__iexact=patente).exists():
-         errores.append("Ya existe un vehículo registrado con esa patente.")
+        # La patente identifica al vehículo, pero un cambio de titularidad
+        # debe poder registrar al comprador sin modificar las pólizas ni los
+        # datos históricos del propietario anterior. Evitar duplicados solo
+        # dentro de la ficha del mismo cliente.
+        if cliente_id and Vehiculo.objects.filter(
+            cliente_id=cliente_id, patente__iexact=patente
+        ).exists():
+         errores.append(
+             "Este cliente ya tiene un vehículo con esa patente. "
+             "Seleccione el riesgo existente al cargar la póliza."
+         )
 
 
         
