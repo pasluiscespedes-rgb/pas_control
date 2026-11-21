@@ -101,6 +101,7 @@ class CambioTitularVehiculoTests(TestCase):
                 "periodicidad": "Mensual",
                 "estado": "Vigente",
                 "importe_cuota": "25000,00",
+                "observaciones": "",
             },
         )
         self.assertEqual(respuesta.status_code, 302)
