@@ -1,0 +1,54 @@
+name: Vehicle owner-change regression (isolated PostgreSQL)
+
+on:
+  push:
+    branches:
+      - fix/cambio-titular-vehiculo-20261121
+    paths:
+      - 'principal/views.py'
+      - 'principal/test_cambio_titular_vehiculo.py'
+      - '.github/workflows/cambio-titular-vehiculo-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cambio-titular:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: fortex_test
+          POSTGRES_USER: fortex_test
+          POSTGRES_PASSWORD: isolated_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fortex_test -d fortex_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_NAME: fortex_test
+      DB_USER: fortex_test
+      DB_PASSWORD: isolated_test_only
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DJANGO_SECRET_KEY: isolated-test-only-not-production
+      DJANGO_DEBUG: 'False'
+      DJANGO_ALLOWED_HOSTS: testserver,localhost,127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install application dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check migrations
+        run: python manage.py makemigrations --check --dry-run
+      - name: Test change of owner and new policy
+        run: python manage.py test principal.test_cambio_titular_vehiculo --verbosity 2
