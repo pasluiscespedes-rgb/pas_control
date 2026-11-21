@@ -148,16 +148,18 @@ Inicio | FORTEX Gestión Integral
 
     
 
-    <a href="{% url 'abrir_turno' %}"
-        class="fortex-acceso-rapido acceso-turno">
-
-         <img src="{% static 'principal/img/icono_abrir turno.png' %}"
-           alt="Abrir turno"
-           class="icono-acceso-fortex">
-
-         <span class="etiqueta-acceso-fortex">ABRIR TURNO</span>
-
-     </a>
+    <form method="post" action="{% url 'abrir_turno' %}"
+          class="fortex-form-abrir-turno">
+        {% csrf_token %}
+        <button type="submit"
+                class="fortex-acceso-rapido acceso-turno"
+                aria-label="Abrir turno de caja">
+            <img src="{% static 'principal/img/icono_abrir turno.png' %}"
+                 alt="Abrir turno"
+                 class="icono-acceso-fortex">
+            <span class="etiqueta-acceso-fortex">ABRIR TURNO</span>
+        </button>
+    </form>
      
 <a href="{% url 'mensajeria:bandeja_whatsapp' %}"
     class="fortex-acceso-rapido acceso-whatsapp">

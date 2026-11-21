@@ -1828,6 +1828,21 @@ label {
     transform: rotate(90deg);
 }
 
+/* Botón POST del acceso Abrir Turno: mantiene el aspecto circular del escritorio. */
+.fortex-form-abrir-turno {
+    margin: 0;
+    padding: 0;
+}
+.fortex-form-abrir-turno > .fortex-acceso-rapido {
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+.fortex-form-abrir-turno > .fortex-acceso-rapido:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
+}
+
 /* AJUSTE TAMAÑO ABRIR TURNO */
 
 .acceso-turno .icono-acceso-fortex {
