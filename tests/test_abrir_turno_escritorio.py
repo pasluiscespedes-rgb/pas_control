@@ -23,21 +23,21 @@ class AbrirTurnoEscritorioTests(unittest.TestCase):
         cls.caja = CAJA_TEMPLATE.read_text(encoding="utf-8")
 
     def test_dashboard_submits_post_with_csrf(self):
-        forms = re.findall(r"<form\\b[^>]*>.*?</form>", self.html, flags=re.S | re.I)
+        forms = re.findall(r"<form\b[^>]*>.*?</form>", self.html, flags=re.S | re.I)
         turno_forms = [f for f in forms if "{% url 'abrir_turno' %}" in f]
         self.assertEqual(len(turno_forms), 1)
         form = turno_forms[0]
         self.assertRegex(form, r'(?i)method="post"')
         self.assertIn("{% csrf_token %}", form)
-        self.assertRegex(form, r'(?i)<button\\b[^>]*type="submit"')
+        self.assertRegex(form, r'(?i)<button\b[^>]*type="submit"')
         self.assertIn("fortex-acceso-rapido acceso-turno", form)
         self.assertIn("icono_abrir turno.png", form)
-        self.assertNotRegex(self.html, r'<a\\b[^>]*href="{% url \'abrir_turno\' %}"')
+        self.assertNotRegex(self.html, r'<a\b[^>]*href="{% url \'abrir_turno\' %}"')
 
     def test_backend_requires_post_and_csrf(self):
         self.assertRegex(
             self.views,
-            r"@login_required\\s+@require_POST\\s+@csrf_protect\\s+def abrir_turno\\(",
+            r"@login_required\s+@require_POST\s+@csrf_protect\s+def abrir_turno\(",
         )
         self.assertIn('method="post" action="{% url \'abrir_turno\' %}"', self.caja)
         self.assertIn("{% csrf_token %}", self.caja)
