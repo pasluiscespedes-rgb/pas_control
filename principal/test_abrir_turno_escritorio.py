@@ -1,11 +1,12 @@
 """Regresión: acceso Abrir turno del escritorio, usando solo datos sintéticos."""
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from principal.models import PerfilUsuario, Sucursal, TurnoCaja
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class AbrirTurnoDesdeEscritorioTests(TestCase):
     @classmethod
     def setUpTestData(cls):
